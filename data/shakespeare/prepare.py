@@ -25,7 +25,8 @@ val_file_path = create_local_path_for_a_file_name(val_file)
 metadata_file = 'metadata.json'
 metadata_file_path = create_local_path_for_a_file_name(metadata_file)
 
-train_ratio = 0.8
+
+train_ratio = 0.9
 val_ratio = 1.0 - train_ratio
 
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     unique_characters = list(set(characters))
     num_unique_characters = len(unique_characters)
     num_characters_for_training = int(num_characters * train_ratio)
-    num_characters_for_validation = int(num_characters * val_ratio)
+    num_characters_for_validation = num_characters - num_characters_for_training
 
     print(f"Number of lines: {len(lines)}")
     print(f"Number of characters: {num_characters}")
@@ -58,11 +59,11 @@ if __name__ == '__main__':
 
     # Create train file
     with open(train_file_path, mode='w') as file:
-        file.write(characters[:int(num_characters * train_ratio)])
+        file.write(characters[:num_characters_for_training])
 
     # Create val file
     with open(val_file_path, mode='w') as file:
-        file.write(characters[int(num_characters * train_ratio):])
+        file.write(characters[num_characters_for_training:])
 
     # Create metadata file
     with open(metadata_file, mode='w') as file:
