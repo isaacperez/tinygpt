@@ -3,34 +3,30 @@ import os
 import json
 
 
-def create_local_path_for_a_file_name(file_name):
-    return os.path.join(os.path.dirname(__file__), file_name)
-
-
 # Constants
 data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
 
 input_file_name = 'input.txt'
-input_file_path = create_local_path_for_a_file_name(input_file_name)
-
 dataset_info_file = 'dataset.json'
-dataset_info_file_path = create_local_path_for_a_file_name(dataset_info_file)
-
 train_file = 'train.txt'
-train_file_path = create_local_path_for_a_file_name(train_file)
-
 val_file = 'val.txt'
-val_file_path = create_local_path_for_a_file_name(val_file)
-
 metadata_file = 'metadata.json'
-metadata_file_path = create_local_path_for_a_file_name(metadata_file)
-
-
 train_ratio = 0.9
 val_ratio = 1.0 - train_ratio
 
 
+def create_local_path_for_a_file_name(file_name):
+    return os.path.join(os.path.dirname(__file__), file_name)
+
+
 if __name__ == '__main__':
+
+    # Create a local path for each file
+    input_file_path = create_local_path_for_a_file_name(input_file_name)
+    dataset_info_file_path = create_local_path_for_a_file_name(dataset_info_file)
+    train_file_path = create_local_path_for_a_file_name(train_file)
+    val_file_path = create_local_path_for_a_file_name(val_file)
+    metadata_file_path = create_local_path_for_a_file_name(metadata_file)
 
     # Download the Tiny Shakespeare dataset
     print(f"Downloading dataset from '{data_url}'...")
