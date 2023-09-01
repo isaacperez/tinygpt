@@ -1,7 +1,9 @@
+import re
 import json
 import pytest
 
 from tinygpt.dataset import DatasetType, Dataset, TextDataset, create_dataset
+from tinygpt.dataset import TaskType, Task, NextElementPredictionTask, create_task
 
 
 def create_data_for_text_dataset(text: str) -> tuple[str, list, dict, dict, dict]:
@@ -121,7 +123,7 @@ def test_create_dataset(tmp_path):
     with metadata_path.open(mode='w') as file:
         json.dump(metadata_dict, file)
 
-    # Test dataset have the expected type
+    # Test dataset has the expected type
     dataset = create_dataset(
         dataset_type=DatasetType.TXT_DATASET,
         data_file_path=data_path,
@@ -132,3 +134,73 @@ def test_create_dataset(tmp_path):
 
     # Test dataset is valid
     dataset.validate()
+
+
+def test_NextElementPredictionTask(TextDataset_files):
+
+    # Create a dataset from test data
+    data_file_path, metadata_file_path = TextDataset_files
+    dataset = TextDataset(data_file_path=data_file_path, metadata_file_path=metadata_file_path, validate_data=True)
+
+    # Test it's subclass of Taslk
+    assert issubclass(NextElementPredictionTask, Task)
+
+    # Test we can create an object
+    _ = NextElementPredictionTask(dataset, max_seq_length=len(dataset) - 1)
+
+    # Try different values for max_seq_length that are not valid
+    for wrong_max_seq_length in [-1, 0, len(dataset), len(dataset) + 1]:
+        with pytest.raises(AssertionError, match=re.escape("0 < max_seq_length < len(dataset)")):
+            _ = NextElementPredictionTask(dataset, max_seq_length=wrong_max_seq_length)
+
+    # Check we can iterate and the data has the expected shape and values
+    for max_seq_length in [3, 4, 5]:
+        expected_num_iterations = len(dataset) - max_seq_length
+        task = NextElementPredictionTask(dataset, max_seq_length=max_seq_length)
+        num_iterations = 0
+        for (input, expected_output) in task:
+            assert len(input) == len(expected_output) == max_seq_length
+            assert all(dataset.decode(i) == dataset[num_iterations + idx] for idx, i in enumerate(input))
+            assert all(dataset.decode(i) == dataset[num_iterations + idx + 1] for idx, i in enumerate(expected_output))
+            num_iterations += 1
+
+        assert num_iterations == expected_num_iterations
+
+
+def test_create_task(TextDataset_files):
+
+    # Create a dataset from test data
+    data_file_path, metadata_file_path = TextDataset_files
+    dataset = TextDataset(data_file_path=data_file_path, metadata_file_path=metadata_file_path, validate_data=True)
+
+    # Test not valid dataset types
+    for task_type in [0, "0"]:
+        with pytest.raises(AssertionError, match=f"task_type is not a TaskType. Found {type(task_type)}"):
+            _ = create_task(task_type=task_type)
+
+    with pytest.raises(AssertionError, match="task_type is None"):
+        _ = create_task(task_type=None)
+
+    # Test raise error when dataset is not specified
+    with pytest.raises(TypeError, match=".*missing 1 required positional argument: 'dataset'"):
+        task = create_task(
+            task_type=TaskType.NEXT_ELEMENT_PREDICTION,
+            max_seq_length=3
+        )
+
+    # Test raise error when max_seq_length is not specified
+    with pytest.raises(TypeError, match=".*missing 1 required positional argument: 'max_seq_length'"):
+        task = create_task(
+            task_type=TaskType.NEXT_ELEMENT_PREDICTION,
+            dataset=dataset
+        )
+
+    # Test task has the expected type
+    for max_seq_length in [3, 4, 5]:
+        task = create_task(
+            task_type=TaskType.NEXT_ELEMENT_PREDICTION,
+            dataset=dataset,
+            max_seq_length=max_seq_length,
+        )
+
+        assert type(task) == NextElementPredictionTask

@@ -1,5 +1,5 @@
 import requests
-import os
+from pathlib import Path
 import json
 
 
@@ -16,7 +16,7 @@ val_ratio = 1.0 - train_ratio
 
 
 def create_local_path_for_a_file_name(file_name):
-    return os.path.join(os.path.dirname(__file__), file_name)
+    return Path(__file__).parent / file_name
 
 
 if __name__ == '__main__':
@@ -30,11 +30,11 @@ if __name__ == '__main__':
 
     # Download the Tiny Shakespeare dataset
     print(f"Downloading dataset from '{data_url}'...")
-    with open(input_file_path, mode='w') as file:
+    with input_file_path.open(mode='w') as file:
         file.write(requests.get(data_url).text)
 
     # Read the dataseat file
-    with open(input_file_path, mode='r') as file:
+    with input_file_path.open(mode='r') as file:
         lines = file.readlines()
 
     # Show some information about the dataset
@@ -54,15 +54,15 @@ if __name__ == '__main__':
     print(f"{num_characters_for_validation} characters for validation ({val_ratio * 100:.0f}%)")
 
     # Create train file
-    with open(train_file_path, mode='w') as file:
+    with train_file_path.open(mode='w') as file:
         file.write(characters[:num_characters_for_training])
 
     # Create val file
-    with open(val_file_path, mode='w') as file:
+    with val_file_path.open(mode='w') as file:
         file.write(characters[num_characters_for_training:])
 
     # Create metadata file
-    with open(metadata_file, mode='w') as file:
+    with metadata_file_path.open(mode='w') as file:
         json.dump(
             {
                 "unique_chars": unique_characters,

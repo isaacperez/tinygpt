@@ -116,5 +116,75 @@ def create_dataset(dataset_type: DatasetType, **kwargs) -> Dataset:
 
     if dataset_type == DatasetType.TXT_DATASET:
         dataset = TextDataset(**kwargs)
+    else:
+        raise NotImplementedError(f'Dataset {dataset_type.name} has not been implemented yet')
 
     return dataset
+
+
+class Task(ABC):
+
+    @abstractmethod
+    def __iter__(self) -> type:
+        pass
+
+    @abstractmethod
+    def __next__(self) -> tuple:
+        pass
+
+    @abstractmethod
+    def __len__(self) -> tuple:
+        pass
+
+
+class TaskType(Enum):
+    NEXT_ELEMENT_PREDICTION = auto()
+
+
+class NextElementPredictionTask(Task):
+
+    def __init__(self, dataset: Dataset, max_seq_length: int) -> None:
+        self.dataset, self.max_seq_length = dataset, max_seq_length
+        assert self.max_seq_length is not None, 'max_seq_length is None'
+        assert 0 < self.max_seq_length < len(dataset), "0 < max_seq_length < len(dataset)"
+
+        self._index = 0
+
+    def __iter__(self) -> type:
+        return self
+
+    def __next__(self) -> tuple:
+
+        if self._index < len(self):
+            # input_sequence is a list of max_seq_length characters encoded as numbers taken from the _index position
+            input_sequence = [
+                self.dataset.encode(c) for c in self.dataset[self._index:self._index + self.max_seq_length]
+            ]
+
+            # expected_output_sequence is the same as input_sequence but shifted one character to the right
+            expected_output_sequence = [
+                self.dataset.encode(c) for c in self.dataset[self._index + 1:self._index + self.max_seq_length + 1]
+            ]
+
+            self._index += 1
+
+            return input_sequence, expected_output_sequence
+
+        else:
+            raise StopIteration
+
+    def __len__(self) -> int:
+        return len(self.dataset) - self.max_seq_length
+
+
+def create_task(task_type: TaskType, **kwargs) -> Task:
+
+    assert task_type is not None, "task_type is None"
+    assert type(task_type) == TaskType, f"task_type is not a TaskType. Found {type(task_type)}"
+
+    if task_type == TaskType.NEXT_ELEMENT_PREDICTION:
+        task = NextElementPredictionTask(**kwargs)
+    else:
+        raise NotImplementedError(f'Task {task_type.name} has not been implemented yet')
+
+    return task

@@ -120,8 +120,8 @@ celerybeat.pid
 *.sage.py
 
 # Data files
-*.txt
-*.json
+data/*/*.txt
+data/*/*.json
 
 # Environments
 .env
