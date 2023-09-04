@@ -4,10 +4,10 @@ import pytest
 
 from tinygpt.dataset import DatasetType, Dataset, TextDataset, create_dataset
 from tinygpt.dataset import TaskType, Task, NextElementPredictionTask, create_task
+from tinygpt.dataset import DatasetHandler
 
 
 def create_data_for_text_dataset(text: str) -> tuple[str, list, dict, dict, dict]:
-
     data = text
     unique_characters = list(set(data))
     id2char = {i: c for i, c in enumerate(unique_characters)}
@@ -21,7 +21,6 @@ def create_data_for_text_dataset(text: str) -> tuple[str, list, dict, dict, dict
 
 
 def test_TextDataset(tmp_path):
-
     # Test it's subclass of Dataset
     assert issubclass(TextDataset, Dataset)
 
@@ -98,7 +97,6 @@ def test_TextDataset(tmp_path):
 
 
 def test_create_dataset(tmp_path):
-
     # Test not valid dataset types
     for dataset_type in [0, "0"]:
         with pytest.raises(AssertionError, match=f"dataset_type is not a DatasetType. Found {type(dataset_type)}"):
@@ -137,26 +135,52 @@ def test_create_dataset(tmp_path):
 
 
 def test_NextElementPredictionTask(TextDataset_files):
-
     # Create a dataset from test data
     data_file_path, metadata_file_path = TextDataset_files
-    dataset = TextDataset(data_file_path=data_file_path, metadata_file_path=metadata_file_path, validate_data=True)
+    dataset = create_dataset(
+        dataset_type=DatasetType.TXT_DATASET,
+        data_file_path=data_file_path,
+        metadata_file_path=metadata_file_path,
+        validate_data=True
+    )
 
     # Test it's subclass of Taslk
     assert issubclass(NextElementPredictionTask, Task)
 
     # Test we can create an object
-    _ = NextElementPredictionTask(dataset, max_seq_length=len(dataset) - 1)
+    _ = NextElementPredictionTask(dataset=dataset, max_seq_length=len(dataset) - 1)
 
     # Try different values for max_seq_length that are not valid
     for wrong_max_seq_length in [-1, 0, len(dataset), len(dataset) + 1]:
         with pytest.raises(AssertionError, match=re.escape("0 < max_seq_length < len(dataset)")):
-            _ = NextElementPredictionTask(dataset, max_seq_length=wrong_max_seq_length)
+            _ = NextElementPredictionTask(dataset=dataset, max_seq_length=wrong_max_seq_length)
 
-    # Check we can iterate and the data has the expected shape and values
+    # Test dataset is not None
+    with pytest.raises(AssertionError, match="dataset is None"):
+        _ = NextElementPredictionTask(dataset=None, max_seq_length=len(dataset) - 1)
+
+    # Check we can iterate and index the task and the data has the expected shape and values
     for max_seq_length in [3, 4, 5]:
         expected_num_iterations = len(dataset) - max_seq_length
-        task = NextElementPredictionTask(dataset, max_seq_length=max_seq_length)
+        task = NextElementPredictionTask(dataset=dataset, max_seq_length=max_seq_length)
+        num_iterations = 0
+        for (input, expected_output) in task:
+            assert len(input) == len(expected_output) == max_seq_length
+            assert all(dataset.decode(i) == dataset[num_iterations + idx] for idx, i in enumerate(input))
+            assert all(dataset.decode(i) == dataset[num_iterations + idx + 1] for idx, i in enumerate(expected_output))
+            num_iterations += 1
+
+        assert num_iterations == expected_num_iterations
+
+        for index in [0, len(task) - 1]:
+            input, expected_output = task[index]
+            assert len(input) == len(expected_output) == max_seq_length
+            assert all(dataset.decode(i) == dataset[index + idx] for idx, i in enumerate(input))
+            assert all(dataset.decode(i) == dataset[index + idx + 1] for idx, i in enumerate(expected_output))
+
+    # Test that we can iterate more than once over the same dataset
+    task = NextElementPredictionTask(dataset=dataset, max_seq_length=max_seq_length)
+    for _ in range(3):
         num_iterations = 0
         for (input, expected_output) in task:
             assert len(input) == len(expected_output) == max_seq_length
@@ -168,10 +192,14 @@ def test_NextElementPredictionTask(TextDataset_files):
 
 
 def test_create_task(TextDataset_files):
-
     # Create a dataset from test data
     data_file_path, metadata_file_path = TextDataset_files
-    dataset = TextDataset(data_file_path=data_file_path, metadata_file_path=metadata_file_path, validate_data=True)
+    dataset = create_dataset(
+        dataset_type=DatasetType.TXT_DATASET,
+        data_file_path=data_file_path,
+        metadata_file_path=metadata_file_path,
+        validate_data=True
+    )
 
     # Test not valid dataset types
     for task_type in [0, "0"]:
@@ -204,3 +232,92 @@ def test_create_task(TextDataset_files):
         )
 
         assert type(task) == NextElementPredictionTask
+
+
+def test_DatasetHandler(TextDataset_files):
+    # Create a dataset from test data
+    data_file_path, metadata_file_path = TextDataset_files
+    dataset = create_dataset(
+        dataset_type=DatasetType.TXT_DATASET,
+        data_file_path=data_file_path,
+        metadata_file_path=metadata_file_path,
+        validate_data=True
+    )
+
+    # Create a task
+    task = create_task(
+        task_type=TaskType.NEXT_ELEMENT_PREDICTION,
+        dataset=dataset,
+        max_seq_length=3,
+    )
+
+    # Test an invalid combination of parameters
+    with pytest.raises(AssertionError, match=re.escape("0 < batch_size <= len(task)")):
+        for batch_size in [-1, len(task) + 1]:
+            dataset_handler = DatasetHandler(
+                task=task,
+                batch_size=batch_size,
+                drop_last=False,
+                shuffle=False
+            )
+
+    with pytest.raises(AssertionError, match="task is None"):
+        dataset_handler = DatasetHandler(
+            task=None,
+            batch_size=2,
+            drop_last=False,
+            shuffle=False
+        )
+
+    # Test a valid combination of parameters
+    num_sequences = len(task)
+    for batch_size in range(1, num_sequences + 1):
+        for drop_last in [True, False]:
+            dataset_handler = DatasetHandler(
+                task=task,
+                batch_size=batch_size,
+                drop_last=drop_last,
+                shuffle=False
+            )
+
+            # Check the size is correct
+            if drop_last:
+                assert len(dataset_handler) == (len(task) // batch_size)
+            else:
+                assert len(dataset_handler) == (len(task) // batch_size) + int(num_sequences % batch_size > 0)
+
+            # Check batches are correct
+            for idx_batch, (input_batch, expected_output_batch) in enumerate(dataset_handler):
+
+                # Check the size of the batch
+                assert len(input_batch) == len(expected_output_batch)
+                if drop_last or idx_batch < len(dataset_handler) - 1:
+                    assert len(input_batch) == batch_size
+                else:
+                    assert len(input_batch) in {num_sequences % batch_size, batch_size}
+
+                # Check each element of the batch
+                for idx_element in range(len(input_batch)):
+                    input_seq, expected_output_seq = task[idx_batch * batch_size + idx_element]
+                    assert input_seq == input_batch[idx_element]
+                    assert expected_output_seq == expected_output_batch[idx_element]
+
+            # Test indexing
+            for index in [0, len(dataset_handler) - 1]:
+                input_batch, expected_output_batch = dataset_handler[index]
+
+                # Check the size of the batch
+                assert len(input_batch) == len(expected_output_batch)
+                if drop_last or index < len(dataset_handler) - 1:
+                    assert len(input_batch) == batch_size
+                else:
+                    assert len(input_batch) in {num_sequences % batch_size, batch_size}
+
+                # Check each element of the batch
+                for idx_element in range(len(input_batch)):
+                    input_seq, expected_output_seq = task[index * batch_size + idx_element]
+                    assert input_seq == input_batch[idx_element]
+                    assert expected_output_seq == expected_output_batch[idx_element]
+
+    # Test shuffle
+    # TO DO

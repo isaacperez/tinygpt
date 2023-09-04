@@ -20,7 +20,6 @@ def create_local_path_for_a_file_name(file_name):
 
 
 if __name__ == '__main__':
-
     # Create a local path for each file
     input_file_path = create_local_path_for_a_file_name(input_file_name)
     dataset_info_file_path = create_local_path_for_a_file_name(dataset_info_file)
