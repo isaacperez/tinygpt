@@ -320,4 +320,77 @@ def test_DatasetHandler(TextDataset_files):
                     assert expected_output_seq == expected_output_batch[idx_element]
 
     # Test shuffle
-    # TO DO
+    num_sequences = len(task)
+    for batch_size in range(1, num_sequences + 1):
+        for drop_last in [True, False]:
+
+            # First create one without shuffling to obtain the expected batches
+            dataset_handler = DatasetHandler(
+                task=task,
+                batch_size=batch_size,
+                drop_last=drop_last,
+                shuffle=False
+            )
+
+            expected_input_sequences = []
+            expected_output_sequences = []
+            for idx_batch, (input_batch, expected_output_batch) in enumerate(dataset_handler):
+                for seq in input_batch:
+                    expected_input_sequences.append(seq)
+                for seq in expected_output_batch:
+                    expected_output_sequences.append(seq)
+
+            # Now create one with shuffling
+            dataset_handler = DatasetHandler(
+                task=task,
+                batch_size=batch_size,
+                drop_last=drop_last,
+                shuffle=True
+            )
+
+            # Check the size is correct
+            if drop_last:
+                assert len(dataset_handler) == (len(task) // batch_size)
+            else:
+                assert len(dataset_handler) == (len(task) // batch_size) + int(num_sequences % batch_size > 0)
+
+            # Check batches are correct
+            input_sequences = []
+            output_sequences = []
+            for idx_batch, (input_batch, expected_output_batch) in enumerate(dataset_handler):
+
+                # Check the size of the batch
+                assert len(input_batch) == len(expected_output_batch)
+                if drop_last or idx_batch < len(dataset_handler) - 1:
+                    assert len(input_batch) == batch_size
+                else:
+                    assert len(input_batch) in {num_sequences % batch_size, batch_size}
+
+                # Save the sequences
+                for seq in input_batch:
+                    input_sequences.append(seq)
+                for seq in expected_output_batch:
+                    output_sequences.append(seq)
+
+            # Check we have the same number of sequences as expected
+            assert len(input_sequences) == len(expected_input_sequences)
+            assert len(output_sequences) == len(expected_output_sequences)
+
+            # Check that sequences are not repeated and that all expected sequences exist
+            idx_sequences_in_expected_input = set()
+            for seq in input_sequences:
+                if seq in expected_input_sequences:
+                    idx_sequences_in_expected_input.add(expected_input_sequences.index(seq))
+
+            idx_sequences_in_expected_output = set()
+            for seq in output_sequences:
+                if seq in expected_output_sequences:
+                    idx_sequences_in_expected_output.add(expected_output_sequences.index(seq))
+
+            num_seq_dropped = num_sequences % batch_size
+            if drop_last and num_seq_dropped != 0:
+                assert len(idx_sequences_in_expected_input) == len(idx_sequences_in_expected_output)
+                assert batch_size - num_seq_dropped <= len(idx_sequences_in_expected_input) < num_sequences
+            else:
+                assert len(idx_sequences_in_expected_input) == len(expected_input_sequences)
+                assert len(idx_sequences_in_expected_output) == len(expected_output_sequences)
