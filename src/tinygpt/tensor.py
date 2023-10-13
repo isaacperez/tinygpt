@@ -53,7 +53,7 @@ class Tensor():
         return f"<Tensor {self.data!r}>"
 
     def _extract_flat_array_and_shape(self, data, dtype) -> (array, list):
-        flat_array = []
+        flat_array = array(DType.DType2arrayType(dtype))
         size_by_dim = {}
         type_by_dim = {}
         queue = deque([(data, 1)])
