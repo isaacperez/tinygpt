@@ -1,5 +1,6 @@
 import random
 from pathlib import Path
+from typing import Any
 import json
 from enum import auto, Enum
 from abc import ABC, abstractmethod
@@ -16,11 +17,11 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
-    def encode(self, data) -> int:
+    def encode(self, data: Any) -> int:
         pass
 
     @abstractmethod
-    def decode(self, data) -> str:
+    def decode(self, data: Any) -> str:
         pass
 
     @abstractmethod
@@ -70,16 +71,16 @@ class TextDataset(Dataset):
         if validate_data:
             self.validate()
 
-    def __getitem__(self, key) -> str:
+    def __getitem__(self, key: int) -> str:
         return self.data[key]
 
     def __len__(self) -> int:
         return len(self.data)
 
-    def encode(self, element) -> int:
+    def encode(self, element: str) -> int:
         return self.char2id[element]
 
-    def decode(self, element) -> str:
+    def decode(self, element: int) -> str:
         return self.id2char[element]
 
     def get_classes(self) -> list:
@@ -111,7 +112,7 @@ class TextDataset(Dataset):
 
 def create_dataset(dataset_type: DatasetType, **kwargs) -> Dataset:
     assert dataset_type is not None, "dataset_type is None"
-    assert type(dataset_type) == DatasetType, f"dataset_type is not a DatasetType. Found {type(dataset_type)}"
+    assert isinstance(dataset_type, DatasetType), f"dataset_type is not a DatasetType. Found {type(dataset_type)}"
 
     if dataset_type == DatasetType.TXT_DATASET:
         dataset = TextDataset(**kwargs)
@@ -132,7 +133,7 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def __getitem__(self, key) -> tuple:
+    def __getitem__(self, key: int) -> tuple:
         pass
 
     @abstractmethod
@@ -169,7 +170,7 @@ class NextElementPredictionTask(Task):
         else:
             raise StopIteration
 
-    def __getitem__(self, key) -> tuple:
+    def __getitem__(self, key: int) -> tuple:
         # input_sequence is a list of max_seq_length characters encoded as numbers taken from the _index position
         input_sequence = [self.dataset.encode(c) for c in self.dataset[key:key + self.max_seq_length]]
 
@@ -184,7 +185,7 @@ class NextElementPredictionTask(Task):
 
 def create_task(task_type: TaskType, **kwargs) -> Task:
     assert task_type is not None, "task_type is None"
-    assert type(task_type) == TaskType, f"task_type is not a TaskType. Found {type(task_type)}"
+    assert isinstance(task_type, TaskType), f"task_type is not a TaskType. Found {type(task_type)}"
 
     if task_type == TaskType.NEXT_ELEMENT_PREDICTION:
         task = NextElementPredictionTask(**kwargs)
@@ -242,7 +243,7 @@ class DatasetHandler:
         else:
             raise StopIteration
 
-    def __getitem__(self, key) -> tuple:
+    def __getitem__(self, key: int) -> tuple:
         input_batch = []
         expected_output_batch = []
 

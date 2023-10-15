@@ -91,7 +91,7 @@ class Tensor():
 
         return tuple(stride)
 
-    def set_data(self, data, dtype):
+    def set_data(self, data: List[List[Any]], dtype: DType) -> None:
         self.dtype = dtype
         self.offset = 0
 
