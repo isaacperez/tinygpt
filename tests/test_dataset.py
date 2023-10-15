@@ -128,7 +128,7 @@ def test_create_dataset(tmp_path):
         metadata_file_path=metadata_path
     )
 
-    assert type(dataset) == TextDataset
+    assert isinstance(dataset, TextDataset)
 
     # Test dataset is valid
     dataset.validate()
@@ -231,7 +231,7 @@ def test_create_task(TextDataset_files):
             max_seq_length=max_seq_length,
         )
 
-        assert type(task) == NextElementPredictionTask
+        assert isinstance(task, NextElementPredictionTask)
 
 
 def test_DatasetHandler(TextDataset_files):
