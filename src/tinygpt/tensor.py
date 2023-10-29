@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import deque
-from typing import Union, Any, List
+from typing import Any
 from array import array
 from enum import auto, Enum
 
@@ -41,12 +41,12 @@ class Tensor():
 
     def __init__(
             self,
-            data: Union[list, tuple, float, int, bool],
+            data: Any,
             dtype: DType = DType.float32,
             requires_grad=False
     ) -> None:
         # All data ends up in a one-dimensional array but we extract some extra information to handle
-        # multidimensional indexing
+        # multidimensional operations
         self.set_data(data, dtype)
         self.requires_grad = requires_grad
 
@@ -56,7 +56,10 @@ class Tensor():
     def __repr__(self) -> str:
         return f"<Tensor {self.data!r}>"
 
-    def _extract_flat_array_and_shape(self, data: List[List[Any]], dtype: DType) -> (array, list):
+    def _extract_flat_array_and_shape(self, data: Any, dtype: DType) -> (array, list):
+        # The size and type of each element in each dimension must always be the same in the same dimension. We assume 
+        # that the first element of a dimension designates the type and size expected for the rest. While we go through 
+        # the data object extracting values for the flat array, we make the corresponding checks.
         flat_array = array(DType.DType2arrayType(dtype))
         size_by_dim = {}
         type_by_dim = {}
@@ -84,14 +87,14 @@ class Tensor():
         return flat_array, tuple([value for value in size_by_dim.values() if value != -1])
 
     def _calculate_stride(self):
+        # Creates a tuple with the number of elements of the flat array to be skipped in each dimension to traverse it
         stride = [1] * self.ndim
-
         for i in range(self.ndim - 2, -1, -1):
             stride[i] = stride[i + 1] * self.shape[i + 1]
 
         return tuple(stride)
 
-    def set_data(self, data: List[List[Any]], dtype: DType) -> None:
+    def set_data(self, data: Any, dtype: DType) -> None:
         self.dtype = dtype
         self.offset = 0
 
@@ -101,10 +104,10 @@ class Tensor():
             self.stride = self._calculate_stride()
 
         elif isinstance(data, (float, int, bool)):
+            self.data = array(DType.DType2arrayType(dtype), [DType.cast(data, dtype)])
+            self.shape = ()
             self.ndim = 0
             self.stride = ()
-            self.shape = ()
-            self.data = array(DType.DType2arrayType(dtype), [DType.cast(data, dtype)])
 
         else:
             raise RuntimeError(f"Could not infer dtype of type {type(data)}")
