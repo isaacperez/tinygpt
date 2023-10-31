@@ -47,7 +47,7 @@ class Tensor():
     ) -> None:
         # All data ends up in a one-dimensional array but we extract some extra information to handle
         # multidimensional operations
-        self.set_data(data, dtype)
+        self._extract_data(data, dtype)
         self.requires_grad = requires_grad
 
         self.grad = None
@@ -94,7 +94,7 @@ class Tensor():
 
         return tuple(stride)
 
-    def set_data(self, data: Any, dtype: DType) -> None:
+    def _extract_data(self, data: Any, dtype: DType) -> None:
         self.dtype = dtype
         self.offset = 0
 

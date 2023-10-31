@@ -1,11 +1,22 @@
 # Components 
 This file contains a detailed description of the main abstractions created for this project.
 
-## Dataset
+## dataset.py
 `TO DO`
 
-## Task
+### Dataset
 `TO DO`
 
-## Dataset Handler
+### Task
+`TO DO`
+
+### Dataset Handler
+`TO DO`
+
+## tensor.py
+
+### DType
+`TO DO`
+
+### Tensor
 `TO DO`
