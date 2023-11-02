@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import deque
-from typing import Any
+from typing import Any, Union
 from array import array
 from enum import auto, Enum
 
@@ -22,6 +22,14 @@ class DType(Enum):
             raise RuntimeError(f"Missing implementation for DType {dtype.value.name}")
         else:
             raise RuntimeError(f"dtype '{dtype}' is not a DType object")
+
+    @classmethod
+    def getDTypeFromArrayType(self, data: array) -> DType:
+        for dtype in DType:
+            if DType.DType2arrayType(dtype) == data.typecode:
+                return dtype
+
+        raise RuntimeError(f"Unknown array type: {data.typecode}")
 
     @classmethod
     def cast(self, data: Any, dtype: DType) -> Any:
@@ -111,3 +119,35 @@ class Tensor():
 
         else:
             raise RuntimeError(f"Could not infer dtype of type {type(data)}")
+
+    def _set_data(self, data: array, shape: tuple, stride: tuple, offset: int) -> None:
+        """Assigns the flat array and tensor properties directly, without checking if it makes sense"""
+        assert isinstance(data, array)
+        assert isinstance(shape, tuple)
+        assert all(val > 0 for val in shape)
+        assert isinstance(stride, tuple)
+        assert all(val >= 1 for val in stride)
+        assert isinstance(offset, int)
+        assert offset >= 0
+
+        self.data = data
+        self.shape = shape
+        self.stride = stride
+        self.offset = offset
+        self.ndim = len(self.shape)
+        self.dtype = DType.getDTypeFromArrayType(self.data)
+
+    def _index_to_flat_index(self, index: tuple) -> int:
+        return self.offset + sum([idx * stride for idx, stride in zip(index, self.stride)])
+
+    def _set(self, index: tuple, value: Any) -> None:
+        # This method is intended for internal use by operations that need efficient access to data. It should not
+        # be used when manipulating a tensor. Instead, when you want to access/modify the elements of the tensor do it
+        # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
+        self.data[self._index_to_flat_index(index)] = value
+
+    def _get(self, index: tuple) -> Union[float, int, bool]:
+        # This method is intended for internal use by operations that need efficient access to data. It should not
+        # be used when manipulating a tensor. Instead, when you want to access/modify the elements of the tensor do it
+        # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
+        return self.data[self._index_to_flat_index(index)]
