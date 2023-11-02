@@ -65,8 +65,8 @@ class Tensor():
         return f"<Tensor {self.data!r}>"
 
     def _extract_flat_array_and_shape(self, data: Any, dtype: DType) -> (array, list):
-        # The size and type of each element in each dimension must always be the same in the same dimension. We assume 
-        # that the first element of a dimension designates the type and size expected for the rest. While we go through 
+        # The size and type of each element in each dimension must always be the same in the same dimension. We assume
+        # that the first element of a dimension designates the type and size expected for the rest. While we go through
         # the data object extracting values for the flat array, we make the corresponding checks.
         flat_array = array(DType.DType2arrayType(dtype))
         size_by_dim = {}
@@ -121,7 +121,7 @@ class Tensor():
             raise RuntimeError(f"Could not infer dtype of type {type(data)}")
 
     def _set_data(self, data: array, shape: tuple, stride: tuple, offset: int) -> None:
-        """Assigns the flat array and tensor properties directly, without checking if it makes sense"""
+        # Assigns the flat array and tensor properties directly, without checking if it makes sense
         assert isinstance(data, array)
         assert isinstance(shape, tuple)
         assert all(val > 0 for val in shape)
