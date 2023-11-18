@@ -1,32 +1,15 @@
-from array import array
 import pytest
 from tinygpt.tensor import Tensor, DType
 
 
 def test_DType():
-    for dtype in DType:
-        assert isinstance(DType.DType2arrayType(dtype), str)
-
-    with pytest.raises(RuntimeError, match="dtype 'INVENTED_DTYPE' is not a DType object"):
-        DType.DType2arrayType("INVENTED_DTYPE")
 
     for value in [-2, -1, 0, 1, 2]:
-        assert DType.cast(value, DType.bool) == (value != 0)
-        assert DType.cast(value, DType.float32) == float(value)
-        assert DType.cast((value != 0), DType.float32) == float((value != 0))
-        assert DType.cast(value, DType.int32) == int(value)
-        assert DType.cast((value != 0), DType.int32) == int((value != 0))
-
-    with pytest.raises(RuntimeError, match="dtype 'INVENTED_DTYPE' is not a DType object"):
-        DType.cast(None, "INVENTED_DTYPE")
-
-    for dtype in DType:
-        temp_array = array(DType.DType2arrayType(dtype), [])
-        assert DType.getDTypeFromArrayType(temp_array) == dtype
-
-    array_with_unkown_type = array('u', [])
-    with pytest.raises(RuntimeError, match="Unknown array type: u"):
-        DType.getDTypeFromArrayType(array_with_unkown_type)
+        assert DType.bool.cast(value) == (value != 0)
+        assert DType.float32.cast(value) == float(value)
+        assert DType.float32.cast((value != 0)) == float((value != 0))
+        assert DType.int32.cast(value) == int(value)
+        assert DType.int32.cast((value != 0)) == int((value != 0))
 
 
 def test_Tensor():
@@ -53,7 +36,7 @@ def test_Tensor():
 
     # Create tensor from lists
     for dtype in DType:
-        data = [DType.cast(number, dtype) for number in list(range(-3, 3))]
+        data = [dtype.cast(number) for number in list(range(-3, 3))]
 
         expected_data = [value for value in data]
         expected_shape = [len(data)]
@@ -95,13 +78,13 @@ def test_Tensor():
 def test_tensor_set_data():
     # Create a list of data to set
     data = [0, 1, 2, 3, 4]
+    dtype = DType.int32
 
-    valid_arrays = [array('f', data), array('i', data), array('B', data)]
+    valid_arrays = [[float(i) for i in data], [int(i) for i in data], [bool(i) for i in data]]
     valid_shapes = [(1,), (1, 4, 4123, 2), (len(data),)]
     valid_strides = [(1,), (1, 2), (4, 8, 32423)]
     valid_offsets = [0, 1, 15]
 
-    not_valid_arrays = [array('q', data), array('h', data)]
     not_valid_shapes = [(-1,), None, (1, -1)]
     not_valid_strides = [(-1,), None, (0,), (1, 0)]
     not_valid_offsets = [-1, None, ()]
@@ -112,7 +95,7 @@ def test_tensor_set_data():
         for shape in valid_shapes:
             for stride in valid_strides:
                 for offset in valid_offsets:
-                    tensor._set_data(data=array_data, shape=shape, stride=stride, offset=offset)
+                    tensor._set_data(data=array_data, shape=shape, stride=stride, offset=offset, dtype=dtype)
 
                     # Check data has been update as expected
                     assert tensor.data == array_data
@@ -123,24 +106,26 @@ def test_tensor_set_data():
                     # Try wrong values
                     for not_valid_shape in not_valid_shapes:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(data=array_data, shape=not_valid_shape, stride=stride, offset=offset)
+                            tensor._set_data(
+                                data=array_data, shape=not_valid_shape, stride=stride, offset=offset, dtype=dtype
+                            )
 
                     for not_valid_stride in not_valid_strides:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(data=array_data, shape=shape, stride=not_valid_stride, offset=offset)
+                            tensor._set_data(
+                                data=array_data, shape=shape, stride=not_valid_stride, offset=offset, dtype=dtype
+                            )
 
                     for not_valid_offset in not_valid_offsets:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(data=array_data, shape=shape, stride=stride, offset=not_valid_offset)
+                            tensor._set_data(
+                                data=array_data, shape=shape, stride=stride, offset=not_valid_offset, dtype=dtype
+                            )
 
-    # Try with unknown array data types
-    for array_data in not_valid_arrays:
-        tensor = Tensor([])
-        for shape in valid_shapes:
-            for stride in valid_strides:
-                for offset in valid_offsets:
-                    with pytest.raises(RuntimeError, match="Unknown array type:"):
-                        tensor._set_data(data=array_data, shape=shape, stride=stride, offset=offset)
+                    with pytest.raises(AssertionError):
+                        tensor._set_data(
+                            data=array_data, shape=shape, stride=stride, offset=not_valid_offset, dtype="WrongType"
+                        )
 
 
 def test_tensor_index_to_flat_index():
@@ -159,7 +144,7 @@ def test_tensor_index_to_flat_index():
     # Try with a different attributes for the underling array
     tensor = Tensor([])
     data = [-1, 0, 1, 2, 3, 4]
-    tensor._set_data(data=array('i', data), shape=(2, 2), stride=(2, 1), offset=2)
+    tensor._set_data(data=data, shape=(2, 2), stride=(2, 1), offset=2, dtype=DType.int32)
 
     assert tensor._index_to_flat_index((0, 0)) == 2
     assert tensor._index_to_flat_index((0, 1)) == 3
@@ -174,7 +159,8 @@ def test_tensor_set():
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    tensor._set_data(data=array('i', data), shape=shape, stride=stride, offset=offset)
+    dtype = DType.int32
+    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset, dtype=dtype)
 
     # Modify the data
     new_values = []
@@ -195,7 +181,8 @@ def test_tensor_get():
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    tensor._set_data(data=array('i', data), shape=shape, stride=stride, offset=offset)
+    dtype = DType.int32
+    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset, dtype=dtype)
 
     # Get the data
     idx = 0
