@@ -115,7 +115,7 @@ class Tensor():
         # This method is intended for internal use by operations that need efficient access to data. It should not
         # be used when manipulating a tensor. Instead, when you want to access/modify the elements of the tensor do it
         # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
-        self.data[self._index_to_flat_index(index)] = value
+        self.data[self._index_to_flat_index(index)] = self.dtype.cast(value)
 
     def _get(self, index: tuple) -> Union[float, int, bool]:
         # This method is intended for internal use by operations that need efficient access to data. It should not
