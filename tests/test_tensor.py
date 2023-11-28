@@ -1,15 +1,6 @@
 import pytest
-from tinygpt.tensor import Tensor, DType
-
-
-def test_DType():
-
-    for value in [-2, -1, 0, 1, 2]:
-        assert DType.bool.cast(value) == (value != 0)
-        assert DType.float32.cast(value) == float(value)
-        assert DType.float32.cast((value != 0)) == float((value != 0))
-        assert DType.int32.cast(value) == int(value)
-        assert DType.int32.cast((value != 0)) == int((value != 0))
+from tinygpt.tensor import Tensor
+from tinygpt.utils import DType
 
 
 def test_Tensor():
@@ -86,7 +77,7 @@ def test_tensor_set_data():
     valid_offsets = [0, 1, 15]
 
     not_valid_shapes = [(-1,), None, (1, -1)]
-    not_valid_strides = [(-1,), None, (0,), (1, 0)]
+    not_valid_strides = [(-1,), None, (1, 0, -1), (-1, 0), (1, 2, -1)]
     not_valid_offsets = [-1, None, ()]
 
     # Try all combinations
@@ -95,7 +86,15 @@ def test_tensor_set_data():
         for shape in valid_shapes:
             for stride in valid_strides:
                 for offset in valid_offsets:
-                    tensor._set_data(data=array_data, shape=shape, stride=stride, offset=offset, dtype=dtype)
+                    # Limit the size of the stride tuple
+                    stride = stride[:len(shape)]
+                    if len(shape) > len(stride):
+                        stride = shape
+
+                    # Assign the values
+                    tensor._set_data(
+                        data=array_data, shape=shape, stride=stride, offset=offset, dtype=dtype
+                    )
 
                     # Check data has been update as expected
                     assert tensor.data == array_data
@@ -173,6 +172,11 @@ def test_tensor_set():
     for idx, new_value in enumerate(new_values):
         assert tensor.data[offset + idx] == new_value
 
+    # Use a scalar tensor
+    scalar = Tensor(1)
+    scalar._set((0,), 2)
+    assert scalar.data[0] == 2
+
 
 def test_tensor_get():
     # Create the tensor
@@ -190,3 +194,139 @@ def test_tensor_get():
         for dim2 in range(shape[1]):
             assert tensor._get((dim1, dim2)) == data[offset + idx]
             idx += 1
+
+    # Use a scalar tensor
+    scalar = Tensor(2)
+    assert scalar._get((0,)) == 2
+
+
+def test_broadcastable():
+    # Same shapes
+    assert Tensor._broadcastable(Tensor([]), Tensor([]))
+    assert Tensor._broadcastable(Tensor(False), Tensor(2))
+    assert Tensor._broadcastable(Tensor(True), Tensor(1))
+    assert Tensor._broadcastable(Tensor([1, 2, 3]), Tensor([4, 5, 6]))
+    assert Tensor._broadcastable(Tensor([[1, 2, 3], [4, 5, 6]]), Tensor([[-1, -2, -3], [-4, -5, -6]]))
+
+    # Broadcasteable
+    data = [1]
+    for i in range(10):
+        assert Tensor._broadcastable(Tensor(1), Tensor(data))
+        data.append(i)
+
+    base_data = [[1], [2], [3], [4]]
+    base_tensor = Tensor(base_data)
+    current_data = base_data
+    for _ in range(10):
+        current_data = [base_data]
+        current_tensor = Tensor(current_data)
+        assert Tensor._broadcastable(base_tensor, current_tensor)
+        assert Tensor._broadcastable(current_tensor, base_tensor)
+
+    assert Tensor._broadcastable(base_tensor, Tensor([1, 2, 3, 4]))
+    assert Tensor._broadcastable(Tensor([[[1], [2]], [[3], [4]]]), Tensor([[[1], [2]], [[3], [4]]]))
+
+    # Different shapes
+    assert not Tensor._broadcastable(Tensor([]), Tensor([1, 2]))
+    assert not Tensor._broadcastable(Tensor([1, 2]), Tensor([1, 2, 3]))
+    assert not Tensor._broadcastable(Tensor([1, 2, 3, 4]), Tensor([1, 2, 3]))
+    assert not Tensor._broadcastable(Tensor([[1, 2, 3, 4]]), Tensor([[1, 2, 3]]))
+    assert not Tensor._broadcastable(Tensor([[[1], [2]], [[3], [4]], [[3], [4]]]), Tensor([[[1], [2]], [[3], [4]]]))
+
+
+def test_is_contiguous():
+    # Contiguous array
+    assert Tensor(True).is_contiguous()
+    assert Tensor(1).is_contiguous()
+
+    data = [1, 2, 3, 4]
+    tensor = Tensor(data)
+    assert tensor.is_contiguous()
+
+    shape = (1, 4, 1)
+    stride = (0, 1, 0)
+    for i in range(3):
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        assert tensor.is_contiguous()
+
+        shape = (1, *shape, 1)
+        stride = (0, *stride, 0)
+
+    shape = (1, 2, 2, 1)
+    stride = (0, 2, 1, 0)
+    for i in range(3):
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        assert tensor.is_contiguous()
+
+        shape = (1, *shape, 1)
+        stride = (0, *stride, 0)
+
+    # Non-contiguous array
+    data = [1, 2, 3, 4]
+    tensor = Tensor(data)
+
+    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0, dtype=tensor.dtype)
+    assert not tensor.is_contiguous()
+
+    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0, dtype=tensor.dtype)
+    assert not tensor.is_contiguous()
+
+    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0, dtype=tensor.dtype)
+    assert not tensor.is_contiguous()
+
+    # Transpose an array
+    data = [i for i in range(12)]
+    tensor = Tensor(data)
+    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0, dtype=tensor.dtype)
+    assert tensor.is_contiguous()
+    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0, dtype=tensor.dtype)
+    assert not tensor.is_contiguous()
+
+
+def test_get_contiguous_data():
+    # Contiguous array
+    assert Tensor(True)._get_contiguous_data() == [True]
+    assert Tensor(1)._get_contiguous_data() == [1]
+
+    data = [1, 2, 3, 4]
+    tensor = Tensor(data)
+    assert tensor._get_contiguous_data() == data
+
+    shape = (1, 4, 1)
+    stride = (0, 1, 0)
+    for i in range(3):
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        assert tensor._get_contiguous_data() == data
+
+        shape = (1, *shape, 1)
+        stride = (0, *stride, 0)
+
+    shape = (1, 2, 2, 1)
+    stride = (0, 2, 1, 0)
+    for i in range(3):
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        assert tensor._get_contiguous_data() == data
+
+        shape = (1, *shape, 1)
+        stride = (0, *stride, 0)
+
+    # Non-contiguous array
+    data = [1, 2, 3, 4]
+    tensor = Tensor(data)
+
+    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0, dtype=tensor.dtype)
+    assert tensor._get_contiguous_data() == [1, 3]
+
+    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0, dtype=tensor.dtype)
+    assert tensor._get_contiguous_data() == [1]
+
+    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0, dtype=tensor.dtype)
+    assert tensor._get_contiguous_data() == [1]
+
+    # Transpose an array
+    data = [i for i in range(12)]
+    tensor = Tensor(data)
+    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0, dtype=tensor.dtype)
+    assert tensor._get_contiguous_data() == data
+    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0, dtype=tensor.dtype)
+    assert tensor._get_contiguous_data() == [j * 4 + i for i in range(4) for j in range(3)]

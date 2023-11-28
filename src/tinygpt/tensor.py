@@ -1,16 +1,8 @@
 from __future__ import annotations
 from collections import deque
 from typing import Any, Union
-from enum import Enum
 
-
-class DType(Enum):
-    float32 = float
-    int32 = int
-    bool = bool
-
-    def cast(self, input_value):
-        return self.value(input_value)
+from tinygpt.utils import DType, MultidimensionalIndexGenerator
 
 
 class Tensor():
@@ -18,7 +10,7 @@ class Tensor():
     def __init__(
             self,
             data: Any,
-            dtype: DType = DType.float32,
+            dtype: DType = None,
             requires_grad=False
     ) -> None:
         # All data ends up in a one-dimensional array but we extract some metadata to handle multidimensional operations
@@ -30,7 +22,10 @@ class Tensor():
         self.grad_fn = None
 
     def __repr__(self) -> str:
-        return f"<Tensor {self.data!r}>"
+        if self.ndim > 1 and any(value == 0 for value in self.shape):
+            return f"<Tensor {self.data!r}, size={self.shape}>"
+        else:
+            return f"<Tensor {self.data!r}>"
 
     def _extract_flat_array_and_shape(self, data: Any, dtype: DType) -> (list, list):
         # The size and type of each element in each dimension must always be the same in the same dimension. We assume
@@ -62,7 +57,8 @@ class Tensor():
 
         return flat_array, tuple([value for value in size_by_dim.values() if value != -1])
 
-    def _calculate_stride(self, shape):
+    @staticmethod
+    def _calculate_stride(shape):
         # Creates a tuple with the number of elements of the flat array to be skipped in each dimension to traverse it
         ndim = len(shape)
         stride = [1] * ndim
@@ -71,8 +67,24 @@ class Tensor():
 
         return tuple(stride)
 
-    def _extract_data(self, data: Any, dtype: DType) -> None:
+    @staticmethod
+    def _deduce_dtype(data):
+        # If it's a list find the first element if there is one
+        first_element = data
+        while isinstance(first_element, (tuple, list)) and len(first_element) > 0:
+            first_element = first_element[0]
+
+        # By default, an empty tensor use DType.float32. If there is a value we deduce its DType
+        if isinstance(first_element, (tuple, list)):
+            return DType.float32
+        else:
+            return DType.deduce_dtype(first_element)
+
+    def _extract_data(self, data: Any, dtype: DType | None) -> None:
         offset = 0
+
+        if dtype is None:
+            dtype = self._deduce_dtype(data)
 
         if isinstance(data, (list, tuple)):
             data, shape = self._extract_flat_array_and_shape(data, dtype)
@@ -96,7 +108,8 @@ class Tensor():
         assert isinstance(shape, tuple)
         assert all(val > 0 for val in shape)
         assert isinstance(stride, tuple)
-        assert all(val >= 1 for val in stride)
+        assert all(val >= 0 for val in stride)
+        assert len(shape) == len(stride)
         assert isinstance(offset, int)
         assert offset >= 0
         assert isinstance(dtype, DType)
@@ -122,3 +135,27 @@ class Tensor():
         # be used when manipulating a tensor. Instead, when you want to access/modify the elements of the tensor do it
         # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
         return self.data[self._index_to_flat_index(index)]
+
+    def is_contiguous(self) -> bool:
+        # Check if the tensor's data is contiguous in memory
+        expected_stride = 1
+        for dim, s in zip(reversed(self.shape), reversed(self.stride)):
+            if s != expected_stride and s != 0:
+                return False
+            expected_stride *= dim
+        return True
+
+    def _get_contiguous_data(self):
+        if self.is_contiguous():
+            # If the tensor is already contiguous, return the internal data
+            return self.data
+        else:
+            # Create a copy of the list
+            return [self._get(idx) for idx in MultidimensionalIndexGenerator(self.shape)]
+
+    @staticmethod
+    def _broadcastable(first_tensor, second_tensor):
+        for dim_first, dim_second in zip(reversed(first_tensor.shape), reversed(second_tensor.shape)):
+            if dim_first != 1 and dim_first != dim_second:
+                return False
+        return True
