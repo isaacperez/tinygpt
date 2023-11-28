@@ -102,8 +102,8 @@ class Tensor():
 
         return data, offset, ndim, stride, shape, dtype
 
-    def _set_data(self, data: list, shape: tuple, stride: tuple, offset: int, dtype) -> None:
-        # Assigns the flat array and tensor properties directly, without checking if it makes sense or dtype is true
+    def _set_data(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
+        # Assigns the flat array
         assert isinstance(data, list)
         assert isinstance(shape, tuple)
         assert all(val > 0 for val in shape)
@@ -112,14 +112,13 @@ class Tensor():
         assert len(shape) == len(stride)
         assert isinstance(offset, int)
         assert offset >= 0
-        assert isinstance(dtype, DType)
 
         self.data = data
         self.shape = shape
         self.stride = stride
         self.offset = offset
         self.ndim = len(self.shape)
-        self.dtype = dtype
+        self.dtype = Tensor._deduce_dtype(self.data)
 
     def _index_to_flat_index(self, index: tuple) -> int:
         return self.offset + sum([idx * stride for idx, stride in zip(index, self.stride)])

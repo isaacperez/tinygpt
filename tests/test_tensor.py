@@ -69,7 +69,6 @@ def test_Tensor():
 def test_tensor_set_data():
     # Create a list of data to set
     data = [0, 1, 2, 3, 4]
-    dtype = DType.int32
 
     valid_arrays = [[float(i) for i in data], [int(i) for i in data], [bool(i) for i in data]]
     valid_shapes = [(1,), (1, 4, 4123, 2), (len(data),)]
@@ -92,9 +91,7 @@ def test_tensor_set_data():
                         stride = shape
 
                     # Assign the values
-                    tensor._set_data(
-                        data=array_data, shape=shape, stride=stride, offset=offset, dtype=dtype
-                    )
+                    tensor._set_data(data=array_data, shape=shape, stride=stride, offset=offset)
 
                     # Check data has been update as expected
                     assert tensor.data == array_data
@@ -105,26 +102,15 @@ def test_tensor_set_data():
                     # Try wrong values
                     for not_valid_shape in not_valid_shapes:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(
-                                data=array_data, shape=not_valid_shape, stride=stride, offset=offset, dtype=dtype
-                            )
+                            tensor._set_data(data=array_data, shape=not_valid_shape, stride=stride, offset=offset)
 
                     for not_valid_stride in not_valid_strides:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(
-                                data=array_data, shape=shape, stride=not_valid_stride, offset=offset, dtype=dtype
-                            )
+                            tensor._set_data(data=array_data, shape=shape, stride=not_valid_stride, offset=offset)
 
                     for not_valid_offset in not_valid_offsets:
                         with pytest.raises(AssertionError):
-                            tensor._set_data(
-                                data=array_data, shape=shape, stride=stride, offset=not_valid_offset, dtype=dtype
-                            )
-
-                    with pytest.raises(AssertionError):
-                        tensor._set_data(
-                            data=array_data, shape=shape, stride=stride, offset=not_valid_offset, dtype="WrongType"
-                        )
+                            tensor._set_data(data=array_data, shape=shape, stride=stride, offset=not_valid_offset)
 
 
 def test_tensor_index_to_flat_index():
@@ -143,7 +129,7 @@ def test_tensor_index_to_flat_index():
     # Try with a different attributes for the underling array
     tensor = Tensor([])
     data = [-1, 0, 1, 2, 3, 4]
-    tensor._set_data(data=data, shape=(2, 2), stride=(2, 1), offset=2, dtype=DType.int32)
+    tensor._set_data(data=data, shape=(2, 2), stride=(2, 1), offset=2)
 
     assert tensor._index_to_flat_index((0, 0)) == 2
     assert tensor._index_to_flat_index((0, 1)) == 3
@@ -158,8 +144,7 @@ def test_tensor_set():
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    dtype = DType.int32
-    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset, dtype=dtype)
+    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset)
 
     # Modify the data
     new_values = []
@@ -185,8 +170,7 @@ def test_tensor_get():
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    dtype = DType.int32
-    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset, dtype=dtype)
+    tensor._set_data(data=data, shape=shape, stride=stride, offset=offset)
 
     # Get the data
     idx = 0
@@ -246,7 +230,7 @@ def test_is_contiguous():
     shape = (1, 4, 1)
     stride = (0, 1, 0)
     for i in range(3):
-        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i)
         assert tensor.is_contiguous()
 
         shape = (1, *shape, 1)
@@ -255,7 +239,7 @@ def test_is_contiguous():
     shape = (1, 2, 2, 1)
     stride = (0, 2, 1, 0)
     for i in range(3):
-        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i)
         assert tensor.is_contiguous()
 
         shape = (1, *shape, 1)
@@ -265,21 +249,21 @@ def test_is_contiguous():
     data = [1, 2, 3, 4]
     tensor = Tensor(data)
 
-    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0)
     assert not tensor.is_contiguous()
 
-    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0)
     assert not tensor.is_contiguous()
 
-    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
     assert not tensor.is_contiguous()
 
     # Transpose an array
     data = [i for i in range(12)]
     tensor = Tensor(data)
-    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
     assert tensor.is_contiguous()
-    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
     assert not tensor.is_contiguous()
 
 
@@ -295,7 +279,7 @@ def test_get_contiguous_data():
     shape = (1, 4, 1)
     stride = (0, 1, 0)
     for i in range(3):
-        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i)
         assert tensor._get_contiguous_data() == data
 
         shape = (1, *shape, 1)
@@ -304,7 +288,7 @@ def test_get_contiguous_data():
     shape = (1, 2, 2, 1)
     stride = (0, 2, 1, 0)
     for i in range(3):
-        tensor._set_data(data=data, shape=shape, stride=stride, offset=i, dtype=tensor.dtype)
+        tensor._set_data(data=data, shape=shape, stride=stride, offset=i)
         assert tensor._get_contiguous_data() == data
 
         shape = (1, *shape, 1)
@@ -314,19 +298,19 @@ def test_get_contiguous_data():
     data = [1, 2, 3, 4]
     tensor = Tensor(data)
 
-    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(2,), stride=(2,), offset=0)
     assert tensor._get_contiguous_data() == [1, 3]
 
-    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(1,), stride=(4,), offset=0)
     assert tensor._get_contiguous_data() == [1]
 
-    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
     assert tensor._get_contiguous_data() == [1]
 
     # Transpose an array
     data = [i for i in range(12)]
     tensor = Tensor(data)
-    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
     assert tensor._get_contiguous_data() == data
-    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0, dtype=tensor.dtype)
+    tensor._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
     assert tensor._get_contiguous_data() == [j * 4 + i for i in range(4) for j in range(3)]
