@@ -1,5 +1,5 @@
 import pytest
-from tinygpt.utils import DType, MultidimensionalIndexGenerator
+from tinygpt.utils import DType
 
 
 def test_DType():
@@ -43,25 +43,3 @@ def test_DType():
     for not_valid_input in [[], (), None]:
         with pytest.raises(RuntimeError, match="first_type <"):
             DType.type_promotion(not_valid_input, not_valid_input)
-
-
-def test_MultidimensionalIndexGenerator():
-    for shape in [(1, 2), (), (1, 1), (1, 1, 2), (2, 1, 1, 2), (2, 3, 1, 2)]:
-        expected_num_its = 1
-        for value in shape:
-            expected_num_its *= max(value, 1)
-
-        num_its = 0
-        all_indexes = set()
-        for index in MultidimensionalIndexGenerator(shape):
-            all_indexes.add(index)
-
-            if len(shape) == 0:
-                assert index == (0,)
-            else:
-                assert all(0 <= value < shape[idx] for idx, value in enumerate(index))
-
-            num_its += 1
-
-        assert num_its == expected_num_its
-        assert len(all_indexes) == expected_num_its
