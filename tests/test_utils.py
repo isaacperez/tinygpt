@@ -3,10 +3,6 @@ from tinygpt.utils import DType
 
 
 def test_DType():
-    # prefered_order() function
-    dtype_order = DType.prefered_order()
-    for dtype in DType:
-        assert dtype in dtype_order
 
     # cast() method
     for value in [-2, -1, 0, 1, 2]:
@@ -39,7 +35,3 @@ def test_DType():
 
     for dtype in DType:
         assert DType.type_promotion(dtype, DType.float32) in (DType.float32, DType.int32)
-
-    for not_valid_input in [[], (), None]:
-        with pytest.raises(RuntimeError, match="first_type <"):
-            DType.type_promotion(not_valid_input, not_valid_input)

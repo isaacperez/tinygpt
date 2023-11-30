@@ -22,7 +22,7 @@ class Buffer():
             return f"<Buffer {self._get_contiguous_data()}>"
 
     def __str__(self) -> str:
-        return f"{self._get_contiguous_data()!r}"
+        return f"{self._get_contiguous_data()}"
 
     def _extract_flat_array_and_shape(self, data: Any, dtype: DType) -> (list, list):
         # The size and type of each element in each dimension must always be the same in the same dimension. We assume
