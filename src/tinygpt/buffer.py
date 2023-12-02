@@ -9,11 +9,27 @@ class Buffer():
 
     def __init__(
             self,
-            data: Any,
+            input_data: Any,
             dtype: DType = None
     ) -> None:
-        # All data ends up in a one-dimensional array but we extract some metadata to handle multidimensional operations
-        self.data, self.offset, self.ndim, self.stride, self.shape, self.dtype = self._extract_data(data, dtype)
+        # Check if the input_data is already a Buffer object and copy it
+        if isinstance(input_data, Buffer):
+
+            # We don't allow casting when copying another buffer
+            if dtype is not None and dtype != input_data.dtype:
+                raise RuntimeError("dtype doesn't match, and casting isn't supported")
+
+            # Copy the data
+            self.data = input_data.data
+            self.offset = input_data.offset
+            self.ndim = input_data.ndim
+            self.stride = input_data.stride
+            self.shape = input_data.shape
+            self.dtype = input_data.dtype
+
+        else:
+            # Copy the input data into a flat list and get some metadata to handle multidimensional operations
+            self._extract_data(input_data, dtype)
 
     def __repr__(self) -> str:
         if self.ndim > 1 and any(value == 0 for value in self.shape):
@@ -24,14 +40,14 @@ class Buffer():
     def __str__(self) -> str:
         return f"{self._get_contiguous_data()}"
 
-    def _extract_flat_array_and_shape(self, data: Any, dtype: DType) -> (list, list):
+    def _extract_flat_array_and_shape(self, input_data: Any, dtype: DType) -> (list, list):
         # The size and type of each element in each dimension must always be the same in the same dimension. We assume
         # that the first element of a dimension designates the type and size expected for the rest. While we go through
         # the data object extracting values for the flat array, we make the corresponding checks.
         flat_array = []
         size_by_dim = {}
         type_by_dim = {}
-        queue = deque([(data, 1)])
+        queue = deque([(input_data, 1)])
         while len(queue) > 0:
             current_element, dim = queue.popleft()
             current_element_is_a_list = isinstance(current_element, (list, tuple))
@@ -77,27 +93,27 @@ class Buffer():
         else:
             return DType.deduce_dtype(first_element)
 
-    def _extract_data(self, data: Any, dtype: DType | None) -> None:
-        offset = 0
+    def _extract_data(self, input_data: Any, dtype: DType | None) -> None:
+        self.offset = 0
 
         if dtype is None:
-            dtype = self._deduce_dtype(data)
+            self.dtype = self._deduce_dtype(input_data)
+        else:
+            self.dtype = dtype
 
-        if isinstance(data, (list, tuple)):
-            data, shape = self._extract_flat_array_and_shape(data, dtype)
-            stride = self._calculate_stride(shape)
-            ndim = len(shape)
+        if isinstance(input_data, (list, tuple)):
+            self.data, self.shape = self._extract_flat_array_and_shape(input_data, self.dtype)
+            self.stride = self._calculate_stride(self.shape)
+            self.ndim = len(self.shape)
 
-        elif isinstance(data, (float, int, bool)):
-            data = [dtype.cast(data)]
-            shape = ()
-            stride = ()
-            ndim = 0
+        elif isinstance(input_data, (float, int, bool)):
+            self.data = [self.dtype.cast(input_data)]
+            self.shape = ()
+            self.stride = ()
+            self.ndim = 0
 
         else:
-            raise RuntimeError(f"Could not infer dtype of type {type(data)}")
-
-        return data, offset, ndim, stride, shape, dtype
+            raise RuntimeError(f"Could not infer dtype of type {type(input_data)}")
 
     def _set_data(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate the types
@@ -204,3 +220,13 @@ class Buffer():
                 return False
 
         return True
+
+    def _validate_input_buffer(self, other: Buffer) -> None:
+        if not isinstance(other, Buffer):
+            raise TypeError(f"One of the inputs is not a Buffer object. Found {type(other)}")
+
+        if self.shape != other.shape:
+            raise ValueError(f"Shape are not equal. Found {self.shape} and {other.shape}")
+
+        if self.dtype != other.dtype:
+            raise ValueError(f"Shape are not equal. Found {self.dtype} and {other.dtype}")

@@ -3,7 +3,7 @@ from tinygpt.buffer import Buffer
 from tinygpt.utils import DType
 
 
-def test_Tensor():
+def test_Buffer():
     # Scalars
     buffers_dtype_original_value_original_type = []
     for dtype in DType:
@@ -64,6 +64,35 @@ def test_Tensor():
     for different_dtype_data in [None, DType]:
         with pytest.raises(RuntimeError, match="Could not infer dtype of type"):
             buffer = Buffer(different_dtype_data)
+
+    # Test copy constructor
+    for data in [1, -1.0, True, False, 0, 0.0, [1, 2], [], [[], []], [[[1], [2], [3]], [[4], [5], [6]]]]:
+        original_buffer = Buffer(data)
+        copy_buffer = Buffer(original_buffer)
+
+        assert original_buffer.data == copy_buffer.data
+        assert id(original_buffer.data) == id(copy_buffer.data)
+        assert original_buffer.offset == copy_buffer.offset
+        assert original_buffer.ndim == copy_buffer.ndim
+        assert original_buffer.stride == copy_buffer.stride
+        assert original_buffer.shape == copy_buffer.shape
+        assert original_buffer.dtype == copy_buffer.dtype
+
+        # Try to do a casting when copying the buffer
+        for dtype in DType:
+            if dtype != original_buffer.dtype:
+                with pytest.raises(RuntimeError, match="dtype doesn't match, and casting isn't supported"):
+                    copy_buffer = Buffer(original_buffer, dtype=dtype)
+            else:
+                copy_buffer = Buffer(original_buffer, dtype=dtype)
+
+                assert original_buffer.data == copy_buffer.data
+                assert id(original_buffer.data) == id(copy_buffer.data)
+                assert original_buffer.offset == copy_buffer.offset
+                assert original_buffer.ndim == copy_buffer.ndim
+                assert original_buffer.stride == copy_buffer.stride
+                assert original_buffer.shape == copy_buffer.shape
+                assert original_buffer.dtype == copy_buffer.dtype
 
 
 def test_buffer_set_data():
