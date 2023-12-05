@@ -1,4 +1,6 @@
+import math
 import pytest
+
 from tinygpt.buffer import Buffer
 from tinygpt.utils import DType
 
@@ -447,3 +449,74 @@ def test_it():
             assert element == expected_output[idx] + offset
             idx += 1
         assert idx == 4
+
+
+def test_ops():
+
+    ops = [
+        lambda x, y: x + y, lambda x, y: x - y, lambda x, y: x * y,
+        lambda x, y: x / y if isinstance(y, Buffer) or y != 0 else math.inf,
+        lambda x, y: x < y, lambda x, y: x <= y, lambda x, y: x > y, lambda x, y: x >= y,
+        lambda x, y: x == y, lambda x, y: x != y,
+    ]
+
+    for idx, op in enumerate(ops):
+        # Scalars
+        scalars = [-3, -2, -1, 0, 1, 2, 3]
+        for first_scalar in scalars:
+            for second_scalar in scalars:
+                for first_dtype in DType:
+                    for second_dtype in DType:
+                        first_buffer = Buffer(first_scalar, first_dtype)
+                        second_buffer = Buffer(second_scalar, second_dtype)
+
+                        result = op(first_buffer, second_buffer)
+                        expected_result = op(first_dtype.cast(first_scalar), second_dtype.cast(second_scalar))
+
+                        assert result.shape == ()
+                        assert result.offset == 0
+                        assert result.stride == ()
+                        assert result.dtype == DType.deduce_dtype(expected_result)
+                        assert result.data[0] == expected_result
+
+        # Tensors
+        data = [[1,], [0,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
+        linearized_data = [[1], [0], [423, 214, 5734, 434], [1, 2, 3, 4]]
+        for idx, first_tensor in enumerate(data):
+            for first_dtype in DType:
+                for second_dtype in DType:
+                    first_buffer = Buffer(first_tensor, first_dtype)
+                    second_buffer = Buffer(first_tensor, second_dtype)
+
+                    result = op(first_buffer, second_buffer)
+
+                    expected_result = [
+                        op(first_dtype.cast(element), second_dtype.cast(element))
+                        for element in linearized_data[idx]
+                    ]
+
+                    assert result.shape == first_buffer.shape
+                    assert result.offset == first_buffer.offset
+                    assert result.stride == first_buffer.stride
+                    assert result.dtype == DType.deduce_dtype(expected_result[0])
+                    assert result.data == expected_result
+
+        # Different shapes
+        data = [0, [1,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
+        for first_tensor in data:
+            for second_tensor in data:
+                if first_tensor != second_tensor:
+                    for first_dtype in DType:
+                        for second_dtype in DType:
+                            first_buffer = Buffer(first_tensor, first_dtype)
+                            second_buffer = Buffer(second_tensor, second_dtype)
+                            with pytest.raises(RuntimeError):
+                                result = op(first_buffer, second_buffer)
+
+        # Other type that it's not Buffer
+        # Be careful because if other is equivalent to 0 and op is /, then there is no call to the Buffer operation
+        # so don't use None, False or empty lists or tuples because they are all equal to 0
+        buffer = Buffer(1)
+        for other in [-1, 1, 1.0, True, (1,), [1,]]:
+            with pytest.raises(TypeError):
+                result = op(buffer, other)

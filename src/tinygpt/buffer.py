@@ -1,4 +1,6 @@
 from __future__ import annotations
+import math
+from enum import Enum, auto
 from collections import deque
 from typing import Any, Union
 
@@ -6,6 +8,18 @@ from tinygpt.utils import DType
 
 
 class Buffer():
+
+    class Op(Enum):
+        SUM = auto()
+        SUB = auto()
+        MUL = auto()
+        DIV = auto()
+        LT = auto()
+        LE = auto()
+        EQ = auto()
+        NE = auto()
+        GT = auto()
+        GE = auto()
 
     def __init__(
             self,
@@ -221,12 +235,80 @@ class Buffer():
 
         return True
 
-    def _validate_input_buffer(self, other: Buffer) -> None:
+    def _validate_input_buffer(self, op: Op, other: Buffer) -> None:
+        if not isinstance(op, self.Op):
+            raise TypeError(f"op argument is not an Op. Found {type(op)}")
+
         if not isinstance(other, Buffer):
             raise TypeError(f"One of the inputs is not a Buffer object. Found {type(other)}")
 
         if self.shape != other.shape:
-            raise ValueError(f"Shape are not equal. Found {self.shape} and {other.shape}")
+            raise RuntimeError(f"Shape are not equal. Found {self.shape} and {other.shape}")
 
-        if self.dtype != other.dtype:
-            raise ValueError(f"Shape are not equal. Found {self.dtype} and {other.dtype}")
+    def _execute(self, op: Op, other: Buffer) -> Buffer:
+        self._validate_input_buffer(op, other)
+
+        # Create a buffer to store the result
+        result = Buffer([])
+
+        # Do the operation
+        if op == self.Op.SUM:
+            data = [first_element + second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.SUB:
+            data = [first_element - second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.MUL:
+            data = [first_element * second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.DIV:
+            data = [
+                first_element / second_element if second_element != 0 else math.inf
+                for first_element, second_element in zip(self, other)
+            ]
+        elif op == self.Op.LT:
+            data = [first_element < second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.LE:
+            data = [first_element <= second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.EQ:
+            data = [first_element == second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.NE:
+            data = [first_element != second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.GT:
+            data = [first_element > second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.GE:
+            data = [first_element >= second_element for first_element, second_element in zip(self, other)]
+        else:
+            raise RuntimeError(f"Operation {op.value} not implemented")
+
+        # Assign the data and its metadata to the new buffer
+        result._set_data(data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0)
+
+        return result
+
+    def __add__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.SUM, other)
+
+    def __sub__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.SUB, other)
+
+    def __mul__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.MUL, other)
+
+    def __truediv__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.DIV, other)
+
+    def __lt__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.LT, other)
+
+    def __le__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.LE, other)
+
+    def __eq__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.EQ, other)
+
+    def __ne__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.NE, other)
+
+    def __gt__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.GT, other)
+
+    def __ge__(self, other: Buffer) -> Buffer:
+        return self._execute(self.Op.GE, other)

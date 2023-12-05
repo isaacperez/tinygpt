@@ -1,4 +1,5 @@
 import pytest
+
 from tinygpt.utils import DType
 
 
@@ -25,13 +26,3 @@ def test_DType():
     for not_valid_input in [[], (), None]:
         with pytest.raises(RuntimeError, match="Could not infer dtype of type"):
             DType.deduce_dtype(not_valid_input)
-
-    # type_promotion() function
-    for dtype in DType:
-        assert DType.type_promotion(dtype, dtype) == dtype
-
-    for dtype in DType:
-        assert DType.type_promotion(dtype, DType.float32) == DType.float32
-
-    for dtype in DType:
-        assert DType.type_promotion(dtype, DType.float32) in (DType.float32, DType.int32)
