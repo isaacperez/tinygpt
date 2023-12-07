@@ -201,15 +201,11 @@ class Buffer():
                         indices[i] = 0
 
     def _set(self, index: tuple, value: Any) -> None:
-        # This method is intended for internal use by operations that need efficient access to data. It should not
-        # be used when manipulating a buffer. Instead, when you want to access/modify the elements of the buffer do it
-        # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
+        # This method is intended for internal use by operations that need efficient access to data
         self.data[self._index_to_flat_index(index)] = self.dtype.cast(value)
 
     def _get(self, index: tuple) -> Union[float, int, bool]:
-        # This method is intended for internal use by operations that need efficient access to data. It should not
-        # be used when manipulating a buffer. Instead, when you want to access/modify the elements of the buffer do it
-        # as it is usually done in Python using the __getitem__ method (via the `[]` operator).
+        # This method is intended for internal use by operations that need efficient access to data
         return self.data[self._index_to_flat_index(index)]
 
     def is_contiguous(self) -> bool:
@@ -242,6 +238,9 @@ class Buffer():
         if not isinstance(other, Buffer):
             raise TypeError(f"One of the inputs is not a Buffer object. Found {type(other)}")
 
+        if self.dtype != other.dtype:
+            raise ValueError(f"DType mismatch. Found {self.dtype} and {other.dtype}")
+
         if self.shape != other.shape:
             raise RuntimeError(f"Shape are not equal. Found {self.shape} and {other.shape}")
 
@@ -259,10 +258,7 @@ class Buffer():
         elif op == self.Op.MUL:
             data = [first_element * second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.DIV:
-            data = [
-                first_element / second_element if second_element != 0 else math.inf
-                for first_element, second_element in zip(self, other)
-            ]
+            data = [first_element / second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.LT:
             data = [first_element < second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.LE:

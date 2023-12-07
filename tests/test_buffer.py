@@ -454,13 +454,13 @@ def test_it():
 def test_ops():
 
     ops = [
-        lambda x, y: x + y, lambda x, y: x - y, lambda x, y: x * y,
-        lambda x, y: x / y if isinstance(y, Buffer) or y != 0 else math.inf,
+        lambda x, y: x + y, lambda x, y: x - y, lambda x, y: x * y, lambda x, y: x / y,
         lambda x, y: x < y, lambda x, y: x <= y, lambda x, y: x > y, lambda x, y: x >= y,
         lambda x, y: x == y, lambda x, y: x != y,
     ]
+    div_op_idx = 3
 
-    for idx, op in enumerate(ops):
+    for op_idx, op in enumerate(ops):
         # Scalars
         scalars = [-3, -2, -1, 0, 1, 2, 3]
         for first_scalar in scalars:
@@ -470,14 +470,23 @@ def test_ops():
                         first_buffer = Buffer(first_scalar, first_dtype)
                         second_buffer = Buffer(second_scalar, second_dtype)
 
-                        result = op(first_buffer, second_buffer)
-                        expected_result = op(first_dtype.cast(first_scalar), second_dtype.cast(second_scalar))
+                        if first_dtype != second_dtype:
+                            with pytest.raises(ValueError, match="DType mismatch*"):
+                                result = op(first_buffer, second_buffer)
 
-                        assert result.shape == ()
-                        assert result.offset == 0
-                        assert result.stride == ()
-                        assert result.dtype == DType.deduce_dtype(expected_result)
-                        assert result.data[0] == expected_result
+                        elif div_op_idx == op_idx and second_scalar == 0:
+                            with pytest.raises(ZeroDivisionError):
+                                result = op(first_buffer, second_buffer)
+
+                        else:
+                            result = op(first_buffer, second_buffer)
+                            expected_result = op(first_dtype.cast(first_scalar), second_dtype.cast(second_scalar))
+
+                            assert result.shape == ()
+                            assert result.offset == 0
+                            assert result.stride == ()
+                            assert result.dtype == DType.deduce_dtype(expected_result)
+                            assert result.data[0] == expected_result
 
         # Tensors
         data = [[1,], [0,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
@@ -488,35 +497,41 @@ def test_ops():
                     first_buffer = Buffer(first_tensor, first_dtype)
                     second_buffer = Buffer(first_tensor, second_dtype)
 
-                    result = op(first_buffer, second_buffer)
+                    if first_dtype != second_dtype:
+                        with pytest.raises(ValueError, match="DType mismatch*"):
+                            result = op(first_buffer, second_buffer)
 
-                    expected_result = [
-                        op(first_dtype.cast(element), second_dtype.cast(element))
-                        for element in linearized_data[idx]
-                    ]
+                    elif div_op_idx == op_idx and any(value == 0 for value in linearized_data[idx]):
+                        with pytest.raises(ZeroDivisionError):
+                            result = op(first_buffer, second_buffer)
 
-                    assert result.shape == first_buffer.shape
-                    assert result.offset == first_buffer.offset
-                    assert result.stride == first_buffer.stride
-                    assert result.dtype == DType.deduce_dtype(expected_result[0])
-                    assert result.data == expected_result
+                    else:
+                        result = op(first_buffer, second_buffer)
+
+                        expected_result = [
+                            op(first_dtype.cast(element), second_dtype.cast(element))
+                            for element in linearized_data[idx]
+                        ]
+
+                        assert result.shape == first_buffer.shape
+                        assert result.offset == first_buffer.offset
+                        assert result.stride == first_buffer.stride
+                        assert result.dtype == DType.deduce_dtype(expected_result[0])
+                        assert result.data == expected_result
 
         # Different shapes
         data = [0, [1,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
         for first_tensor in data:
             for second_tensor in data:
                 if first_tensor != second_tensor:
-                    for first_dtype in DType:
-                        for second_dtype in DType:
-                            first_buffer = Buffer(first_tensor, first_dtype)
-                            second_buffer = Buffer(second_tensor, second_dtype)
-                            with pytest.raises(RuntimeError):
-                                result = op(first_buffer, second_buffer)
+                    for dtype in DType:
+                        first_buffer = Buffer(first_tensor, dtype)
+                        second_buffer = Buffer(second_tensor, dtype)
+                        with pytest.raises(RuntimeError):
+                            result = op(first_buffer, second_buffer)
 
         # Other type that it's not Buffer
-        # Be careful because if other is equivalent to 0 and op is /, then there is no call to the Buffer operation
-        # so don't use None, False or empty lists or tuples because they are all equal to 0
         buffer = Buffer(1)
-        for other in [-1, 1, 1.0, True, (1,), [1,]]:
+        for other in [-1, 1, 0, 0.0, 1.0, -1.0, False, True, (1,), [1,], (), [], None]:
             with pytest.raises(TypeError):
                 result = op(buffer, other)
