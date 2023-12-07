@@ -1,4 +1,3 @@
-import math
 import pytest
 
 from tinygpt.buffer import Buffer
@@ -265,7 +264,25 @@ def test_is_contiguous():
     assert Buffer(True).is_contiguous()
     assert Buffer(1).is_contiguous()
 
-    data = [1, 2, 3, 4, 5, 6]
+    data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    buffer = Buffer(data)
+    assert buffer.is_contiguous()
+
+    shape = (1, 4, 3)
+    for i in range(2):
+        buffer._set_data(data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i)
+
+        assert buffer.is_contiguous()
+        shape = (1, *shape, 1)
+
+    shape = (1, 2, 3, 1)
+    for i in range(3):
+        buffer._set_data(data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i)
+
+        assert buffer.is_contiguous()
+        shape = (1, *shape, 1)
+
+    # Non-contiguous array
     buffer = Buffer(data)
     assert buffer.is_contiguous()
 
@@ -273,7 +290,7 @@ def test_is_contiguous():
     stride = (0, 1, 0)
     for i in range(2):
         buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
-        assert buffer.is_contiguous()
+        assert not buffer.is_contiguous()
 
         shape = (1, *shape, 1)
         stride = (0, *stride, 0)
@@ -282,12 +299,11 @@ def test_is_contiguous():
     stride = (0, 2, 1, 0)
     for i in range(3):
         buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
-        assert buffer.is_contiguous()
+        assert not buffer.is_contiguous()
 
         shape = (1, *shape, 1)
         stride = (0, *stride, 0)
 
-    # Non-contiguous array
     data = [1, 2, 3, 4]
     buffer = Buffer(data)
 
@@ -535,3 +551,236 @@ def test_ops():
         for other in [-1, 1, 0, 0.0, 1.0, -1.0, False, True, (1,), [1,], (), [], None]:
             with pytest.raises(TypeError):
                 result = op(buffer, other)
+
+
+def test_reshape():
+
+    # Scalar reshape
+    for scalar in [-3, -2, -1, 0, 1, 2, 3]:
+        for dtype in DType:
+            buffer = Buffer(scalar, dtype)
+
+            # Try adding more dimensions
+            new_shape = buffer.shape
+            for _ in range(5):
+                new_buffer = buffer.reshape(new_shape=new_shape)
+
+                assert new_buffer.shape == new_shape
+                assert id(new_buffer.data) == id(buffer.data)
+                assert new_buffer.offset == 0
+                assert new_buffer.ndim == len(new_shape)
+                for new_element, old_element in zip(new_buffer, buffer):
+                    assert new_element == old_element
+
+                # Update new_shape for next iteration
+                new_shape = (1, *new_shape, 1)
+
+    # Tensor reshape
+    for dtype in DType:
+        buffer = Buffer([1, 2, 3, 4], dtype=dtype)
+        for new_shape in [(4,), (2, 2), (2, 1, 1, 2)]:
+            for i in range(5):
+                current_new_shape = (1,) * i + new_shape + (1,) * i
+                new_buffer = buffer.reshape(current_new_shape)
+
+                assert new_buffer.shape == current_new_shape
+                assert id(new_buffer.data) == id(buffer.data)
+                assert new_buffer.offset == 0
+                assert new_buffer.ndim == len(current_new_shape)
+                for new_element, old_element in zip(new_buffer, buffer):
+                    assert new_element == old_element
+
+        buffer = Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], dtype=dtype)
+        for new_shape in [
+            (12,), (4, 3), (3, 4), (2, 2, 3), (3, 2, 2), (2, 3, 2), (4, 1, 1, 3), (3, 1, 4), (2, 1, 2, 1, 3),
+            (3, 1, 2, 2), (2, 3, 1, 2)
+        ]:
+            for i in range(5):
+                current_new_shape = (1,) * i + new_shape + (1,) * i
+                new_buffer = buffer.reshape(current_new_shape)
+
+                assert new_buffer.shape == current_new_shape
+                assert id(new_buffer.data) == id(buffer.data)
+                assert new_buffer.offset == 0
+                assert new_buffer.ndim == len(current_new_shape)
+                for new_element, old_element in zip(new_buffer, buffer):
+                    assert new_element == old_element
+
+    # Try with non-contiguous data
+    data = [i for i in range(50)]
+    for offset in [0, 1, 2]:
+
+        buffer = Buffer([])
+
+        # 12 elements
+        buffer._set_data(data=data, shape=(12,), stride=(2,), offset=offset)
+        new_shape = (6, 2)
+        new_buffer = buffer.reshape(new_shape=new_shape)
+
+        assert new_buffer.shape == new_shape
+        assert new_buffer.ndim == len(new_shape)
+        assert new_buffer.offset == 0
+        assert id(new_buffer.data) != id(data)
+        assert new_buffer.is_contiguous()
+        for new_element, old_element in zip(new_buffer, [offset + i * 2 for i in range(12)]):
+            assert new_element == old_element
+
+        # 6 elements
+        new_shape = (2, 3)
+        buffer._set_data(data=data, shape=(6,), stride=(4,), offset=offset)
+        new_buffer = buffer.reshape(new_shape=new_shape)
+
+        assert new_buffer.shape == new_shape
+        assert new_buffer.ndim == len(new_shape)
+        assert new_buffer.offset == 0
+        assert id(new_buffer.data) != id(data)
+        assert new_buffer.is_contiguous()
+        for new_element, old_element in zip(new_buffer, [offset + i * 4 for i in range(6)]):
+            assert new_element == old_element
+
+        # 1 element
+        new_shape = ()
+        buffer._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=offset)
+        new_buffer = buffer.reshape(new_shape=new_shape)
+
+        assert new_buffer.shape == new_shape
+        assert new_buffer.ndim == len(new_shape)
+        assert new_buffer.offset == 0
+        assert id(new_buffer.data) != id(data)
+        assert new_buffer.is_contiguous()
+        for new_element, old_element in zip(new_buffer, [offset]):
+            assert new_element == old_element
+
+    # Check wrong inputs
+    for dtype in DType:
+        buffer = Buffer([1, 2, 3, 4], dtype=dtype)
+
+        # Wrong type
+        with pytest.raises(TypeError):
+            new_buffer = buffer.reshape(new_shape=None)
+
+        # Wrong shape value
+        for wrong_new_shape in [(4, -1), (-1,), (4, 0), (-2, -2)]:
+            with pytest.raises(ValueError):
+                new_buffer = buffer.reshape(new_shape=wrong_new_shape)
+
+        for wrong_new_shape in [(1,), (2, 2, 1, 1, 2), (12,), (2,), (4, 3, 2, 1)]:
+            with pytest.raises(RuntimeError):
+                new_buffer = buffer.reshape(new_shape=wrong_new_shape)
+
+
+def test_expand():
+
+    # Scalar expansion
+    for scalar in [-3, -2, -1, 0, 1, 2, 3]:
+        for dtype in DType:
+            buffer = Buffer(scalar, dtype)
+            new_buffer = buffer.expand(new_shape=())
+            assert new_buffer.shape == ()
+            assert id(new_buffer.data) == id(buffer.data)
+            assert new_buffer.offset == 0
+            assert new_buffer.ndim == 0
+            assert new_buffer.is_contiguous()
+            for new_element, old_element in zip(new_buffer, buffer):
+                assert new_element == old_element
+
+    # Tensor expansion
+    for dtype in DType:
+        buffer = Buffer([1, 2, 3, 4], dtype=dtype)
+
+        new_shape = (4,)
+        new_buffer = buffer.expand(new_shape)
+
+        assert new_buffer.shape == new_shape
+        assert id(new_buffer.data) == id(buffer.data)
+        assert new_buffer.offset == 0
+        assert new_buffer.ndim == len(new_shape)
+        assert new_buffer.is_contiguous()
+        for new_element, old_element in zip(new_buffer, buffer):
+            assert new_element == old_element
+
+        buffer._set_data(data=buffer.data, shape=(4, 1), stride=Buffer._calculate_stride((4, 1)), offset=0)
+        for i in range(5):
+            new_shape = (4, i + 1)
+            new_buffer = buffer.expand(new_shape)
+
+            assert new_buffer.shape == new_shape
+            assert id(new_buffer.data) == id(buffer.data)
+            assert new_buffer.offset == 0
+            assert new_buffer.ndim == len(new_shape)
+            assert new_buffer.is_contiguous() if i == 0 else not new_buffer.is_contiguous()
+            expected_data = [*(1,) * (i + 1), *(2,) * (i + 1), *(3,) * (i + 1), *(4,) * (i + 1)]
+            for idx, new_element in enumerate(new_buffer):
+                assert new_element == dtype.cast(expected_data[idx])
+
+        buffer._set_data(data=buffer.data, shape=(1, 4), stride=Buffer._calculate_stride((1, 4)), offset=0)
+        for i in range(5):
+            new_shape = (i + 1, 4)
+            new_buffer = buffer.expand(new_shape)
+
+            assert new_buffer.shape == new_shape
+            assert id(new_buffer.data) == id(buffer.data)
+            assert new_buffer.offset == 0
+            assert new_buffer.ndim == len(new_shape)
+            assert new_buffer.is_contiguous() if i == 0 else not new_buffer.is_contiguous()
+            for idx, new_element in enumerate(new_buffer):
+                new_element == dtype.cast(idx % 4 + 1)
+
+        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        buffer = Buffer(data, dtype=dtype)
+        for shape in [(3, 4, 1), (4, 3, 1)]:
+            buffer._set_data(data=buffer.data, shape=shape, stride=Buffer._calculate_stride(shape), offset=0)
+            for i in range(5):
+                new_shape = (*shape[:-1], 1 + i)
+                new_buffer = buffer.expand(new_shape)
+
+                assert new_buffer.shape == new_shape
+                assert id(new_buffer.data) == id(buffer.data)
+                assert new_buffer.offset == 0
+                assert new_buffer.ndim == len(new_shape)
+                assert new_buffer.is_contiguous() if i == 0 else not new_buffer.is_contiguous()
+                expected_data_idx = -1
+                for idx, new_element in enumerate(new_buffer):
+                    if (i + 1) < 1 or idx % (i + 1) == 0:
+                        expected_data_idx += 1
+                    assert new_element == dtype.cast(data[expected_data_idx])
+
+    # Try with non-contiguous data
+    data = [i for i in range(50)]
+    for offset in [0, 1, 2]:
+
+        buffer = Buffer([])
+        buffer._set_data(data=data, shape=(6, 1), stride=(2, 1), offset=offset)
+        expected_data = [offset + i * 2 for i in range(6)]
+        for i in range(3):
+            new_shape = (6, i + 1)
+            new_buffer = buffer.expand(new_shape=new_shape)
+
+            assert new_buffer.shape == new_shape
+            assert new_buffer.ndim == len(new_shape)
+            assert new_buffer.offset == 0
+            assert id(new_buffer.data) != id(data)
+            assert new_buffer.is_contiguous() if i == 0 else not new_buffer.is_contiguous()
+
+            expected_data_idx = -1
+            for idx, new_element in enumerate(new_buffer):
+                if (i + 1) < 1 or idx % (i + 1) == 0:
+                    expected_data_idx += 1
+                assert new_element == expected_data[expected_data_idx]
+
+    # Check wrong inputs
+    for dtype in DType:
+        buffer = Buffer([[1, 2, 3, 4]], dtype=dtype)
+
+        # Wrong type
+        with pytest.raises(TypeError):
+            new_buffer = buffer.expand(new_shape=None)
+
+        # Wrong shape value
+        for wrong_new_shape in [(4, -1), (-1,), (4, 0), (-2, -2)]:
+            with pytest.raises(ValueError):
+                new_buffer = buffer.expand(new_shape=wrong_new_shape)
+
+        for wrong_new_shape in [(1,), (2, 2, 1, 1, 2), (12,), (2,), (4, 3, 2, 1)]:
+            with pytest.raises(ValueError):
+                new_buffer = buffer.expand(new_shape=wrong_new_shape)

@@ -1,5 +1,4 @@
 from __future__ import annotations
-import math
 from enum import Enum, auto
 from collections import deque
 from typing import Any, Union
@@ -46,10 +45,7 @@ class Buffer():
             self._extract_data(input_data, dtype)
 
     def __repr__(self) -> str:
-        if self.ndim > 1 and any(value == 0 for value in self.shape):
-            return f"<Buffer {self._get_contiguous_data()}, size={self.shape}>"
-        else:
-            return f"<Buffer {self._get_contiguous_data()}>"
+        return f"<Buffer {self._get_contiguous_data()}, shape={self.shape}>"
 
     def __str__(self) -> str:
         return f"{self._get_contiguous_data()}"
@@ -146,11 +142,11 @@ class Buffer():
             raise ValueError(f"All values in shape must be greater than 0. Found {shape}")
 
         numel = Buffer._numel(shape)
-        if numel > data_size:
+        if numel > data_size and not any(val == 0 for val in stride):
             raise ValueError(f"Shape {shape} has more elements than data elements: {data_size}")
         if not 0 <= offset < data_size:
             raise ValueError(f"0 <= offset < number of elements. Found offset of {offset} and {data_size} elements")
-        if numel + offset > data_size:
+        if numel + offset > data_size and not any(val == 0 for val in stride):
             raise ValueError(f"Shape {shape} has more elements than data elements: {data_size} - {offset} (offset)")
         if not all(0 <= val <= data_size - offset for val in stride):
             raise ValueError(
@@ -212,7 +208,7 @@ class Buffer():
         # Check if the data is contiguous in memory
         expected_stride = 1
         for dim, s in zip(reversed(self.shape), reversed(self.stride)):
-            if s != expected_stride and s != 0:
+            if s != expected_stride:
                 return False
 
             expected_stride *= dim
@@ -308,3 +304,69 @@ class Buffer():
 
     def __ge__(self, other: Buffer) -> Buffer:
         return self._execute(self.Op.GE, other)
+
+    def reshape(self, new_shape: tuple) -> Buffer:
+        if not isinstance(new_shape, tuple):
+            raise TypeError(f"Expecting type tuple for new_shape but found type {type(new_shape)}")
+
+        if any(value < 1 for value in new_shape):
+            raise ValueError(f"One or more values in new_shape is less than 1: {new_shape}")
+
+        # Check if both shapes would have the same number of elements
+        if self.numel() != Buffer._numel(new_shape):
+            raise RuntimeError(
+                "Both current buffer and new buffer has to have the same number of elements." +
+                f"Current buffer has {self.numel()} elements and new_shape has {Buffer._numel(new_shape)} elements."
+            )
+
+        # Create the output
+        result = Buffer([])
+        if self.is_contiguous():
+            # If the tensor is already contiguous, reshape without creating a copy
+            result._set_data(
+                data=self.data, shape=new_shape, stride=Buffer._calculate_stride(new_shape), offset=self.offset
+            )
+
+        else:
+            # Create a contiguous copy of the data before reshaping
+            result._set_data(
+                data=self._get_contiguous_data(), shape=new_shape, stride=Buffer._calculate_stride(new_shape), offset=0
+            )
+
+        return result
+
+    def expand(self, new_shape: tuple) -> Buffer:
+        if not isinstance(new_shape, tuple):
+            raise TypeError(f"Expecting type tuple for new_shape but found type {type(new_shape)}")
+
+        # Check if the number of dimensions is compatible
+        if self.ndim != len(new_shape):
+            raise ValueError(f"Number of dimensions must be the same. Found {len(new_shape)} and {self.ndim}")
+
+        # Check if sizes are compatible for expansion
+        for idx, (new_size, original_size) in enumerate(zip(new_shape, self.shape)):
+            if original_size != 1 and new_size != original_size:
+                raise ValueError(f"Sizes are not compatible in dimension {idx}. Found {original_size} and {new_size}")
+
+        # Create the output
+        result = Buffer([])
+        if self.is_contiguous():
+            # The new stride is the old one but we set to 0 where the old shape is 1 and the new shape is not 1
+            new_stride = tuple(
+                val if self.shape[idx] != 1 or new_shape[idx] == 1 else 0 for idx, val in enumerate(self.stride)
+            )
+            # If the tensor is already contiguous, expand without creating a copy
+            result._set_data(data=self.data, shape=new_shape, stride=new_stride, offset=self.offset)
+
+        else:
+            # Because we have to create a contiguous copy of the data, we need the stride of that contiguous data
+            contiguous_stride = Buffer._calculate_stride(self.shape)
+
+            # The new stride is contiguous_stride but we set to 0 where the old shape is 1 and the new shape is not 1
+            new_stride = tuple(
+                val if self.shape[idx] != 1 or new_shape[idx] == 1 else 0 for idx, val in enumerate(contiguous_stride)
+            )
+            # Create a contiguous copy of the data before expanding
+            result._set_data(data=self._get_contiguous_data(), shape=new_shape, stride=new_stride, offset=0)
+
+        return result
