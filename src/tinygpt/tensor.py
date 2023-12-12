@@ -26,10 +26,7 @@ class Tensor():
             raise RuntimeError("Only Tensors of floating point dtype can require gradients")
 
     def __repr__(self) -> str:
-        if self.ndim > 1 and any(value == 0 for value in self.shape):
-            return f"<Tensor {self.buffer}, size={self.shape}>"
-        else:
-            return f"<Tensor {self.buffer}>"
+        return f"<Tensor {self.buffer}, shape={self.shape}, dtype={self.dtype}, requires_grad={self.requires_grad}>"
 
     @property
     def shape(self):

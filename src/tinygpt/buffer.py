@@ -45,10 +45,19 @@ class Buffer():
             self._extract_data(input_data, dtype)
 
     def __repr__(self) -> str:
-        return f"<Buffer {self._get_contiguous_data()}, shape={self.shape}>"
+        return f"<Buffer {self._get_buffer_str()}, shape={self.shape}, dtype={self.dtype}>"
 
     def __str__(self) -> str:
-        return f"{self._get_contiguous_data()}"
+        return f"{self._get_buffer_str()}"
+
+    def _get_buffer_str(self,) -> str:
+        def recurser(index):
+            if len(index) == self.ndim:
+                return str(self._get(index))
+            else:
+                return "[" + ", ".join(recurser(index + (i,)) for i in range(self.shape[len(index)])) + "]"
+
+        return recurser(())
 
     def _extract_flat_array_and_shape(self, input_data: Any, dtype: DType) -> (list, list):
         # The size and type of each element in each dimension must always be the same in the same dimension. We assume
