@@ -147,19 +147,25 @@ class Buffer():
         data_size = len(data)
         if not len(shape) == len(stride):
             raise ValueError(f"Length of shape and stride must match. Found shape='{shape}' and stride='{stride}'")
-        if not all(val > 0 for val in shape):
-            raise ValueError(f"All values in shape must be greater than 0. Found {shape}")
 
-        numel = Buffer._numel(shape)
-        if numel > data_size and not any(val == 0 for val in stride):
-            raise ValueError(f"Shape {shape} has more elements than data elements: {data_size}")
         if not 0 <= offset < data_size:
             raise ValueError(f"0 <= offset < number of elements. Found offset of {offset} and {data_size} elements")
-        if numel + offset > data_size and not any(val == 0 for val in stride):
-            raise ValueError(f"Shape {shape} has more elements than data elements: {data_size} - {offset} (offset)")
-        if not all(0 <= val <= data_size - offset for val in stride):
+
+        # Stride and shape must be analyzed together
+        max_flat_index = offset
+        for idx in range(len(shape)):
+            if shape[idx] <= 0:
+                raise ValueError(f"All values in shape must be greater than 0. Found {shape}")
+
+            if stride[idx] < 0:
+                raise ValueError(f"All values in stride must be greater than or equal to 0. Found {stride}")
+
+            max_flat_index += (shape[idx] - 1) * stride[idx]
+
+        if max_flat_index >= data_size:
             raise ValueError(
-                f"0 <= stride[idx] <= len(data) - offset. Found that {stride} is < 0 or > {data_size} - {offset}"
+                f"shape {shape}, stride {stride} and offset {offset} mean a maximum index for data of {max_flat_index}"
+                f" but data only has {data_size} elements"
             )
 
         # Assign the new values
