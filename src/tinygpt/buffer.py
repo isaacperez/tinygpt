@@ -45,7 +45,7 @@ class Buffer():
             self._extract_data(input_data, dtype)
 
     def __repr__(self) -> str:
-        return f"<Buffer {self._get_buffer_str()}, shape={self.shape}, dtype={self.dtype}>"
+        return f"<Buffer {hex(id(self))}: {self._get_buffer_str()}, shape={self.shape}, dtype={self.dtype}>"
 
     def __str__(self) -> str:
         return f"{self._get_buffer_str()}"
