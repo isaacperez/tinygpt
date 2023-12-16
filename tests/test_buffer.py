@@ -55,11 +55,11 @@ def test_Buffer():
             data = [data, data]
 
     for different_length_data in [[[1, 2], [3]], [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11]]]]:
-        with pytest.raises(ValueError, match="expected sequence of length"):
+        with pytest.raises(ValueError, match="Inconsistent size at dim"):
             buffer = Buffer(different_length_data)
 
     for different_type_data in [[[1, 2], 3], [[[1, 2, 3], [4, 5, 6]], [9, 8]]]:
-        with pytest.raises(TypeError, match="expected type"):
+        with pytest.raises(TypeError, match="Type mismatch at dim"):
             buffer = Buffer(different_type_data)
 
     for different_dtype_data in [None, DType]:

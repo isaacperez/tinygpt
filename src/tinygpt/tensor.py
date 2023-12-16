@@ -8,12 +8,7 @@ import tinygpt.mlops as mlops
 
 class Tensor():
 
-    def __init__(
-            self,
-            data: Any,
-            dtype: DType = None,
-            requires_grad=False
-    ) -> None:
+    def __init__(self, data: Any, dtype: DType = None, requires_grad=False) -> None:
         # Save the data in a buffer
         self.buffer = Buffer(data, dtype)
 
