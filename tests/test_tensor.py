@@ -60,8 +60,5 @@ def test_Tensor():
 
     # Try not valid dtypes to require gradients
     for data in ([[[1, 2], [3, 4]], [[1, 2], [3, 4]], [[1, 2], [3, 4]]], 1, True, False, [1, 2], [True, False]):
-        with pytest.raises(
-            RuntimeError,
-            match="Only Tensors of floating point dtype can require gradients"
-        ):
+        with pytest.raises(RuntimeError, match="Only float32 Tensors can require gradients"):
             tensor = Tensor(data, requires_grad=True)

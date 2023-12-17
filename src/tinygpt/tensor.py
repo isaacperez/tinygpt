@@ -18,9 +18,8 @@ class Tensor():
         self.grad_fn = None
         self._backward_references = 0
 
-        # Only float tensors can require gradients
         if self.requires_grad and self.dtype != DType.float32:
-            raise RuntimeError("Only Tensors of floating point dtype can require gradients")
+            raise RuntimeError("Only float32 Tensors can require gradients")
 
     def __repr__(self) -> str:
         return (
@@ -53,32 +52,33 @@ class Tensor():
         if self.requires_grad:
             self._backward_references += 1
 
-    def backward(self, incoming_gradient=None) -> None:
+    def backward(self, incoming_gradient) -> None:
+        # Perform the backward pass to compute gradients
         if self.requires_grad:
-            # Decrease the counter of received gradients
             self._backward_references -= 1
+            incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
+            self._accumulate_gradient(incoming_gradient)
+            self._propagate_gradient()
 
-            # Checks if any gradient is coming (first call to backward)
-            if incoming_gradient is None:
-                # Backward can only be called the first time from scalar tensors
-                if self.ndim != 0:
-                    raise RuntimeError(f"backward can only be called for scalar tensors. Found shape {self.shape}")
+    def _initialize_incoming_gradient(self, incoming_gradient):
+        # Initialize the incoming gradient for backward pass
+        # If it's the first call, and the tensor is scalar, initializes it with 1.0
+        if incoming_gradient is None and self.ndim == 0:
+            return Buffer(1.0)
+        elif incoming_gradient is None:
+            raise RuntimeError("backward can only be called on scalar tensors")
 
-                incoming_gradient = Buffer(1.0)
+        return incoming_gradient
 
-            # Add incoming gradient to your local gradient
-            if self.grad is None:
-                self.grad = incoming_gradient
-            else:
-                self.grad += incoming_gradient
+    def _accumulate_gradient(self, incoming_gradient):
+        # Accumulate the incoming gradient with the existing gradient
+        self.grad = incoming_gradient if self.grad is None else self.grad + incoming_gradient
 
-            # Propagate your gradient to the function that created you when you have received all the expected gradients
-            if self._backward_references == 0:
-                if self.grad_fn is not None:
-                    self.grad_fn.backward(self.grad)
-
-                # Graph cleanup after calling backward
-                self.grad_fn = None
+    def _propagate_gradient(self):
+        # If the tensor has received all expected gradients, propagate them to the function that created this tensor
+        if self._backward_references == 0 and self.grad_fn is not None:
+            self.grad_fn.backward(self.grad)
+            self.grad_fn = None  # Clear the gradient function for graph cleanup
 
 
 class GradientFunction():
@@ -88,8 +88,10 @@ class GradientFunction():
         self.inputs = inputs
 
     def backward(self, incoming_gradient: Tensor) -> None:
-        if self.operation is not None:
-            # Calculate the gradient of the operation with the incoming gradient
+        # This method iterates over the input tensors and their corresponding computed gradients, invoking the
+        # backward method of each input tensor. This recursion continues until the leaf tensors of the graph are reached
+        if self.operation:
+            # Computes the gradient of the operation
             gradients = self.operation.backward(incoming_gradient)
 
             # Propagate the gradient of the operation to its input tensors
@@ -97,21 +99,13 @@ class GradientFunction():
                 input_tensor.backward(grad)
 
     def __str__(self) -> str:
-        # Create a simplified representation of the input tensors
-        inputs_repr = []
-        for input_tensor in self.inputs:
-            inputs_repr.append(f"<Tensor {hex(id(input_tensor))}>")
-
-        inputs_repr = ", ".join(inputs_repr)
-
-        return f"<GradientFunction {self.operation} with {len(self.inputs)} inputs ({inputs_repr})>"
+        inputs_str = ", ".join(f"<Tensor {hex(id(tensor))}>" for tensor in self.inputs)
+        return f"<GradientFunction {self.operation} with inputs [{inputs_str}]>"
 
 
 def apply_op(operation_cls: mlops.Operation, *tensors: Tensor, **kwargs) -> Tensor:
-    # We need to know which input tensor requires gradient
-    needs_input_grad = [tensor.requires_grad for tensor in tensors]
-
     # The output tensor requires gradient if any of the input tensors also require it
+    needs_input_grad = [tensor.requires_grad for tensor in tensors]
     if any(needs_input_grad):
         requires_grad = True
     elif None in needs_input_grad:
@@ -128,12 +122,11 @@ def apply_op(operation_cls: mlops.Operation, *tensors: Tensor, **kwargs) -> Tens
     # Save the buffer in a new tensor
     output_tensor = Tensor(buffer, requires_grad=requires_grad)
 
-    # We update the GradientFunction object of the output tensor when it requires gradient. Specifically, we store
-    # the operation that created the output tensor and the input tensors used in that operation
+    # If the output tensor requires a gradient, set up the gradient function
     if output_tensor.requires_grad:
         output_tensor.grad_fn = GradientFunction(operation=operation_object, inputs=tensors)
 
-        # Increment backward reference count for each input tensor that requires gradient
+        # Increment the backward reference counter for input tensors that require gradients
         for tensor in tensors:
             if tensor.requires_grad:
                 tensor._increment_backward_references()
