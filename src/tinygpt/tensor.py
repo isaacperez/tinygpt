@@ -92,7 +92,10 @@ class Tensor():
         # If the tensor has received all expected gradients, propagate them to the function that created this tensor
         if self._backward_references == 0 and self.grad_fn is not None:
             self.grad_fn.backward(self.grad)
-            self.grad_fn = None  # Clear the gradient function for graph cleanup
+
+            # Delete the gradient function
+            del self.grad_fn
+            self.grad_fn = None
 
 
 class GradientFunction():
