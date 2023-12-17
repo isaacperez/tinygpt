@@ -48,27 +48,41 @@ class Tensor():
 
         return apply_op(mlops.Sum, self, other)
 
+    def __mul__(self, other: Any) -> Tensor:
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        return apply_op(mlops.Mul, self, other)
+
     def _increment_backward_references(self) -> None:
         if self.requires_grad:
             self._backward_references += 1
 
-    def backward(self, incoming_gradient) -> None:
+    def backward(self, incoming_gradient=None) -> None:
         # Perform the backward pass to compute gradients
         if self.requires_grad:
-            self._backward_references -= 1
             incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
             self._accumulate_gradient(incoming_gradient)
             self._propagate_gradient()
 
     def _initialize_incoming_gradient(self, incoming_gradient):
         # Initialize the incoming gradient for backward pass
-        # If it's the first call, and the tensor is scalar, initializes it with 1.0
-        if incoming_gradient is None and self.ndim == 0:
-            return Buffer(1.0)
-        elif incoming_gradient is None:
-            raise RuntimeError("backward can only be called on scalar tensors")
+        if incoming_gradient is None:
+            # Handle the first backward call
+            if self.ndim == 0:
+                # Initialize the gradient as 1.0 for scalar tensors
+                return Buffer(1.0)
+            else:
+                # Backward on non-scalar tensors must have an incoming gradient
+                raise RuntimeError("backward can only be called on scalar tensors or with an existing gradient")
+        else:
+            # Handle subsequent backward calls
+            # The backward method has been called from an operation in which this tensor participated and we are now
+            # receiving a gradient from that operation so we have to decrement the backward references
+            self._backward_references -= 1
 
-        return incoming_gradient
+            # Use the incoming gradient provided by the operation
+            return incoming_gradient
 
     def _accumulate_gradient(self, incoming_gradient):
         # Accumulate the incoming gradient with the existing gradient
