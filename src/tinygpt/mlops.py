@@ -31,6 +31,7 @@ class Sum(Operation):
 
 
 class Mul(Operation):
+
     def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
         self.first_buffer, self.second_buffer = first_buffer, second_buffer
         return first_buffer * second_buffer
