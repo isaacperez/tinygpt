@@ -81,7 +81,7 @@ class Buffer():
 
         return recurser(())
 
-    def _extract_flat_array_and_shape(self, input_data: Any, dtype: DType) -> (list, list):
+    def _extract_flat_array_and_shape(self, input_data: Any, dtype: DType) -> tuple[list, list]:
         # Converts nested lists or tuples to a flat array while extracting the shape
         # The size and type of each element in each dimension must be consistent
         flat_array = []
@@ -150,7 +150,7 @@ class Buffer():
         self.ndim = len(shape)
         self.dtype = self._deduce_dtype(data)
 
-    def _validate_set_data_input_types(self, data, shape, stride, offset):
+    def _validate_set_data_input_types(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate the types of inputs for _set_data
         if not isinstance(data, list):
             raise TypeError(f"Expected data to be a list, found {type(data)}")
@@ -161,7 +161,7 @@ class Buffer():
         if not isinstance(offset, int):
             raise TypeError(f"Expected offset to be an int, found {type(offset)}")
 
-    def _validate_set_data_values(self, data, shape, stride, offset):
+    def _validate_set_data_values(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate the values of inputs for _set_data
         data_size = len(data)
         if len(shape) != len(stride):
@@ -171,7 +171,7 @@ class Buffer():
 
         self._validate_stride_and_shape(data_size, shape, stride, offset)
 
-    def _validate_stride_and_shape(self, data_size, shape, stride, offset):
+    def _validate_stride_and_shape(self, data_size: int, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate that the stride and shape correspond correctly to the data size
         max_flat_index = offset
         for dim_size, dim_stride in zip(shape, stride):
@@ -190,7 +190,7 @@ class Buffer():
         return self.offset + sum([idx * stride for idx, stride in zip(index, self.stride)])
 
     @staticmethod
-    def _numel(shape: tuple):
+    def _numel(shape: tuple) -> int:
         # Calculate the total number of elements in a buffer with the specified shape
         total_elements = 1
         for dim in shape:
@@ -198,11 +198,11 @@ class Buffer():
 
         return total_elements
 
-    def numel(self):
+    def numel(self) -> int:
         # Calculate the total number of elements in the current buffer based on its shape
         return self._numel(self.shape)
 
-    def __iter__(self) -> Any:
+    def __iter__(self) -> Union[float, int, bool]:
         # Iterator to enable looping over the buffer elements
         # This accounts for the multi-dimensional nature of the buffer
         if self.ndim == 0:

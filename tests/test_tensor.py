@@ -92,13 +92,19 @@ def test_backward_non_scalar_tensor():
     with pytest.raises(RuntimeError):
         tensor.backward(incoming_gradient=None)
 
+    with pytest.raises(TypeError):
+        tensor.backward(incoming_gradient=1)
+
+    with pytest.raises(TypeError):
+        tensor.backward(incoming_gradient=1.0)
+
 
 def test_gradient_accumulation():
     # Test if gradients are accumulated correctly
     tensor = Tensor(5.0, requires_grad=True)
-    tensor.backward(1.0)
-    tensor.backward(2.0)
-    assert tensor.grad == 3.0
+    tensor.backward(Buffer(1.0))
+    tensor.backward(Buffer(2.0))
+    assert all(tensor.grad == Buffer(3.0))
 
 
 def test_dtype_consistency_operations():
@@ -126,16 +132,16 @@ def test_gradient_function_backward_with_sum():
         result.backward()
 
         if requires_grad_tensor1:
-            assert tensor1.grad == Buffer(1.0)
+            assert all(tensor1.grad == Buffer(1.0))
         else:
             assert tensor1.grad is None
 
         if requires_grad_tensor2:
-            assert tensor2.grad == Buffer(1.0)
+            assert all(tensor2.grad == Buffer(1.0))
         else:
             assert tensor2.grad is None
 
-        assert result.grad == Buffer(1.0)
+        assert all(result.grad == Buffer(1.0))
         assert result.grad_fn is None
 
 
@@ -156,14 +162,51 @@ def test_gradient_function_backward_with_multiplication():
         result.backward()
 
         if requires_grad_tensor1:
-            assert tensor1.grad == Buffer(3.0)
+            assert all(tensor1.grad == Buffer(3.0))
         else:
             assert tensor1.grad is None
 
         if requires_grad_tensor2:
-            assert tensor2.grad == Buffer(2.0)
+            assert all(tensor2.grad == Buffer(2.0))
         else:
             assert tensor2.grad is None
 
-        assert result.grad == Buffer(1.0)
+        assert all(result.grad == Buffer(1.0))
         assert result.grad_fn is None
+
+
+def test_multiple_ops():
+    tensor1 = Tensor(3.0, requires_grad=True)
+    tensor2 = Tensor(7.0, requires_grad=True)
+    tensor3 = Tensor(9.0, requires_grad=True)
+    tensor4 = Tensor(11.0, requires_grad=True)
+
+    assert tensor1.grad is None
+    assert tensor2.grad is None
+    assert tensor3.grad is None
+    assert tensor4.grad is None
+
+    result1 = tensor1 + tensor2
+    result2 = tensor3 + tensor4
+    result3 = result1 * result2
+
+    assert result1.grad is None
+    assert result1.grad_fn is not None
+    assert result2.grad is None
+    assert result2.grad_fn is not None
+    assert result3.grad is None
+    assert result3.grad_fn is not None
+
+    result3.backward()
+
+    assert all(tensor1.grad == Buffer(20.0))
+    assert all(tensor2.grad == Buffer(20.0))
+    assert all(tensor3.grad == Buffer(10.0))
+    assert all(tensor4.grad == Buffer(10.0))
+
+    assert all(result1.grad == Buffer(20.0))
+    assert result1.grad_fn is None
+    assert all(result2.grad == Buffer(10.0))
+    assert result2.grad_fn is None
+    assert all(result3.grad == Buffer(1.0))
+    assert result3.grad_fn is None

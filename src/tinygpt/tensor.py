@@ -8,7 +8,7 @@ import tinygpt.mlops as mlops
 
 class Tensor():
 
-    def __init__(self, data: Any, dtype: DType = None, requires_grad=False) -> None:
+    def __init__(self, data: Any, dtype: DType = None, requires_grad: bool = False) -> None:
         # Save the data in a buffer
         self.buffer = Buffer(data, dtype)
 
@@ -31,15 +31,15 @@ class Tensor():
         return f"<Tensor {self.buffer}, shape={self.shape}, dtype={self.dtype}, requires_grad={self.requires_grad}>"
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
         return self.buffer.shape
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         return self.buffer.ndim
 
     @property
-    def dtype(self):
+    def dtype(self) -> DType:
         return self.buffer.dtype
 
     def __add__(self, other: Any) -> Tensor:
@@ -65,7 +65,7 @@ class Tensor():
             self._accumulate_gradient(incoming_gradient)
             self._propagate_gradient()
 
-    def _initialize_incoming_gradient(self, incoming_gradient):
+    def _initialize_incoming_gradient(self, incoming_gradient: Buffer) -> Buffer:
         # Initialize the incoming gradient for backward pass
         if incoming_gradient is None:
             # Handle the first backward call
@@ -81,14 +81,18 @@ class Tensor():
             # receiving a gradient from that operation so we have to decrement the backward references
             self._backward_references -= 1
 
+            # User may set incoming_gradient to something else
+            if not isinstance(incoming_gradient, Buffer):
+                raise TypeError("incoming_gradient is not a Buffer")
+
             # Use the incoming gradient provided by the operation
             return incoming_gradient
 
-    def _accumulate_gradient(self, incoming_gradient):
+    def _accumulate_gradient(self, incoming_gradient: Buffer) -> None:
         # Accumulate the incoming gradient with the existing gradient
         self.grad = incoming_gradient if self.grad is None else self.grad + incoming_gradient
 
-    def _propagate_gradient(self):
+    def _propagate_gradient(self) -> None:
         # If the tensor has received all expected gradients, propagate them to the function that created this tensor
         if self._backward_references == 0 and self.grad_fn is not None:
             self.grad_fn.backward(self.grad)
@@ -104,7 +108,7 @@ class GradientFunction():
         self.operation = operation
         self.inputs = inputs
 
-    def backward(self, incoming_gradient: Tensor) -> None:
+    def backward(self, incoming_gradient: Buffer) -> None:
         # This method iterates over the input tensors and their corresponding computed gradients, invoking the
         # backward method of each input tensor. This recursion continues until the leaf tensors of the graph are reached
         if self.operation:
