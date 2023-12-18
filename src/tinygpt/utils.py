@@ -18,3 +18,28 @@ class DType(Enum):
             if type(value) is dtype.value:
                 return dtype
         raise RuntimeError(f"Could not infer dtype of type {type(value)}")
+
+
+def print_dag(node, indent='', last=True, is_grad_fn=False):
+    # Recursively prints the DAG of tensors and their gradient functions
+
+    # Define the tree structure's branch elements
+    tree_elements = '└──' if last else '├──'
+
+    # Print the current node
+    print(f"{indent}{tree_elements} {node if is_grad_fn else repr(node)}")
+
+    # Prepare the next level of indentation
+    indent += '   ' if last else '│  '
+
+    # Identify the next set of nodes to visit
+    next_nodes = []
+    if is_grad_fn:
+        next_nodes = node.inputs
+    elif node.grad_fn:
+        next_nodes = [node.grad_fn]
+
+    # Recursively visit each next node
+    for i, child in enumerate(next_nodes):
+        if child is not None:
+            print_dag(child, indent, i == len(next_nodes) - 1, not is_grad_fn)
