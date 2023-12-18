@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
-from tinygpt.utils import DType
+from tinygpt.utils import DType, print_dag
 from tinygpt.buffer import Buffer
 import tinygpt.mlops as mlops
 
@@ -29,6 +29,9 @@ class Tensor():
 
     def __str__(self) -> str:
         return f"<Tensor {self.buffer}, shape={self.shape}, dtype={self.dtype}, requires_grad={self.requires_grad}>"
+
+    def print_dag(self) -> None:
+        print_dag(self)
 
     @property
     def shape(self) -> tuple:
