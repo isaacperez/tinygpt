@@ -20,7 +20,7 @@ class DType(Enum):
         raise RuntimeError(f"Could not infer dtype of type {type(value)}")
 
 
-def print_dag(node, indent='', last=True, is_grad_fn=False):
+def print_dag(node: Any, indent='', last=True, is_grad_fn=False) -> None:
     # Recursively prints the DAG of tensors and their gradient functions
 
     # Define the tree structure's branch elements
