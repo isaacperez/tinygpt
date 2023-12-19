@@ -47,7 +47,7 @@ class Neg(Operation):
     def forward(self, buffer: Buffer) -> Buffer:
         return -buffer
 
-    def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None]]:
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
         return -incoming_grad if self.needs_input_grad[0] else None
 
 
