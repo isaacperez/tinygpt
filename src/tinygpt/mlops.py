@@ -30,6 +30,18 @@ class Sum(Operation):
         return grad_first, grad_second
 
 
+class Sub(Operation):
+
+    def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
+        return first_buffer - second_buffer
+
+    def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None], Union[Buffer, None]]:
+        grad_first = incoming_grad if self.needs_input_grad[0] else None
+        grad_second = -incoming_grad if self.needs_input_grad[1] else None
+
+        return grad_first, grad_second
+
+
 class Mul(Operation):
 
     def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:

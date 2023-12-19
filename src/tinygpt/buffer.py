@@ -12,6 +12,7 @@ class Buffer():
         # Enum for supported operations
         SUM = auto()
         SUB = auto()
+        NEG = auto()
         MUL = auto()
         DIV = auto()
         LT = auto()
@@ -270,6 +271,8 @@ class Buffer():
             data = [first_element + second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.SUB:
             data = [first_element - second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.NEG:
+            data = [-first_element for first_element in self]
         elif op == self.Op.MUL:
             data = [first_element * second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.DIV:
@@ -317,6 +320,9 @@ class Buffer():
 
     def __sub__(self, other: Buffer) -> Buffer:
         return self._execute(self.Op.SUB, other)
+
+    def __neg__(self):
+        return self._execute(self.Op.NEG, self)
 
     def __mul__(self, other: Buffer) -> Buffer:
         return self._execute(self.Op.MUL, other)

@@ -467,8 +467,7 @@ def test_it():
         assert idx == 4
 
 
-def test_ops():
-
+def test_binary_ops():
     ops = [
         lambda x, y: x + y, lambda x, y: x - y, lambda x, y: x * y, lambda x, y: x / y,
         lambda x, y: x < y, lambda x, y: x <= y, lambda x, y: x > y, lambda x, y: x >= y,
@@ -553,8 +552,52 @@ def test_ops():
                 result = op(buffer, other)
 
 
-def test_reshape():
+def test_unary_ops():
+    ops = [lambda x: -x]
 
+    for op_idx, op in enumerate(ops):
+        # Scalars
+        scalars = [-3, -2, -1, 0, 1, 2, 3]
+        for scalar in scalars:
+            for dtype in DType:
+
+                # Create a Buffer with the current scalar and dtype                 
+                buffer = Buffer(scalar, dtype)
+
+                # Do the operation
+                result = op(buffer)
+                expected_result = op(dtype.cast(scalar))
+
+                # Check the result
+                assert result.shape == ()
+                assert result.offset == 0
+                assert result.stride == ()
+                assert result.dtype == DType.deduce_dtype(expected_result)
+                assert result.data[0] == expected_result
+
+        # Tensors
+        data = [[1,], [0,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
+        linearized_data = [[1], [0], [423, 214, 5734, 434], [1, 2, 3, 4]]
+        for idx, tensor in enumerate(data):
+            for dtype in DType:
+
+                # Create the Buffer
+                buffer = Buffer(tensor, dtype)
+
+                # Do the operation
+                result = op(buffer)
+
+                # Check the result
+                expected_result = [op(dtype.cast(element)) for element in linearized_data[idx]]
+
+                assert result.shape == buffer.shape
+                assert result.offset == buffer.offset
+                assert result.stride == buffer.stride
+                assert result.dtype == DType.deduce_dtype(expected_result[0])
+                assert result.data == expected_result
+
+
+def test_reshape():
     # Scalar reshape
     for scalar in [-3, -2, -1, 0, 1, 2, 3]:
         for dtype in DType:
@@ -670,7 +713,6 @@ def test_reshape():
 
 
 def test_expand():
-
     # Scalar expansion
     for scalar in [-3, -2, -1, 0, 1, 2, 3]:
         for dtype in DType:

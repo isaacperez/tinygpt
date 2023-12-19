@@ -51,6 +51,12 @@ class Tensor():
 
         return apply_op(mlops.Sum, self, other)
 
+    def __sub__(self, other: Any) -> Tensor:
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        return apply_op(mlops.Sub, self, other)
+
     def __mul__(self, other: Any) -> Tensor:
         if not isinstance(other, Tensor):
             other = Tensor(other)
