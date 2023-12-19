@@ -57,6 +57,9 @@ class Tensor():
 
         return apply_op(mlops.Sub, self, other)
 
+    def __neg__(self):
+        return apply_op(mlops.Neg, self)
+
     def __mul__(self, other: Any) -> Tensor:
         if not isinstance(other, Tensor):
             other = Tensor(other)
@@ -129,6 +132,10 @@ class GradientFunction():
         if self.operation:
             # Computes the gradient of the operation
             gradients = self.operation.backward(incoming_gradient)
+
+            # We expect a tuple with the gradients but some functions have only one so we wrap the gradient in a tuple
+            if not isinstance(gradients, tuple):
+                gradients = (gradients,)
 
             # Propagate the gradient of the operation to its input tensors
             for input_tensor, grad in zip(self.inputs, gradients):

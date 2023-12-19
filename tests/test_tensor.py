@@ -175,6 +175,33 @@ def test_gradient_function_backward_with_sub():
         assert result.grad_fn is None
 
 
+def test_gradient_function_backward_with_neg():
+    # Test backward propagation in GradientFunction with neg
+    for requires_grad in [True, False]:
+        tensor = Tensor(1.0, requires_grad=requires_grad)
+
+        assert tensor.grad is None
+
+        result = -tensor
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer(-1.0))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
+
+
 def test_gradient_function_backward_with_mul():
     # Test backward propagation in GradientFunction with multiplication
     for requires_grad_tensor1, requires_grad_tensor2 in [(True, True), (True, False), (False, True)]:
