@@ -133,7 +133,7 @@ class GradientFunction():
             # Computes the gradient of the operation
             gradients = self.operation.backward(incoming_gradient)
 
-            # We expect a tuple with the gradients but some functions have only one so we wrap the gradient in a tuple
+            # We expect a tuple with the gradients but some operations have only one so we wrap the gradient in a tuple
             if not isinstance(gradients, tuple):
                 gradients = (gradients,)
 
