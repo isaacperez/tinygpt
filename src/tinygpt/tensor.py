@@ -63,6 +63,12 @@ class Tensor():
 
         return apply_op(mlops.Mul, self, other)
 
+    def __truediv__(self, other: Any) -> Tensor:
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        return apply_op(mlops.Div, self, other)
+
     def _increment_backward_references(self) -> None:
         if self.requires_grad:
             self._backward_references += 1

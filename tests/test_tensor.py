@@ -205,6 +205,36 @@ def test_gradient_function_backward_with_mul():
         assert result.grad_fn is None
 
 
+def test_gradient_function_backward_with_div():
+    # Test backward propagation in GradientFunction with division
+    for requires_grad_tensor1, requires_grad_tensor2 in [(True, True), (True, False), (False, True)]:
+        tensor1 = Tensor(2.0, requires_grad=requires_grad_tensor1)
+        tensor2 = Tensor(3.0, requires_grad=requires_grad_tensor2)
+
+        assert tensor1.grad is None
+        assert tensor2.grad is None
+
+        result = tensor1 / tensor2
+
+        assert result.grad is None
+        assert result.grad_fn is not None
+
+        result.backward()
+
+        if requires_grad_tensor1:
+            assert all(tensor1.grad == Buffer(1.0/3.0))
+        else:
+            assert tensor1.grad is None
+
+        if requires_grad_tensor2:
+            assert all(tensor2.grad == Buffer(-(2.0 / 3 ** 2)))
+        else:
+            assert tensor2.grad is None
+
+        assert all(result.grad == Buffer(1.0))
+        assert result.grad_fn is None
+
+
 def test_multiple_ops():
     # Test multiple operations
     tensor1 = Tensor(3.0, requires_grad=True)

@@ -53,3 +53,19 @@ class Mul(Operation):
         grad_second = self.first_buffer * incoming_grad if self.needs_input_grad[1] else None
 
         return grad_first, grad_second
+
+
+class Div(Operation):
+
+    def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
+        self.first_buffer, self.second_buffer = first_buffer, second_buffer
+        return first_buffer * second_buffer
+
+    def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None], Union[Buffer, None]]:
+        grad_first = incoming_grad / self.second_buffer if self.needs_input_grad[0] else None
+
+        grad_second = None
+        if self.needs_input_grad[1]:
+            grad_second = - ((self.first_buffer * incoming_grad) / (self.second_buffer * self.second_buffer))
+
+        return grad_first, grad_second
