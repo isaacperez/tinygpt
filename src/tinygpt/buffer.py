@@ -10,7 +10,7 @@ class Buffer():
 
     class Op(Enum):
         # Enum for supported operations
-        SUM = auto()
+        ADD = auto()
         SUB = auto()
         NEG = auto()
         MUL = auto()
@@ -46,6 +46,7 @@ class Buffer():
         self.stride = input_buffer.stride
         self.shape = input_buffer.shape
         self.dtype = input_buffer.dtype
+        self.numel = input_buffer.numel
 
     def _process_input_data(self, input_data: Any, dtype: DType | None) -> None:
         self.offset = 0
@@ -63,6 +64,7 @@ class Buffer():
         self.data, self.shape = self._extract_flat_array_and_shape(input_data, self.dtype)
         self.stride = self._calculate_stride(self.shape)
         self.ndim = len(self.shape)
+        self.numel = self._numel(self.shape)
 
     def _process_scalar_input(self, input_data: Any) -> None:
         # Process scalar input data
@@ -70,6 +72,7 @@ class Buffer():
         self.shape = ()
         self.stride = ()
         self.ndim = 0
+        self.numel = self._numel(self.shape)
 
     def _get_buffer_str(self) -> str:
         # Generate a string representation of the buffer's data respecting its shape
@@ -150,6 +153,7 @@ class Buffer():
         self.offset = offset
         self.ndim = len(shape)
         self.dtype = self._deduce_dtype(data)
+        self.numel = self._numel(shape)
 
     def _validate_set_data_input_types(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate the types of inputs for _set_data
@@ -199,10 +203,6 @@ class Buffer():
 
         return total_elements
 
-    def numel(self) -> int:
-        # Calculate the total number of elements in the current buffer based on its shape
-        return self._numel(self.shape)
-
     def __iter__(self) -> Union[float, int, bool]:
         # Iterator to enable looping over the buffer elements
         # This accounts for the multi-dimensional nature of the buffer
@@ -212,7 +212,7 @@ class Buffer():
         else:
             # Iterate over each element according to the buffer's shape
             indices = [0] * self.ndim
-            for _ in range(self.numel()):
+            for _ in range(self.numel):
                 yield self._get(tuple(indices))
                 self._update_indices(indices)
 
@@ -267,7 +267,7 @@ class Buffer():
         self._validate_input_buffer(op, other)
 
         # Perform the operation element-wise
-        if op == self.Op.SUM:
+        if op == self.Op.ADD:
             data = [first_element + second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.SUB:
             data = [first_element - second_element for first_element, second_element in zip(self, other)]
@@ -316,7 +316,7 @@ class Buffer():
             raise RuntimeError(f"Shape mismatch. Found {self.shape} and {other.shape}")
 
     def __add__(self, other: Buffer) -> Buffer:
-        return self._execute(self.Op.SUM, other)
+        return self._execute(self.Op.ADD, other)
 
     def __sub__(self, other: Buffer) -> Buffer:
         return self._execute(self.Op.SUB, other)
@@ -358,7 +358,7 @@ class Buffer():
             raise ValueError(f"One or more values in new_shape is not positive: {new_shape}")
 
         # Validate that the total number of elements remains the same
-        if self.numel() != Buffer._numel(new_shape):
+        if self.numel != Buffer._numel(new_shape):
             raise RuntimeError("Total number of elements must remain constant during reshape")
 
         # Use existing data if it's contiguous, otherwise create a contiguous copy
@@ -405,3 +405,68 @@ class Buffer():
         expanded_buffer._set_data(data, new_shape, new_stride, offset)
 
         return expanded_buffer
+
+    def _generate_indexes(self) -> tuple:
+        # Generate all possible multi-dimensional indices for the current buffer
+        if self.ndim == 0:
+            # Handle scalar buffer
+            yield (0,)
+        else:
+            # Generate indices for multi-dimensional buffer
+            indices = [0] * self.ndim
+            for _ in range(self.numel):
+                yield tuple(indices)
+                self._update_indices(indices)
+
+    def _reduce(self, op: Op, axes: tuple) -> Buffer:
+        # Apply a reduction operation along specified axes
+        if not isinstance(op, self.Op):
+            raise TypeError(f"Expecting type Op for op but found type {type(op)}")
+
+        # Normalize axes to a tuple
+        axes = (axes,) if isinstance(axes, int) else axes
+        if any(axis < 0 or axis >= self.ndim for axis in axes):
+            raise ValueError(f"One or more axes are out of bounds for buffer with {self.ndim} dimensions: {axes}")
+
+        # Perform reduction along each axis in reverse order
+        reduced_buffer = self
+        for axis in sorted(axes, reverse=True):
+            reduced_buffer = self._reduce_along_axis(reduced_buffer, axis, op)
+
+        return reduced_buffer
+
+    def _reduce_along_axis(self, buffer: Buffer, axis: int, op: Op) -> Buffer:
+        # Perform reduction along a specific axis
+
+        # Calculate the new shape with the specified axis reduced to 1
+        new_shape = tuple(dim if idx != axis else 1 for idx, dim in enumerate(buffer.shape))
+        new_buffer = Buffer([])
+        new_buffer._set_data(
+            [buffer.dtype.cast(0)] * self._numel(new_shape),
+            shape=new_shape,
+            stride=self._calculate_stride(new_shape),
+            offset=0
+        )
+
+        # Apply the operation along the axis
+        if op == self.Op.ADD:
+            for index in new_buffer._generate_indexes():
+                reduced_value = self._calculate_reduced_value_with_sum(buffer, index, axis)
+                new_buffer._set(index, reduced_value)
+        else:
+            raise RuntimeError(f"Operation {op.value} not implemented")
+
+        return new_buffer
+
+    def _calculate_reduced_value_with_sum(self, buffer: Buffer, index: tuple, axis: int) -> float:
+        # Calculate the reduced value for a given index by using the sum operation
+        old_index = list(index)
+        reduced_value = 0
+        for i in range(buffer.shape[axis]):
+            old_index[axis] = i
+            reduced_value += buffer._get(tuple(old_index))
+
+        return reduced_value
+
+    def sum(self, axes):
+        return self._reduce(self.Op.ADD, axes)

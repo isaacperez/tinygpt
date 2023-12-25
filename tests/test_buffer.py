@@ -21,6 +21,7 @@ def test_Buffer():
         assert buffer.ndim == 0
         assert buffer.stride == ()
         assert buffer.dtype == dtype
+        assert buffer.numel == 1
         if dtype is DType.bool:
             assert original_type(buffer.data[0]) == (original_value != 0)
         else:
@@ -34,6 +35,7 @@ def test_Buffer():
         expected_shape = [len(data)]
         expected_ndim = 1
         expected_stride = [1]
+        expected_numel = len(data)
         for i in range(5):
             buffer = Buffer(data, dtype=dtype)
 
@@ -42,6 +44,7 @@ def test_Buffer():
             assert buffer.shape == tuple(expected_shape)
             assert buffer.ndim == expected_ndim
             assert buffer.stride == tuple(expected_stride)
+            assert buffer.numel == expected_numel
             for idx, value in enumerate(buffer.data):
                 assert value == expected_data[idx]
 
@@ -50,6 +53,7 @@ def test_Buffer():
             expected_shape.insert(0, 2)
             expected_stride.insert(0, len(data) * expected_stride[0])
             expected_ndim += 1
+            expected_numel *= 2
 
             # Add a new the dimension
             data = [data, data]
@@ -78,6 +82,7 @@ def test_Buffer():
         assert original_buffer.stride == copy_buffer.stride
         assert original_buffer.shape == copy_buffer.shape
         assert original_buffer.dtype == copy_buffer.dtype
+        assert original_buffer.numel == copy_buffer.numel
 
         # Try to do a casting when copying the buffer
         for dtype in DType:
@@ -94,6 +99,7 @@ def test_Buffer():
                 assert original_buffer.stride == copy_buffer.stride
                 assert original_buffer.shape == copy_buffer.shape
                 assert original_buffer.dtype == copy_buffer.dtype
+                assert original_buffer.numel == copy_buffer.numel
 
 
 def test_buffer_set_data():
@@ -104,6 +110,7 @@ def test_buffer_set_data():
     valid_shapes = [(1,), (1, 4, 2, 2), (len(data),)]
     valid_strides = [(1,), (8, 4, 2, 1), (1,)]
     valid_offsets = [4, 8, 0]
+    numels = [1, 16, 40]
 
     not_valid_shapes = [(-1,), (1, -1), (1, 4, 4123, 2)]
     not_valid_strides = [(-1,), (1, 0, -1), (-1, 0), (1, 2, -1), (1, 4, 8, 32423)]
@@ -130,7 +137,7 @@ def test_buffer_set_data():
     # Try different combinations
     for array_data in valid_arrays:
         buffer = Buffer([])
-        for shape, stride, offset in zip(valid_shapes, valid_strides, valid_offsets):
+        for shape, stride, offset, numel in zip(valid_shapes, valid_strides, valid_offsets, numels):
             # Assign the values
             buffer._set_data(data=array_data, shape=shape, stride=stride, offset=offset)
 
@@ -139,6 +146,7 @@ def test_buffer_set_data():
             assert buffer.shape == shape
             assert buffer.stride == stride
             assert buffer.offset == offset
+            assert buffer.numel == numel
 
             # Try wrong values
             for not_valid_shape in not_valid_shapes:
@@ -394,24 +402,24 @@ def test_get_contiguous_data():
 def test_numel():
     data = [i for i in range(24)]
     buffer = Buffer(data)
-    assert buffer.numel() == len(data)
+    assert buffer.numel == len(data)
 
     for i in range(3):
         buffer._set_data(data=data, shape=(1, 1, 1), stride=(i, i, i), offset=i)
-        assert buffer.numel() == 1
+        assert buffer.numel == 1
 
         buffer._set_data(data=data, shape=(2,), stride=(i,), offset=i)
-        assert buffer.numel() == 2
+        assert buffer.numel == 2
 
         buffer._set_data(data=data, shape=(2, 2), stride=(i, 1), offset=i)
-        assert buffer.numel() == 4
+        assert buffer.numel == 4
 
         buffer._set_data(data=data, shape=(3, 2), stride=(2, 1), offset=i)
-        assert buffer.numel() == 6
+        assert buffer.numel == 6
 
-    assert Buffer(True).numel() == 1
-    assert Buffer(0).numel() == 1
-    assert Buffer(-3.14).numel() == 1
+    assert Buffer(True).numel == 1
+    assert Buffer(0).numel == 1
+    assert Buffer(-3.14).numel == 1
 
 
 def test_it():
@@ -561,7 +569,7 @@ def test_unary_ops():
         for scalar in scalars:
             for dtype in DType:
 
-                # Create a Buffer with the current scalar and dtype                 
+                # Create a Buffer with the current scalar and dtype
                 buffer = Buffer(scalar, dtype)
 
                 # Do the operation
@@ -826,3 +834,83 @@ def test_expand():
         for wrong_new_shape in [(1,), (2, 2, 1, 1, 2), (12,), (2,), (4, 3, 2, 1)]:
             with pytest.raises(ValueError):
                 new_buffer = buffer.expand(new_shape=wrong_new_shape)
+
+
+def test_generate_indexes():
+
+    # Scalar
+    buffer = Buffer(1.0)
+    indexes = [index for index in buffer._generate_indexes()]
+
+    assert indexes == [(0,)]
+
+    # 1D
+    buffer = Buffer([i * 7 for i in range(10)])
+    indexes = [index for index in buffer._generate_indexes()]
+
+    assert indexes == [(i,) for i in range(10)]
+
+    # 2D
+    buffer = Buffer([[i * 2, j * 5] for i in range(2) for j in range(10)])
+    indexes = [index for index in buffer._generate_indexes()]
+
+    expected_indexes = []
+    for i in range(20):
+        for j in range(2):
+            expected_indexes.append((i, j))
+    assert indexes == expected_indexes
+
+    # 3D
+    buffer = Buffer([[[i * 2, i * 5, i], [j * 2, j * 5, j]] for i in range(2) for j in range(10)])
+    indexes = [index for index in buffer._generate_indexes()]
+
+    expected_indexes = []
+    for i in range(20):
+        for j in range(2):
+            for k in range(3):
+                expected_indexes.append((i, j, k))
+
+    assert indexes == expected_indexes
+
+
+def test_reduce_sum():
+
+    # Scalar
+    buffer = Buffer(1.0)
+
+    with pytest.raises(ValueError):
+        result = buffer.sum(0)
+
+    # 1D
+    buffer = Buffer([i for i in range(9)])
+
+    result = buffer.sum(0)
+    assert all(result == Buffer([sum([i for i in range(9)])]))
+
+    # 2D
+    buffer = Buffer([[1, 2, 3], [4, 5, 6]])
+
+    result = buffer.sum(0)
+    assert all(result == Buffer([[5, 7, 9]]))
+
+    result = buffer.sum(1)
+    assert all(result == Buffer([[6], [15]]))
+
+    # 3D
+    buffer = Buffer([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+
+    result = buffer.sum(0)
+    assert all(result == Buffer([[[6, 8], [10, 12]]]))
+
+    result = buffer.sum(1)
+    assert all(result == Buffer([[[4, 6]], [[12, 14]]]))
+
+    result = buffer.sum(2)
+    assert all(result == Buffer([[[3], [7]], [[11], [15]]]))
+
+    # Wrong inputs
+    with pytest.raises(ValueError):
+        _ = buffer.sum(4)
+
+    with pytest.raises(RuntimeError):
+        _ = buffer._reduce(Buffer.Op.NEG, 0)  # NEG is not a valid reduction operation
