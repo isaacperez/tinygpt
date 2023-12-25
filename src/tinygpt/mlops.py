@@ -18,7 +18,7 @@ class Operation():
         return f"<{self.__class__.__name__} {hex(id(self))}>"
 
 
-class Sum(Operation):
+class Add(Operation):
 
     def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
         return first_buffer + second_buffer
@@ -78,3 +78,33 @@ class Div(Operation):
             grad_second = - ((self.first_buffer * incoming_grad) / (self.second_buffer * self.second_buffer))
 
         return grad_first, grad_second
+
+
+class Sum(Operation):
+    def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
+        self.input_shape = buffer.shape
+        return buffer.sum(axes)
+
+    def backward(self, incoming_grad: Buffer) -> Buffer:
+        return incoming_grad.expand(self.input_shape)
+
+
+class Reshape(Operation):
+
+    def forward(self, buffer: Buffer, new_shape: tuple) -> Buffer:
+        self.input_shape = buffer.shape
+        return buffer.reshape(new_shape)
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        return incoming_grad.reshape(self.input_shape) if self.needs_input_grad[0] else None
+
+
+class Expand(Operation):
+
+    def forward(self, buffer: Buffer, new_shape: tuple) -> Buffer:
+        self.input_shape = buffer.shape
+        return buffer.expand(new_shape)
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        axes = tuple(idx for idx, val in enumerate(incoming_grad.shape) if self.input_shape[idx] != val)
+        return incoming_grad.sum(axes) if self.needs_input_grad[0] else None

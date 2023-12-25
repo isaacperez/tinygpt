@@ -68,7 +68,7 @@ def test_Tensor():
             tensor = Tensor(data, requires_grad=True)
 
 
-def test_sum():
+def test_add():
     # Test addition of two tensors
     tensor1 = Tensor([1, 2, 3])
     tensor2 = Tensor([4, 5, 6])
@@ -115,8 +115,8 @@ def test_dtype_consistency_operations():
         tensor1 + tensor2
 
 
-def test_gradient_function_backward_with_sum():
-    # Test backward propagation in GradientFunction with sum
+def test_gradient_function_backward_with_add():
+    # Test backward propagation in GradientFunction with add
     for requires_grad_tensor1, requires_grad_tensor2 in [(True, True), (True, False), (False, True)]:
         tensor1 = Tensor(1.0, requires_grad=requires_grad_tensor1)
         tensor2 = Tensor(2.0, requires_grad=requires_grad_tensor2)
@@ -146,7 +146,7 @@ def test_gradient_function_backward_with_sum():
 
 
 def test_gradient_function_backward_with_sub():
-    # Test backward propagation in GradientFunction with sum
+    # Test backward propagation in GradientFunction with sub
     for requires_grad_tensor1, requires_grad_tensor2 in [(True, True), (True, False), (False, True)]:
         tensor1 = Tensor(1.0, requires_grad=requires_grad_tensor1)
         tensor2 = Tensor(2.0, requires_grad=requires_grad_tensor2)
@@ -298,3 +298,65 @@ def test_multiple_ops():
     assert result2.grad_fn is None
     assert all(result3.grad == Buffer(1.0))
     assert result3.grad_fn is None
+
+
+def test_sum():
+    tensor = Tensor([[1., 2.], [3., 4.]], requires_grad=True)
+
+    new_tensor = tensor.sum((0, 1), keepdim=True)
+    assert new_tensor.shape == (1, 1)
+    assert all(new_tensor.buffer == Buffer([[10.0]]))
+
+    new_tensor = tensor.sum((0, 1), keepdim=False)
+    assert new_tensor.shape == ()
+    assert all(new_tensor.buffer == Buffer(10.0))
+
+    new_tensor.backward()
+
+    assert all(tensor.grad == Buffer([[1.0, 1.0], [1.0, 1.0]]))
+
+
+def test_reshape():
+    # Multiple reshape operations
+    tensor = Tensor([[[9.0]]], requires_grad=True)
+
+    new_tensor_1 = tensor.reshape((1, 1, 1, 1, 1, 1))
+    assert new_tensor_1.shape == (1, 1, 1, 1, 1, 1)
+
+    new_tensor_2 = new_tensor_1.reshape(())
+    assert new_tensor_2.shape == ()
+
+    new_tensor_2.backward()
+    assert all(tensor.grad == Buffer([[[1.0]]]))
+
+    # Reshape with the same shape
+    tensor = Tensor(7.0, requires_grad=True)
+
+    new_tensor = tensor.reshape(())
+    new_tensor.backward()
+
+    assert all(tensor.grad == Buffer(1.0))
+
+
+def test_expand():
+    # Expand a scalar tensor
+    tensor = Tensor(7.0, requires_grad=True)
+
+    new_tensor = tensor.expand(())
+    new_tensor.backward()
+
+    assert all(tensor.grad == Buffer(1.0))
+
+
+def test_multiple_ops_with_reduction_ops():
+    # Test multiple operations using reduction ops too
+    tensor = Tensor([3., 5., 7.], requires_grad=True)
+
+    reshaped_tensor = tensor.reshape((1, 3))
+    expanded_tensor = reshaped_tensor.expand((4, 3))
+    sum_tensor_1 = expanded_tensor.sum(0)
+    sum_tensor_2 = sum_tensor_1.sum(0)
+
+    sum_tensor_2.backward()
+
+    assert all(tensor.grad == Buffer([4.0, 4.0, 4.0]))

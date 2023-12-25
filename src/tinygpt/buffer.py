@@ -468,5 +468,5 @@ class Buffer():
 
         return reduced_value
 
-    def sum(self, axes):
+    def sum(self, axes: tuple) -> Buffer:
         return self._reduce(self.Op.ADD, axes)
