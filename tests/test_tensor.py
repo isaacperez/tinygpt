@@ -77,13 +77,67 @@ def test_add():
     assert not result.requires_grad
     assert all(result.buffer == Buffer([5, 7, 9]))
 
-    # Test addition of tensor and scalar
+    # Test addition of 3D tensors
     tensor1 = Tensor([[[1.], [2.]], [[3.], [4.]]], requires_grad=True)
     tensor2 = Tensor([[[5.], [6.]], [[7.], [8.]]])
     result = tensor1 + tensor2
     assert result.shape == (2, 2, 1)
     assert result.requires_grad
     assert all(result.buffer == Buffer([[[6.], [8.]], [[10.], [12.]]]))
+
+
+def test_sub():
+    # Test subtraction of two tensors
+    tensor1 = Tensor([1, 2, 3])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 - tensor2
+    assert result.shape == (3,)
+    assert not result.requires_grad
+    assert all(result.buffer == Buffer([-3, -3, -3]))
+
+    # Test subtraction of 3D tensors
+    tensor1 = Tensor([[[1.], [2.]], [[3.], [4.]]], requires_grad=True)
+    tensor2 = Tensor([[[5.], [6.]], [[7.], [8.]]])
+    result = tensor1 - tensor2
+    assert result.shape == (2, 2, 1)
+    assert result.requires_grad
+    assert all(result.buffer == Buffer([[[-4.], [-4.]], [[-4.], [-4.]]]))
+
+
+def test_mul():
+    # Test multiplication of two tensors
+    tensor1 = Tensor([1, 2, 3])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 * tensor2
+    assert result.shape == (3,)
+    assert not result.requires_grad
+    assert all(result.buffer == Buffer([4, 10, 18]))
+
+    # Test multiplication of 3D tensors
+    tensor1 = Tensor([[[1.], [2.]], [[3.], [4.]]], requires_grad=True)
+    tensor2 = Tensor([[[5.], [6.]], [[7.], [8.]]])
+    result = tensor1 * tensor2
+    assert result.shape == (2, 2, 1)
+    assert result.requires_grad
+    assert all(result.buffer == Buffer([[[5.], [12.]], [[21.], [32.]]]))
+
+
+def test_div():
+    # Test division of two tensors
+    tensor1 = Tensor([1, 2, 3])
+    tensor2 = Tensor([4, 5, 6])
+    result = tensor1 / tensor2
+    assert result.shape == (3,)
+    assert not result.requires_grad
+    assert all(result.buffer == Buffer([1 / 4, 2 / 5, 3 / 6]))
+
+    # Test division of 3D tensors
+    tensor1 = Tensor([[[1.], [2.]], [[3.], [4.]]], requires_grad=True)
+    tensor2 = Tensor([[[5.], [6.]], [[7.], [8.]]])
+    result = tensor1 / tensor2
+    assert result.shape == (2, 2, 1)
+    assert result.requires_grad
+    assert all(result.buffer == Buffer([[[1. / 5.], [2. / 6.]], [[3. / 7.], [4. / 8.]]]))
 
 
 def test_backward_non_scalar_tensor():
@@ -249,7 +303,7 @@ def test_gradient_function_backward_with_div():
         result.backward()
 
         if requires_grad_tensor1:
-            assert all(tensor1.grad == Buffer(1.0/3.0))
+            assert all(tensor1.grad == Buffer(1.0 / 3.0))
         else:
             assert tensor1.grad is None
 
@@ -360,3 +414,81 @@ def test_multiple_ops_with_reduction_ops():
     sum_tensor_2.backward()
 
     assert all(tensor.grad == Buffer([4.0, 4.0, 4.0]))
+
+
+def test_broadcast_with_all_ops():
+    ops = [lambda x, y: x + y, lambda x, y: x - y, lambda x, y: x * y, lambda x, y: x / y]
+
+    # Scalars
+    scalar_data = 3.0
+    array_data = [-2.0, -1.0, 3.0, 4.0]
+    x = Tensor(scalar_data)
+    y = Tensor(array_data)
+    for op in ops:
+        expected_output_left_broadcasting = [op(scalar_data, e) for e in array_data]
+        expected_output_right_broadcasting = [op(e, scalar_data) for e in array_data]
+
+        # Left broadcasting
+        result = op(x, y)
+        assert all(result.buffer == Buffer(expected_output_left_broadcasting))
+
+        # Right broadcasting
+        result = op(y, x)
+        assert all(result.buffer == Buffer(expected_output_right_broadcasting))
+
+    # Multidimensional tensors
+    contiguous_data_x = [3.0]
+    contiguous_data_y = [-7.0, 9.0, 15.0, 17.0]
+    x = Tensor(contiguous_data_x)
+    y = Tensor([[contiguous_data_y]])
+    for op in ops:
+        expected_output_left_broadcasting = [[[op(contiguous_data_x[0], e) for e in contiguous_data_y]]]
+        expected_output_right_broadcasting = [[[op(e, contiguous_data_x[0]) for e in contiguous_data_y]]]
+
+        # Left broadcasting
+        result = op(x, y)
+        assert all(result.buffer == Buffer(expected_output_left_broadcasting))
+
+        # Right broadcasting
+        result = op(y, x)
+        assert all(result.buffer == Buffer(expected_output_right_broadcasting))
+
+    # Only need reshape
+    contiguous_data_x = [3.0]
+    contiguous_data_y = [[-7.0]]
+    x = Tensor(contiguous_data_x)
+    y = Tensor(contiguous_data_y)
+    for op in ops:
+        expected_output_left_broadcasting = [[op(contiguous_data_x[0], contiguous_data_y[0][0])]]
+        expected_output_right_broadcasting = [[op(contiguous_data_y[0][0], contiguous_data_x[0])]]
+
+        # Left broadcasting
+        result = op(x, y)
+        assert all(result.buffer == Buffer(expected_output_left_broadcasting))
+
+        # Right broadcasting
+        result = op(y, x)
+        assert all(result.buffer == Buffer(expected_output_right_broadcasting))
+
+    # Only need expand
+    contiguous_data_x = [[3.0, 5.0, 13.0]]
+    contiguous_data_y = [[-7.0, 9.0, 341.0], [14.0, -2.0, -342.0]]
+    x = Tensor(contiguous_data_x)
+    y = Tensor(contiguous_data_y)
+    for op in ops:
+        expected_output_left_broadcasting = [
+            [op(e1, e2) for e1, e2 in zip(contiguous_data_x[0], contiguous_data_y[0])],
+            [op(e1, e2) for e1, e2 in zip(contiguous_data_x[0], contiguous_data_y[1])]
+        ]
+        expected_output_right_broadcasting = [
+            [op(e2, e1) for e1, e2 in zip(contiguous_data_x[0], contiguous_data_y[0])],
+            [op(e2, e1) for e1, e2 in zip(contiguous_data_x[0], contiguous_data_y[1])]
+        ]
+
+        # Left broadcasting
+        result = op(x, y)
+        assert all(result.buffer == Buffer(expected_output_left_broadcasting))
+
+        # Right broadcasting
+        result = op(y, x)
+        assert all(result.buffer == Buffer(expected_output_right_broadcasting))

@@ -45,17 +45,47 @@ class Tensor():
     def dtype(self) -> DType:
         return self.buffer.dtype
 
+    def _broadcasted(self, other: Tensor) -> tuple[Tensor, Tensor]:
+        # Make two tensors broadcastable by reshaping and expanding them as needed
+        x, y = self, other
+
+        # Return immediately if shapes are already the same
+        if x.shape == y.shape:
+            return x, y
+
+        # Adjust the number of dimensions to match
+        shape_delta = x.ndim - y.ndim
+        if shape_delta > 0:
+            # Add extra dimensions to y if x has more dimensions
+            y = y.reshape((1,) * shape_delta + y.shape)
+        elif shape_delta < 0:
+            # Add extra dimensions to x if y has more dimensions
+            x = x.reshape((1,) * -shape_delta + x.shape)
+
+        # Check if shapes match after adding dimensions
+        if x.shape == y.shape:
+            return x, y
+
+        # If shapes still don't match, expand dimensions where sizes differ
+        shape_ret = tuple([max(x, y) for x, y in zip(x.shape, y.shape)])
+        if x.shape != shape_ret:
+            x = x.expand(shape_ret)
+        if y.shape != shape_ret:
+            y = y.expand(shape_ret)
+
+        return x, y
+
     def __add__(self, other: Any) -> Tensor:
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        return apply_op(mlops.Add, self, other)
+        return apply_op(mlops.Add, *self._broadcasted(other))
 
     def __sub__(self, other: Any) -> Tensor:
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        return apply_op(mlops.Sub, self, other)
+        return apply_op(mlops.Sub, *self._broadcasted(other))
 
     def __neg__(self):
         return apply_op(mlops.Neg, self)
@@ -64,13 +94,13 @@ class Tensor():
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        return apply_op(mlops.Mul, self, other)
+        return apply_op(mlops.Mul, *self._broadcasted(other))
 
     def __truediv__(self, other: Any) -> Tensor:
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        return apply_op(mlops.Div, self, other)
+        return apply_op(mlops.Div, *self._broadcasted(other))
 
     def sum(self, axes: tuple, keepdim=False) -> Tensor:
         if keepdim:

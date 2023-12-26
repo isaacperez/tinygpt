@@ -68,7 +68,7 @@ class Div(Operation):
 
     def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
         self.first_buffer, self.second_buffer = first_buffer, second_buffer
-        return first_buffer * second_buffer
+        return first_buffer / second_buffer
 
     def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None], Union[Buffer, None]]:
         grad_first = incoming_grad / self.second_buffer if self.needs_input_grad[0] else None
