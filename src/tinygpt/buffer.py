@@ -340,7 +340,7 @@ class Buffer():
         return self._execute(self.Op.SUB, other)
 
     def __rsub__(self, other: Union[Buffer, int, float]) -> Buffer:
-        return -self + other
+        return (-self) + other
 
     def __neg__(self) -> Buffer:
         return self._execute(self.Op.NEG, self)
