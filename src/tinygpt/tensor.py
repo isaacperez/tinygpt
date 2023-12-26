@@ -72,17 +72,17 @@ class Tensor():
 
         return apply_op(mlops.Div, self, other)
 
-    def sum(self, axes, keepdim=False):
+    def sum(self, axes: tuple, keepdim=False) -> Tensor:
         if keepdim:
             return apply_op(mlops.Sum, self, axes=axes)
         else:
             result = apply_op(mlops.Sum, self, axes=axes)
             return result.reshape(tuple(val for val in result.shape if val != 1))
 
-    def reshape(self, shape):
+    def reshape(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Reshape, self, new_shape=shape)
 
-    def expand(self, shape):
+    def expand(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Expand, self, new_shape=shape)
 
     def _increment_backward_references(self) -> None:

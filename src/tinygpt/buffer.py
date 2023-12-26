@@ -296,7 +296,6 @@ class Buffer():
         result = Buffer([])
 
         # Assign the data and its metadata to the new buffer
-        # The shape and stride of the result are the same as the input buffers
         result._set_data(data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0)
 
         return result
