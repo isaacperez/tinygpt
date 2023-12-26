@@ -316,6 +316,33 @@ def test_gradient_function_backward_with_div():
         assert result.grad_fn is None
 
 
+def test_gradient_function_backward_with_pow():
+    # Test backward propagation in GradientFunction with pow
+    for requires_grad in [True, False]:
+        tensor = Tensor(3.0, requires_grad=requires_grad)
+
+        assert tensor.grad is None
+
+        result = tensor ** 2
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer(6.0))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
+
+
 def test_multiple_ops():
     # Test multiple operations
     tensor1 = Tensor(3.0, requires_grad=True)
@@ -492,3 +519,44 @@ def test_broadcast_with_all_ops():
         # Right broadcasting
         result = op(y, x)
         assert all(result.buffer == Buffer(expected_output_right_broadcasting))
+
+
+def test_all_ops():
+    # Test multiple operations
+    tensor1 = Tensor([[3.0, 4.0]], requires_grad=True)
+    tensor2 = Tensor([[9.0, -12.0]], requires_grad=True)
+
+    assert tensor1.grad is None
+    assert tensor2.grad is None
+
+    result1 = tensor1 + tensor2
+    result2 = tensor1 - tensor2
+    result3 = result1 * result2
+    result4 = result1 / result2
+    result5 = (-result3) ** 2 + result4
+    result6 = result5.sum((0, 1))
+
+    assert result1.grad is None
+    assert result1.grad_fn is not None
+    assert result2.grad is None
+    assert result2.grad_fn is not None
+    assert result3.grad is None
+    assert result3.grad_fn is not None
+    assert result4.grad is None
+    assert result4.grad_fn is not None
+    assert result5.grad is None
+    assert result5.grad_fn is not None
+    assert result6.grad is None
+    assert result6.grad_fn is not None
+
+    result6.backward()
+
+    assert all((tensor1.grad - Buffer([[-864.4999999, -2047.90625]])) < Buffer([[1e-07, 1e-07]]))
+    assert all((tensor2.grad - Buffer([[2592.1666666, -6143.96875]])) < Buffer([[1e-07, 1e-07]]))
+
+    assert result1.grad_fn is None
+    assert result2.grad_fn is None
+    assert result4.grad_fn is None
+    assert result5.grad_fn is None
+    assert result3.grad_fn is None
+    assert result6.grad_fn is None

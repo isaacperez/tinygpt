@@ -15,6 +15,7 @@ class Buffer():
         NEG = auto()
         MUL = auto()
         DIV = auto()
+        POW = auto()
         LT = auto()
         LE = auto()
         EQ = auto()
@@ -261,10 +262,14 @@ class Buffer():
 
         return True
 
-    def _execute(self, op: Op, other: Buffer) -> Buffer:
+    def _execute(self, op: Op, other: Union[Buffer, int, float]) -> Buffer:
         # Execute a specified operation between two buffers
         # Ensures that both buffers are of the same dtype and shape before performing the operation
         self._validate_input_buffer(op, other)
+
+        # If the other element is not a buffer, creates a list with the same number of elements as the current buffer
+        if not isinstance(other, Buffer) and op != self.Op.POW:
+            other = [other] * self.numel
 
         # Perform the operation element-wise
         if op == self.Op.ADD:
@@ -277,6 +282,8 @@ class Buffer():
             data = [first_element * second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.DIV:
             data = [first_element / second_element for first_element, second_element in zip(self, other)]
+        elif op == self.Op.POW:
+            data = [first_element ** other for first_element in self]
         elif op == self.Op.LT:
             data = [first_element < second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.LE:
@@ -300,51 +307,75 @@ class Buffer():
 
         return result
 
-    def _validate_input_buffer(self, op: Op, other: Buffer) -> None:
+    def _validate_input_buffer(self, op: Op, other: Union[Buffer, int, float]) -> None:
         # Validate compatibility of two buffers for an operation
         if not isinstance(op, self.Op):
             raise TypeError(f"op argument is not an Op. Found {type(op)}")
 
-        if not isinstance(other, Buffer):
-            raise TypeError(f"Expected a Buffer object for operation, found {type(other)}")
+        # For the POW operation, we only accept int or float as an exponent
+        if op == self.Op.POW:
+            if not isinstance(other, (int, float)):
+                raise TypeError("Only supporting int/float powers for now, found {type(other)}")
 
-        if self.dtype != other.dtype:
-            raise ValueError(f"DType mismatch. Found {self.dtype} and {other.dtype}")
+        else:
+            # We only accept Buffer, int or float
+            if not isinstance(other, (int, float, Buffer)):
+                raise TypeError(f"Expected a Buffer object, float or int for operation, found {type(other)}")
 
-        if self.shape != other.shape:
-            raise RuntimeError(f"Shape mismatch. Found {self.shape} and {other.shape}")
+            # If it is a buffer, it must have the same type and shape as the current buffer
+            if isinstance(other, Buffer):
+                if self.dtype != other.dtype:
+                    raise ValueError(f"DType mismatch. Found {self.dtype} and {other.dtype}")
 
-    def __add__(self, other: Buffer) -> Buffer:
+                if self.shape != other.shape:
+                    raise RuntimeError(f"Shape mismatch. Found {self.shape} and {other.shape}")
+
+    def __add__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.ADD, other)
 
-    def __sub__(self, other: Buffer) -> Buffer:
+    def __radd__(self, other: Union[Buffer, int, float]) -> Buffer:
+        return self + other
+
+    def __sub__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.SUB, other)
 
-    def __neg__(self):
+    def __rsub__(self, other: Union[Buffer, int, float]) -> Buffer:
+        return -self + other
+
+    def __neg__(self) -> Buffer:
         return self._execute(self.Op.NEG, self)
 
-    def __mul__(self, other: Buffer) -> Buffer:
+    def __mul__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.MUL, other)
 
-    def __truediv__(self, other: Buffer) -> Buffer:
+    def __rmul__(self, other: Union[Buffer, int, float]) -> Buffer:
+        return self * other
+
+    def __truediv__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.DIV, other)
 
-    def __lt__(self, other: Buffer) -> Buffer:
+    def __rtruediv__(self, other: Union[Buffer, int, float]) -> Buffer:
+        return other * self ** -1
+
+    def __pow__(self, exponent: Union[int, float]) -> Buffer:
+        return self._execute(self.Op.POW, exponent)
+
+    def __lt__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.LT, other)
 
-    def __le__(self, other: Buffer) -> Buffer:
+    def __le__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.LE, other)
 
-    def __eq__(self, other: Buffer) -> Buffer:
+    def __eq__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.EQ, other)
 
-    def __ne__(self, other: Buffer) -> Buffer:
+    def __ne__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.NE, other)
 
-    def __gt__(self, other: Buffer) -> Buffer:
+    def __gt__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.GT, other)
 
-    def __ge__(self, other: Buffer) -> Buffer:
+    def __ge__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.GE, other)
 
     def reshape(self, new_shape: tuple) -> Buffer:

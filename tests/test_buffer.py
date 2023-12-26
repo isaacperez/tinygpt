@@ -511,6 +511,23 @@ def test_binary_ops():
                             assert result.dtype == DType.deduce_dtype(expected_result)
                             assert result.data[0] == expected_result
 
+                            # Do it again without buffer for one of them
+                            result = op(first_buffer, second_dtype.cast(second_scalar))
+
+                            assert result.shape == ()
+                            assert result.offset == 0
+                            assert result.stride == ()
+                            assert result.dtype == DType.deduce_dtype(expected_result)
+                            assert result.data[0] == expected_result
+
+                            result = op(first_dtype.cast(first_scalar), second_buffer)
+
+                            assert result.shape == ()
+                            assert result.offset == 0
+                            assert result.stride == ()
+                            assert result.dtype == DType.deduce_dtype(expected_result)
+                            assert result.data[0] == expected_result
+
         # Tensors
         data = [[1,], [0,], [[423, 214, 5734, 434]], [[[[1], [2]], [[3], [4]]]]]
         linearized_data = [[1], [0], [423, 214, 5734, 434], [1, 2, 3, 4]]
@@ -555,13 +572,13 @@ def test_binary_ops():
 
         # Other type that it's not Buffer
         buffer = Buffer(1)
-        for other in [-1, 1, 0, 0.0, 1.0, -1.0, False, True, (1,), [1,], (), [], None]:
+        for other in [(1,), [1,], (), [], None]:
             with pytest.raises(TypeError):
                 result = op(buffer, other)
 
 
 def test_unary_ops():
-    ops = [lambda x: -x]
+    ops = [lambda x: -x, lambda x: x ** 2]
 
     for op_idx, op in enumerate(ops):
         # Scalars
@@ -914,3 +931,36 @@ def test_reduce_sum():
 
     with pytest.raises(RuntimeError):
         _ = buffer._reduce(Buffer.Op.NEG, 0)  # NEG is not a valid reduction operation
+
+
+def test_pow():
+
+    # Scalar
+    buffer = Buffer(3.0)
+    assert all((buffer ** 3.0) == Buffer(3.0 ** 3.0))
+
+    # 1D Tensor
+    data = [3, 5]
+    buffer = Buffer(data)
+    assert all((buffer ** 3.0) == Buffer([e ** 3.0 for e in data]))
+    assert all((buffer ** 2) == Buffer([e ** 2 for e in data]))
+
+    # 2D Tensor
+    data = [3, 5]
+    buffer = Buffer([data, data])
+    assert all((buffer ** 3.0) == Buffer([[e ** 3.0 for e in data], [e ** 3.0 for e in data]]))
+    assert all((buffer ** 2) == Buffer([[e ** 2 for e in data], [e ** 2 for e in data]]))
+
+    # 3D Tensor
+    data = [3, 5, 5]
+    buffer = Buffer([[data], [data]])
+    assert all((buffer ** 3.0) == Buffer([[[e ** 3.0 for e in data]], [[e ** 3.0 for e in data]]]))
+    assert all((buffer ** 2) == Buffer([[[e ** 2 for e in data]], [[e ** 2 for e in data]]]))
+
+    # Wrong exponent type
+    buffer = Buffer([[1, 2, 3], [4, 5, 6]])
+    with pytest.raises(TypeError):
+        _ = buffer ** buffer
+
+    with pytest.raises(TypeError):
+        _ = buffer ** Buffer(1.0)

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Union
 
 from tinygpt.utils import DType, print_dag
 from tinygpt.buffer import Buffer
@@ -101,6 +101,12 @@ class Tensor():
             other = Tensor(other)
 
         return apply_op(mlops.Div, *self._broadcasted(other))
+
+    def __pow__(self, exponent: Union[int, float]) -> Tensor:
+        if not isinstance(exponent, (int, float)):
+            raise TypeError("Only supporting int/float powers for now")
+
+        return apply_op(mlops.Pow, self, exponent=exponent)
 
     def sum(self, axes: tuple, keepdim=False) -> Tensor:
         if keepdim:

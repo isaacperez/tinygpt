@@ -80,6 +80,19 @@ class Div(Operation):
         return grad_first, grad_second
 
 
+class Pow(Operation):
+
+    def forward(self, buffer: Buffer, exponent: Union[int, float]) -> Buffer:
+        self.buffer, self.exponent = buffer, exponent
+        return buffer ** exponent
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        if self.needs_input_grad[0]:
+            return (self.exponent * self.buffer ** (self.exponent - 1)) * incoming_grad
+        else:
+            return None
+
+
 class Sum(Operation):
     def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
         self.input_shape = buffer.shape
