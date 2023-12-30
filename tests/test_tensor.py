@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from tinygpt.tensor import Tensor
@@ -343,6 +345,148 @@ def test_gradient_function_backward_with_pow():
         assert result.grad_fn is None
 
 
+def test_gradient_function_backward_with_exp():
+    # Test backward propagation in GradientFunction with exp
+    for requires_grad in [True, False]:
+        tensor = Tensor(3.0, requires_grad=requires_grad)
+
+        assert tensor.grad is None
+
+        result = tensor.exp()
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer(math.exp(3.0)))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
+
+
+def test_gradient_function_backward_with_log():
+    # Test backward propagation in GradientFunction with log
+    for requires_grad in [True, False]:
+        tensor = Tensor(3.0, requires_grad=requires_grad)
+
+        assert tensor.grad is None
+
+        result = tensor.log()
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer(1 / 3.0))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
+
+
+def test_gradient_function_backward_with_maximum():
+    # Test backward propagation in GradientFunction with maximum
+    for requires_grad in [True, False]:
+        first_tensor = Tensor(3.0, requires_grad=requires_grad)
+        second_tensor = Tensor(9.0, requires_grad=requires_grad)
+
+        assert first_tensor.grad is None
+        assert second_tensor.grad is None
+
+        result = first_tensor.maximum(second_tensor)
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(first_tensor.grad == Buffer(0.0))
+            assert all(second_tensor.grad == Buffer(1.0))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert first_tensor.grad is None
+            assert second_tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
+
+
+def test_gradient_function_backward_with_relu():
+    # Test backward propagation in GradientFunction with relu
+    for data in [-3.0, 3.0]:
+        for requires_grad in [True, False]:
+            tensor = Tensor(data, requires_grad=requires_grad)
+
+            assert tensor.grad is None
+
+            result = tensor.relu()
+
+            assert result.grad is None
+            if requires_grad:
+                assert result.grad_fn is not None
+            else:
+                assert result.grad_fn is None
+
+            result.backward()
+
+            if requires_grad:
+                assert all(tensor.grad == Buffer(float(data > 0.0)))
+                assert all(result.grad == Buffer(1.0))
+            else:
+                assert tensor.grad is None
+                assert result.grad is None
+
+            assert result.grad_fn is None
+
+
+def test_exp():
+    # Test exp operation
+    data = [3, 5, 5]
+    tensor = Tensor([[data], [data]])
+    assert all(tensor.exp().buffer == Buffer([[[math.exp(e) for e in data]], [[math.exp(e) for e in data]]]))
+
+
+def test_log():
+    # Test log operation
+    data = [3, 5, 5]
+    tensor = Tensor([[data], [data]])
+    assert all(tensor.log().buffer == Buffer([[[math.log(e) for e in data]], [[math.log(e) for e in data]]]))
+
+
+def test_maximum():
+    # Test maximum operation
+    first_tensor = Tensor([[[3, 2, 5]], [[1, 1, 1]]])
+    second_tensor = Tensor([[[1, 5, 15]], [[3, 5, 5]]])
+    assert all(first_tensor.maximum(second_tensor).buffer == Buffer([[[3, 5, 15]], [[3, 5, 5]]]))
+    assert all(second_tensor.maximum(first_tensor).buffer == Buffer([[[3, 5, 15]], [[3, 5, 5]]]))
+
+
+def test_relu():
+    # Test relu operation
+    data = [3, 5, 5]
+    tensor = Tensor([[data], [data]])
+    assert all(tensor.log().buffer == Buffer([[[math.log(e) for e in data]], [[math.log(e) for e in data]]]))
+
+
 def test_multiple_ops():
     # Test multiple operations
     tensor1 = Tensor(3.0, requires_grad=True)
@@ -529,12 +673,14 @@ def test_all_ops():
     assert tensor1.grad is None
     assert tensor2.grad is None
 
-    result1 = tensor1 + tensor2
+    result1 = tensor1.log() + tensor2.exp()
     result2 = tensor1 - tensor2
     result3 = result1 * result2
     result4 = result1 / result2
-    result5 = (-result3) ** 2 + result4
-    result6 = result5.sum((0, 1))
+    result5 = (-result3) ** 2 + result1
+    result6 = result5.relu()
+    result7 = result6.maximum(result4)
+    result8 = result7.sum((0, 1))
 
     assert result1.grad is None
     assert result1.grad_fn is not None
@@ -548,15 +694,21 @@ def test_all_ops():
     assert result5.grad_fn is not None
     assert result6.grad is None
     assert result6.grad_fn is not None
+    assert result7.grad is None
+    assert result7.grad_fn is not None
+    assert result8.grad is None
+    assert result8.grad_fn is not None
 
-    result6.backward()
+    result8.backward()
 
-    assert all((tensor1.grad - Buffer([[-864.4999999, -2047.90625]])) < Buffer([[1e-07, 1e-07]]))
-    assert all((tensor2.grad - Buffer([[2592.1666666, -6143.96875]])) < Buffer([[1e-07, 1e-07]]))
+    assert all((tensor1.grad - Buffer([[-7.8793875200e+08,  2.3919500732e+02]])) < Buffer([[1e-05, 1e-05]]))
+    assert all((tensor2.grad - Buffer([[5.5163002880e+09, -6.1494167328e+01]])) < Buffer([[1e-05, 1e-05]]))
 
     assert result1.grad_fn is None
     assert result2.grad_fn is None
+    assert result3.grad_fn is None
     assert result4.grad_fn is None
     assert result5.grad_fn is None
-    assert result3.grad_fn is None
     assert result6.grad_fn is None
+    assert result7.grad_fn is None
+    assert result8.grad_fn is None

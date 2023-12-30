@@ -108,6 +108,21 @@ class Tensor():
 
         return apply_op(mlops.Pow, self, exponent=exponent)
 
+    def exp(self) -> Tensor:
+        return apply_op(mlops.Exp, self)
+
+    def log(self) -> Tensor:
+        return apply_op(mlops.Log, self)
+
+    def maximum(self, other: Tensor) -> Tensor:
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        return apply_op(mlops.Maximum, self, other)
+
+    def relu(self) -> Tensor:
+        return apply_op(mlops.Relu, self)
+
     def sum(self, axes: tuple, keepdim=False) -> Tensor:
         if keepdim:
             return apply_op(mlops.Sum, self, axes=axes)

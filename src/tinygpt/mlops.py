@@ -93,6 +93,52 @@ class Pow(Operation):
             return None
 
 
+class Log(Operation):
+
+    def forward(self, buffer: Buffer) -> Buffer:
+        self.buffer = buffer
+        return buffer.log()
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        return incoming_grad / self.buffer if self.needs_input_grad[0] else None
+
+
+class Exp(Operation):
+
+    def forward(self, buffer: Buffer) -> Buffer:
+        self.result = buffer.exp()
+        return self.result
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        return self.result * incoming_grad if self.needs_input_grad[0] else None
+
+
+class Maximum(Operation):
+    def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
+        self.first_buffer, self.second_buffer = first_buffer, second_buffer
+        return first_buffer.maximum(second_buffer)
+
+    def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None], Union[Buffer, None]]:
+        first_grad = None
+        if self.needs_input_grad[0]:
+            first_grad = (self.first_buffer > self.second_buffer).float() * incoming_grad
+
+        second_grad = None
+        if self.needs_input_grad[1]:
+            second_grad = (self.second_buffer > self.first_buffer).float() * incoming_grad
+
+        return first_grad, second_grad
+
+
+class Relu(Operation):
+    def forward(self, buffer: Buffer) -> Buffer:
+        self.buffer = buffer
+        return buffer.maximum(0.)
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        return (self.buffer > 0.).float() * incoming_grad if self.needs_input_grad[0] else None
+
+
 class Sum(Operation):
     def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
         self.input_shape = buffer.shape

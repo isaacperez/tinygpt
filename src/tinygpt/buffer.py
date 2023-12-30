@@ -2,6 +2,7 @@ from __future__ import annotations
 from enum import Enum, auto
 from collections import deque
 from typing import Any, Union
+import math
 
 from tinygpt.utils import DType
 
@@ -16,6 +17,9 @@ class Buffer():
         MUL = auto()
         DIV = auto()
         POW = auto()
+        MAX = auto()
+        LOG = auto()
+        EXP = auto()
         LT = auto()
         LE = auto()
         EQ = auto()
@@ -297,6 +301,12 @@ class Buffer():
             data = [first_element / second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.POW:
             data = [first_element ** other for first_element in self]
+        elif op == self.Op.LOG:
+            data = [math.log(element) for element in self]
+        elif op == self.Op.EXP:
+            data = [math.exp(element) for element in self]
+        elif op == self.Op.MAX:
+            data = [max(first_element, second_element) for first_element, second_element in zip(self, other)]
         elif op == self.Op.LT:
             data = [first_element < second_element for first_element, second_element in zip(self, other)]
         elif op == self.Op.LE:
@@ -372,6 +382,12 @@ class Buffer():
     def __pow__(self, exponent: Union[int, float]) -> Buffer:
         return self._execute(self.Op.POW, exponent)
 
+    def log(self) -> Buffer:
+        return self._execute(self.Op.LOG, self)
+
+    def exp(self) -> Buffer:
+        return self._execute(self.Op.EXP, self)
+
     def __lt__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.LT, other)
 
@@ -389,6 +405,23 @@ class Buffer():
 
     def __ge__(self, other: Union[Buffer, int, float]) -> Buffer:
         return self._execute(self.Op.GE, other)
+
+    def maximum(self, other: Union[Buffer, int, float]) -> Buffer:
+        return self._execute(self.Op.MAX, other)
+
+    def float(self) -> Buffer:
+        # Create a Buffer with the same data and float dtype
+        if self.dtype == DType.float32:
+            return self
+        elif self.ndim == 0:
+            return Buffer(DType.float32.cast(self.data[0]))
+        else:
+            return Buffer._create_buffer_from_data(
+                data=[DType.float32.cast(element) for element in self._get_contiguous_data()],
+                shape=self.shape,
+                stride=self._calculate_stride(self.shape),
+                offset=0
+            )
 
     def reshape(self, new_shape: tuple) -> Buffer:
         # Reshape the buffer to a new shape

@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from tinygpt.buffer import Buffer
@@ -857,7 +859,6 @@ def test_expand():
 
 
 def test_generate_indexes():
-
     # Scalar
     buffer = Buffer(1.0)
     indexes = [index for index in buffer._generate_indexes()]
@@ -894,7 +895,6 @@ def test_generate_indexes():
 
 
 def test_reduce_sum():
-
     # Scalar
     buffer = Buffer(1.0)
 
@@ -937,7 +937,6 @@ def test_reduce_sum():
 
 
 def test_pow():
-
     # Scalar
     buffer = Buffer(3.0)
     assert all((buffer ** 3.0) == Buffer(3.0 ** 3.0))
@@ -967,3 +966,111 @@ def test_pow():
 
     with pytest.raises(TypeError):
         _ = buffer ** Buffer(1.0)
+
+
+def test_exp():
+    # Scalar
+    buffer = Buffer(3.0)
+    assert all((buffer.exp()) == Buffer(math.exp(3.0)))
+
+    # 1D Tensor
+    data = [3, 5]
+    buffer = Buffer(data)
+    assert all((buffer.exp()) == Buffer([math.exp(e) for e in data]))
+
+    # 2D Tensor
+    data = [3, 5]
+    buffer = Buffer([data, data])
+    assert all((buffer.exp()) == Buffer([[math.exp(e) for e in data], [math.exp(e) for e in data]]))
+
+    # 3D Tensor
+    data = [3, 5, 5]
+    buffer = Buffer([[data], [data]])
+    assert all((buffer.exp()) == Buffer([[[math.exp(e) for e in data]], [[math.exp(e) for e in data]]]))
+
+
+def test_log():
+    # Scalar
+    buffer = Buffer(3.0)
+    assert all((buffer.log()) == Buffer(math.log(3.0)))
+
+    # 1D Tensor
+    data = [3, 5]
+    buffer = Buffer(data)
+    assert all((buffer.log()) == Buffer([math.log(e) for e in data]))
+
+    # 2D Tensor
+    data = [3, 5]
+    buffer = Buffer([data, data])
+    assert all((buffer.log()) == Buffer([[math.log(e) for e in data], [math.log(e) for e in data]]))
+
+    # 3D Tensor
+    data = [3, 5, 5]
+    buffer = Buffer([[data], [data]])
+    assert all((buffer.log()) == Buffer([[[math.log(e) for e in data]], [[math.log(e) for e in data]]]))
+
+
+def test_maximum():
+    # Scalar
+    first_buffer = Buffer(3.0)
+    second_buffer = Buffer(5.0)
+    assert all((first_buffer.maximum(second_buffer)) == Buffer(5.0))
+    assert all((second_buffer.maximum(first_buffer)) == Buffer(5.0))
+
+    # 1D Tensor
+    first_buffer = Buffer([3, 5])
+    second_buffer = Buffer([6, 2])
+    assert all((first_buffer.maximum(second_buffer)) == Buffer([6, 5]))
+    assert all((second_buffer.maximum(first_buffer)) == Buffer([6, 5]))
+
+    # 2D Tensor
+    first_buffer = Buffer([[-3, 1], [4, 5]])
+    second_buffer = Buffer([[0, 2], [3, 5]])
+    assert all((first_buffer.maximum(second_buffer)) == Buffer([[0, 2], [4, 5]]))
+    assert all((second_buffer.maximum(first_buffer)) == Buffer([[0, 2], [4, 5]]))
+
+    # 3D Tensor
+    first_buffer = Buffer([[[3, 2, 5]], [[1, 1, 1]]])
+    second_buffer = Buffer([[[1, 5, 15]], [[3, 5, 5]]])
+    assert all((first_buffer.maximum(second_buffer)) == Buffer([[[3, 5, 15]], [[3, 5, 5]]]))
+    assert all((second_buffer.maximum(first_buffer)) == Buffer([[[3, 5, 15]], [[3, 5, 5]]]))
+
+
+def test_float():
+    for dtype in DType:
+        # Scalar
+        buffer = Buffer(dtype.cast(0))
+        assert all((buffer.float()) == Buffer(0.0))
+
+        # 1D Tensor
+        data = [dtype.cast(0), dtype.cast(13)]
+        buffer = Buffer(data)
+
+        if dtype == DType.bool:
+            assert all((buffer.float()) == Buffer([0., 1.]))
+        else:
+            assert all((buffer.float()) == Buffer([0., 13.]))
+
+        # 2D Tensor
+        data = [dtype.cast(3), dtype.cast(5), dtype.cast(0)]
+        buffer = Buffer([data, data])
+
+        if dtype == DType.bool:
+            assert all((buffer.float()) == Buffer([[1., 1., 0.], [1., 1., 0.]]))
+        else:
+            assert all((buffer.float()) == Buffer([[3., 5., 0.], [3., 5., 0.]]))
+
+        # 3D Tensor
+        data = [dtype.cast(3), dtype.cast(0), dtype.cast(5)]
+        buffer = Buffer([[data], [data]])
+
+        if dtype == DType.bool:
+            assert all((buffer.float()) == Buffer([[[1., 0., 1.]], [[1., 0., 1.]]]))
+        else:
+            assert all((buffer.float()) == Buffer([[[3., 0., 5.]], [[3., 0., 5.]]]))
+
+    # Bool operation to float
+    first_buffer = Buffer([[1.2, 0.8, 0.], [1., -1., 0.]])
+    second_buffer = Buffer([[1., 1., 0.], [12., 0., 2.]])
+
+    assert all((first_buffer > second_buffer).float() == Buffer([[1., 0., 0.], [0., 0., 0.]]))
