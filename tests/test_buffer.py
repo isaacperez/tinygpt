@@ -102,7 +102,7 @@ def test_Buffer():
                 assert original_buffer.numel == copy_buffer.numel
 
 
-def test_buffer_set_data():
+def test_buffer_create_buffer_from_data():
     # Create a list of data to set
     data = [i for i in range(40)]
 
@@ -120,26 +120,25 @@ def test_buffer_set_data():
     buffer = Buffer([])
     for wrong_data_type in [None, (), "a", -1, 0, 1]:
         with pytest.raises(TypeError):
-            buffer._set_data(data=wrong_data_type, shape=(0,), stride=(1,), offset=0)
+            Buffer._create_buffer_from_data(data=wrong_data_type, shape=(0,), stride=(1,), offset=0)
 
     for wrong_data_type in [None, [], "a", -1, 0, 1]:
         with pytest.raises(TypeError):
-            buffer._set_data(data=data, shape=wrong_data_type, stride=(1,), offset=0)
+            Buffer._create_buffer_from_data(data=data, shape=wrong_data_type, stride=(1,), offset=0)
 
     for wrong_data_type in [None, [], "a", -1, 0, 1]:
         with pytest.raises(TypeError):
-            buffer._set_data(data=data, shape=(0,), stride=wrong_data_type, offset=0)
+            Buffer._create_buffer_from_data(data=data, shape=(0,), stride=wrong_data_type, offset=0)
 
     for wrong_data_type in [None, (), "a"]:
         with pytest.raises(TypeError):
-            buffer._set_data(data=data, shape=(0,), stride=(1,), offset=wrong_data_type)
+            Buffer._create_buffer_from_data(data=data, shape=(0,), stride=(1,), offset=wrong_data_type)
 
     # Try different combinations
     for array_data in valid_arrays:
-        buffer = Buffer([])
         for shape, stride, offset, numel in zip(valid_shapes, valid_strides, valid_offsets, numels):
             # Assign the values
-            buffer._set_data(data=array_data, shape=shape, stride=stride, offset=offset)
+            buffer = Buffer._create_buffer_from_data(data=array_data, shape=shape, stride=stride, offset=offset)
 
             # Check data has been update as expected
             assert buffer.data == array_data
@@ -151,15 +150,21 @@ def test_buffer_set_data():
             # Try wrong values
             for not_valid_shape in not_valid_shapes:
                 with pytest.raises(ValueError):
-                    buffer._set_data(data=array_data, shape=not_valid_shape, stride=stride, offset=offset)
+                    Buffer._create_buffer_from_data(
+                        data=array_data, shape=not_valid_shape, stride=stride, offset=offset
+                    )
 
             for not_valid_stride in not_valid_strides:
                 with pytest.raises(ValueError):
-                    buffer._set_data(data=array_data, shape=shape, stride=not_valid_stride, offset=offset)
+                    Buffer._create_buffer_from_data(
+                        data=array_data, shape=shape, stride=not_valid_stride, offset=offset
+                    )
 
             for not_valid_offset in not_valid_offsets:
                 with pytest.raises(ValueError):
-                    buffer._set_data(data=array_data, shape=shape, stride=stride, offset=not_valid_offset)
+                    Buffer._create_buffer_from_data(
+                        data=array_data, shape=shape, stride=stride, offset=not_valid_offset
+                    )
 
 
 def test_buffer_index_to_flat_index():
@@ -176,9 +181,8 @@ def test_buffer_index_to_flat_index():
                 flat_idx += 1
 
     # Try with a different attributes for the underling array
-    buffer = Buffer([])
     data = [-1, 0, 1, 2, 3, 4]
-    buffer._set_data(data=data, shape=(2, 2), stride=(2, 1), offset=2)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(2, 2), stride=(2, 1), offset=2)
 
     assert buffer._index_to_flat_index((0, 0)) == 2
     assert buffer._index_to_flat_index((0, 1)) == 3
@@ -188,12 +192,11 @@ def test_buffer_index_to_flat_index():
 
 def test_buffer_set():
     # Create the buffer
-    buffer = Buffer([])
     data = [-1, -2, -3, -4, -5, -6]
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    buffer._set_data(data=data, shape=shape, stride=stride, offset=offset)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=offset)
 
     # Modify the data
     new_values = []
@@ -214,12 +217,11 @@ def test_buffer_set():
 
 def test_buffer_get():
     # Create the buffer
-    buffer = Buffer([])
     data = [-1, -2, -3, -4, -5, -6]
     offset = 2
     shape = (2, 2)
     stride = (2, 1)
-    buffer._set_data(data=data, shape=shape, stride=stride, offset=offset)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=offset)
 
     # Get the data
     idx = 0
@@ -278,14 +280,18 @@ def test_is_contiguous():
 
     shape = (1, 4, 3)
     for i in range(2):
-        buffer._set_data(data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i)
+        buffer = Buffer._create_buffer_from_data(
+            data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i
+        )
 
         assert buffer.is_contiguous()
         shape = (1, *shape, 1)
 
     shape = (1, 2, 3, 1)
     for i in range(3):
-        buffer._set_data(data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i)
+        buffer = Buffer._create_buffer_from_data(
+            data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=i
+        )
 
         assert buffer.is_contiguous()
         shape = (1, *shape, 1)
@@ -297,7 +303,7 @@ def test_is_contiguous():
     shape = (1, 4, 1)
     stride = (0, 1, 0)
     for i in range(2):
-        buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=i)
         assert not buffer.is_contiguous()
 
         shape = (1, *shape, 1)
@@ -306,30 +312,28 @@ def test_is_contiguous():
     shape = (1, 2, 2, 1)
     stride = (0, 2, 1, 0)
     for i in range(3):
-        buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=i)
         assert not buffer.is_contiguous()
 
         shape = (1, *shape, 1)
         stride = (0, *stride, 0)
 
     data = [1, 2, 3, 4]
-    buffer = Buffer(data)
 
-    buffer._set_data(data=data, shape=(2,), stride=(2,), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(2,), stride=(2,), offset=0)
     assert not buffer.is_contiguous()
 
-    buffer._set_data(data=data, shape=(1,), stride=(4,), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(1,), stride=(4,), offset=0)
     assert not buffer.is_contiguous()
 
-    buffer._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
     assert not buffer.is_contiguous()
 
     # Transpose an array
     data = [i for i in range(12)]
-    buffer = Buffer(data)
-    buffer._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
     assert buffer.is_contiguous()
-    buffer._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
     assert not buffer.is_contiguous()
 
 
@@ -347,7 +351,7 @@ def test_get_contiguous_data():
     shape = (1, 4, 1)
     stride = (0, 1, 0)
     for i in range(2):
-        buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=i)
         contiguous_data = buffer._get_contiguous_data()
         assert contiguous_data == data[i:i+4]
         assert id(contiguous_data) != id(data)
@@ -358,7 +362,7 @@ def test_get_contiguous_data():
     shape = (1, 2, 2, 1)
     stride = (0, 2, 1, 0)
     for i in range(3):
-        buffer._set_data(data=data, shape=shape, stride=stride, offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=i)
         contiguous_data = buffer._get_contiguous_data()
         assert contiguous_data == data[i:i+4]
         assert id(contiguous_data) != id(data)
@@ -370,17 +374,17 @@ def test_get_contiguous_data():
     data = [1, 2, 3, 4]
     buffer = Buffer(data)
 
-    buffer._set_data(data=data, shape=(2,), stride=(2,), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(2,), stride=(2,), offset=0)
     contiguous_data = buffer._get_contiguous_data()
     assert contiguous_data == [1, 3]
     assert id(contiguous_data) != id(data)
 
-    buffer._set_data(data=data, shape=(1,), stride=(4,), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(1,), stride=(4,), offset=0)
     contiguous_data = buffer._get_contiguous_data()
     assert contiguous_data == [1]
     assert id(contiguous_data) != id(data)
 
-    buffer._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(1, 1), stride=(2, 2), offset=0)
     contiguous_data = buffer._get_contiguous_data()
     assert contiguous_data == [1]
     assert id(contiguous_data) != id(data)
@@ -388,12 +392,12 @@ def test_get_contiguous_data():
     # Transpose an array
     data = [i for i in range(12)]
     buffer = Buffer(data)
-    buffer._set_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(3, 4), stride=(4, 1), offset=0)
     contiguous_data = buffer._get_contiguous_data()
     assert contiguous_data == data
     assert id(contiguous_data) != id(data)
 
-    buffer._set_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(4, 3), stride=(1, 4), offset=0)
     contiguous_data = buffer._get_contiguous_data()
     assert contiguous_data == [j * 4 + i for i in range(4) for j in range(3)]
     assert id(contiguous_data) != id(data)
@@ -405,16 +409,16 @@ def test_numel():
     assert buffer.numel == len(data)
 
     for i in range(3):
-        buffer._set_data(data=data, shape=(1, 1, 1), stride=(i, i, i), offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(1, 1, 1), stride=(i, i, i), offset=i)
         assert buffer.numel == 1
 
-        buffer._set_data(data=data, shape=(2,), stride=(i,), offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(2,), stride=(i,), offset=i)
         assert buffer.numel == 2
 
-        buffer._set_data(data=data, shape=(2, 2), stride=(i, 1), offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(2, 2), stride=(i, 1), offset=i)
         assert buffer.numel == 4
 
-        buffer._set_data(data=data, shape=(3, 2), stride=(2, 1), offset=i)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(3, 2), stride=(2, 1), offset=i)
         assert buffer.numel == 6
 
     assert Buffer(True).numel == 1
@@ -434,7 +438,7 @@ def test_it():
 
     # Change the offset
     for offset in range(10):
-        buffer._set_data(data=data, shape=(numel - offset,), stride=(1,), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(numel - offset,), stride=(1,), offset=offset)
         idx = 0
         for element in buffer:
             assert element == data[offset + idx]
@@ -447,7 +451,7 @@ def test_it():
     for _ in range(5):
         shape = (1, *shape, 1)
         stride = (1, *stride, 1)
-        buffer._set_data(data=data, shape=shape, stride=stride, offset=0)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=shape, stride=stride, offset=0)
         idx = 0
         for element in buffer:
             assert element == data[idx]
@@ -457,8 +461,7 @@ def test_it():
     # Multidimensional buffer
     numel = 24
     data = [i for i in range(numel)]
-    buffer = Buffer(data)
-    buffer._set_data(data=data, shape=(2, 2), stride=(2, 1), offset=0)
+    buffer = Buffer._create_buffer_from_data(data=data, shape=(2, 2), stride=(2, 1), offset=0)
     idx = 0
     for element in buffer:
         assert element == data[idx]
@@ -466,7 +469,7 @@ def test_it():
     assert idx == 4
 
     for offset in range(2):
-        buffer._set_data(data=data, shape=(2, 2), stride=(1, 2), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(2, 2), stride=(1, 2), offset=offset)
         idx = 0
         expected_output = [0, 2, 1, 3]
         for element in buffer:
@@ -677,11 +680,8 @@ def test_reshape():
     # Try with non-contiguous data
     data = [i for i in range(50)]
     for offset in [0, 1, 2]:
-
-        buffer = Buffer([])
-
         # 12 elements
-        buffer._set_data(data=data, shape=(12,), stride=(2,), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(12,), stride=(2,), offset=offset)
         new_shape = (6, 2)
         new_buffer = buffer.reshape(new_shape=new_shape)
 
@@ -695,7 +695,7 @@ def test_reshape():
 
         # 6 elements
         new_shape = (2, 3)
-        buffer._set_data(data=data, shape=(6,), stride=(4,), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(6,), stride=(4,), offset=offset)
         new_buffer = buffer.reshape(new_shape=new_shape)
 
         assert new_buffer.shape == new_shape
@@ -708,7 +708,7 @@ def test_reshape():
 
         # 1 element
         new_shape = ()
-        buffer._set_data(data=data, shape=(1, 1), stride=(2, 2), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(1, 1), stride=(2, 2), offset=offset)
         new_buffer = buffer.reshape(new_shape=new_shape)
 
         assert new_buffer.shape == new_shape
@@ -766,7 +766,9 @@ def test_expand():
         for new_element, old_element in zip(new_buffer, buffer):
             assert new_element == old_element
 
-        buffer._set_data(data=buffer.data, shape=(4, 1), stride=Buffer._calculate_stride((4, 1)), offset=0)
+        buffer = Buffer._create_buffer_from_data(
+            data=buffer.data, shape=(4, 1), stride=Buffer._calculate_stride((4, 1)), offset=0
+        )
         for i in range(5):
             new_shape = (4, i + 1)
             new_buffer = buffer.expand(new_shape)
@@ -780,7 +782,9 @@ def test_expand():
             for idx, new_element in enumerate(new_buffer):
                 assert new_element == dtype.cast(expected_data[idx])
 
-        buffer._set_data(data=buffer.data, shape=(1, 4), stride=Buffer._calculate_stride((1, 4)), offset=0)
+        buffer = Buffer._create_buffer_from_data(
+            data=buffer.data, shape=(1, 4), stride=Buffer._calculate_stride((1, 4)), offset=0
+        )
         for i in range(5):
             new_shape = (i + 1, 4)
             new_buffer = buffer.expand(new_shape)
@@ -793,10 +797,11 @@ def test_expand():
             for idx, new_element in enumerate(new_buffer):
                 new_element == dtype.cast(idx % 4 + 1)
 
-        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        buffer = Buffer(data, dtype=dtype)
+        data = [dtype.cast(e) for e in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]
         for shape in [(3, 4, 1), (4, 3, 1)]:
-            buffer._set_data(data=buffer.data, shape=shape, stride=Buffer._calculate_stride(shape), offset=0)
+            buffer = Buffer._create_buffer_from_data(
+                data=data, shape=shape, stride=Buffer._calculate_stride(shape), offset=0
+            )
             for i in range(5):
                 new_shape = (*shape[:-1], 1 + i)
                 new_buffer = buffer.expand(new_shape)
@@ -815,9 +820,7 @@ def test_expand():
     # Try with non-contiguous data
     data = [i for i in range(50)]
     for offset in [0, 1, 2]:
-
-        buffer = Buffer([])
-        buffer._set_data(data=data, shape=(6, 1), stride=(2, 1), offset=offset)
+        buffer = Buffer._create_buffer_from_data(data=data, shape=(6, 1), stride=(2, 1), offset=offset)
         expected_data = [offset + i * 2 for i in range(6)]
         for i in range(3):
             new_shape = (6, i + 1)

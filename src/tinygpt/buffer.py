@@ -142,22 +142,29 @@ class Buffer():
 
         return DType.deduce_dtype(first_element) if not isinstance(first_element, (list, tuple)) else DType.float32
 
-    def _set_data(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
-        # Set and validate the buffer's data, shape, stride, and offset
-        self._validate_set_data_input_types(data, shape, stride, offset)
-        self._validate_set_data_values(data, shape, stride, offset)
+    @staticmethod
+    def _create_buffer_from_data(data: list, shape: tuple, stride: tuple, offset: int) -> None:
+        # Validate the buffer's data, shape, stride, and offset
+        Buffer._validate_data_types(data, shape, stride, offset)
+        Buffer._validate_data_values(data, shape, stride, offset)
+
+        # Create a Buffer to store the new data
+        new_buffer = Buffer([])
 
         # Assign validated values
-        self.data = data
-        self.shape = shape
-        self.stride = stride
-        self.offset = offset
-        self.ndim = len(shape)
-        self.dtype = self._deduce_dtype(data)
-        self.numel = self._numel(shape)
+        new_buffer.data = data
+        new_buffer.shape = shape
+        new_buffer.stride = stride
+        new_buffer.offset = offset
+        new_buffer.ndim = len(shape)
+        new_buffer.dtype = Buffer._deduce_dtype(data)
+        new_buffer.numel = Buffer._numel(shape)
 
-    def _validate_set_data_input_types(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
-        # Validate the types of inputs for _set_data
+        return new_buffer
+
+    @staticmethod
+    def _validate_data_types(data: list, shape: tuple, stride: tuple, offset: int) -> None:
+        # Validate the types of inputs for _create_buffer_from_data
         if not isinstance(data, list):
             raise TypeError(f"Expected data to be a list, found {type(data)}")
         if not isinstance(shape, tuple):
@@ -167,17 +174,19 @@ class Buffer():
         if not isinstance(offset, int):
             raise TypeError(f"Expected offset to be an int, found {type(offset)}")
 
-    def _validate_set_data_values(self, data: list, shape: tuple, stride: tuple, offset: int) -> None:
-        # Validate the values of inputs for _set_data
+    @staticmethod
+    def _validate_data_values(data: list, shape: tuple, stride: tuple, offset: int) -> None:
+        # Validate the values of inputs for _create_buffer_from_data
         data_size = len(data)
         if len(shape) != len(stride):
             raise ValueError("Length of shape and stride must match")
         if not 0 <= offset < data_size:
             raise ValueError("Offset must be within the range of data elements")
 
-        self._validate_stride_and_shape(data_size, shape, stride, offset)
+        Buffer._validate_stride_and_shape(data_size, shape, stride, offset)
 
-    def _validate_stride_and_shape(self, data_size: int, shape: tuple, stride: tuple, offset: int) -> None:
+    @staticmethod
+    def _validate_stride_and_shape(data_size: int, shape: tuple, stride: tuple, offset: int) -> None:
         # Validate that the stride and shape correspond correctly to the data size
         max_flat_index = offset
         for dim_size, dim_stride in zip(shape, stride):
@@ -267,9 +276,13 @@ class Buffer():
         # Ensures that both buffers are of the same dtype and shape before performing the operation
         self._validate_input_buffer(op, other)
 
-        # If the other element is not a buffer, creates a list with the same number of elements as the current buffer
+        # Create a generator that yields the scalar value 'numel' times if 'other' is a scalar
         if not isinstance(other, Buffer) and op != self.Op.POW:
-            other = [other] * self.numel
+            def scalar_generator(value, count):
+                for _ in range(count):
+                    yield value
+
+            other = scalar_generator(other, self.numel)
 
         # Perform the operation element-wise
         if op == self.Op.ADD:
@@ -299,11 +312,10 @@ class Buffer():
         else:
             raise RuntimeError(f"Operation {op.value} not implemented")
 
-        # Create a buffer to store the result
-        result = Buffer([])
-
         # Assign the data and its metadata to the new buffer
-        result._set_data(data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0)
+        result = Buffer._create_buffer_from_data(
+            data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0
+        )
 
         return result
 
@@ -396,9 +408,7 @@ class Buffer():
         offset = self.offset if self.is_contiguous() else 0
 
         # Create a new buffer with the reshaped data
-        reshaped_buffer = Buffer([])
-        new_stride = self._calculate_stride(new_shape)
-        reshaped_buffer._set_data(data, new_shape, new_stride, offset)
+        reshaped_buffer = Buffer._create_buffer_from_data(data, new_shape, self._calculate_stride(new_shape), offset)
 
         return reshaped_buffer
 
@@ -431,8 +441,7 @@ class Buffer():
         )
 
         # Create a new buffer with the expanded data
-        expanded_buffer = Buffer([])
-        expanded_buffer._set_data(data, new_shape, new_stride, offset)
+        expanded_buffer = Buffer._create_buffer_from_data(data, new_shape, new_stride, offset)
 
         return expanded_buffer
 
@@ -470,8 +479,7 @@ class Buffer():
 
         # Calculate the new shape with the specified axis reduced to 1
         new_shape = tuple(dim if idx != axis else 1 for idx, dim in enumerate(buffer.shape))
-        new_buffer = Buffer([])
-        new_buffer._set_data(
+        new_buffer = Buffer._create_buffer_from_data(
             [buffer.dtype.cast(0)] * self._numel(new_shape),
             shape=new_shape,
             stride=self._calculate_stride(new_shape),
