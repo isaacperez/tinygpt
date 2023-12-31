@@ -123,19 +123,32 @@ class Tensor():
     def relu(self) -> Tensor:
         return apply_op(mlops.Relu, self)
 
-    def sum(self, axes: tuple, keepdim=False) -> Tensor:
+    def sum(self, axes: tuple, keepdim: bool = False) -> Tensor:
         if keepdim:
             return apply_op(mlops.Sum, self, axes=axes)
         else:
             result = apply_op(mlops.Sum, self, axes=axes)
             return result.reshape(tuple(val for val in result.shape if val != 1))
 
-    def max(self, axes: tuple, keepdim=False) -> Tensor:
+    def max(self, axes: tuple, keepdim: bool = False) -> Tensor:
         if keepdim:
             return apply_op(mlops.Max, self, axes=axes)
         else:
             result = apply_op(mlops.Max, self, axes=axes)
             return result.reshape(tuple(val for val in result.shape if val != 1))
+
+    def softmax(self, axis: int) -> Tensor:
+        if not isinstance(axis, int):
+            raise TypeError(f"Expecting int value for axis but found type {type(axis)}")
+
+        if self.ndim == 0:
+            raise ValueError("Softmax not implemented for 0-d tensors")
+
+        self_normalized = self - self.max(axes=(axis,), keepdim=True)
+        self_exponential = self_normalized.exp()
+        sumation = self_exponential.sum(axes=(axis,), keepdim=True)
+
+        return self_exponential / sumation
 
     def reshape(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Reshape, self, new_shape=shape)

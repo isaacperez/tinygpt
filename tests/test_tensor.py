@@ -743,3 +743,126 @@ def test_all_ops():
     assert result6.grad_fn is None
     assert result7.grad_fn is None
     assert result8.grad_fn is None
+
+
+def test_softmax():
+    # Wrong axis type
+    with pytest.raises(TypeError):
+        Tensor([1., 2.]).softmax(None)
+
+    with pytest.raises(TypeError):
+        Tensor([1., 2.]).softmax((0,))
+
+    # Softmax for scalar values is not implemented
+    with pytest.raises(ValueError):
+        Tensor(1).softmax(0)
+
+    # 1D
+    tensor = Tensor([1., 0.2, 0.1])
+    expected_output = Buffer([0.538822531700, 0.242108568549, 0.219068899751])
+
+    softmax = tensor.softmax(axis=0)
+
+    assert softmax.shape == (3,)
+    assert all((softmax.buffer - expected_output) < Buffer([1e-05, 1e-05, 1e-05]))
+    assert all((softmax.buffer - expected_output) > Buffer([-1e-05, -1e-05, -1e-05]))
+    assert all(softmax.sum(0, keepdim=True).buffer == 1.0)
+
+    # 2D
+    tensor = Tensor([[1., 0.2, 0.1], [0.1, 1., 0.2]])
+    expected_output_dim0 = Buffer(
+        [[0.710949480534, 0.310025542974, 0.475020825863], [0.289050489664, 0.689974486828, 0.524979174137]]
+    )
+    expected_output_dim1 = Buffer(
+        [[0.538822531700, 0.242108568549, 0.219068899751], [0.219068899751, 0.538822531700, 0.242108568549]]
+    )
+
+    softmax_dim0 = tensor.softmax(axis=0)
+    softmax_dim1 = tensor.softmax(axis=1)
+
+    assert softmax_dim0.shape == (2, 3)
+    assert softmax_dim1.shape == (2, 3)
+
+    positive_tolerance = Buffer([[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]])
+    negative_tolerance = Buffer([[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]])
+
+    assert all((softmax_dim0.buffer - expected_output_dim0) < positive_tolerance)
+    assert all((softmax_dim0.buffer - expected_output_dim0) > negative_tolerance)
+    assert all((softmax_dim1.buffer - expected_output_dim1) < positive_tolerance)
+    assert all((softmax_dim1.buffer - expected_output_dim1) > negative_tolerance)
+
+    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) > -1e-08)
+
+    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) > -1e-08)
+
+    # 3D
+    tensor = Tensor([[[1., 0.2, 0.1], [0.1, 1., 0.2]]])
+    expected_output_dim0 = Buffer(
+        [[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]
+    )
+    expected_output_dim1 = Buffer(
+        [[[0.710949480534, 0.310025542974, 0.475020825863], [0.289050489664, 0.689974486828, 0.524979174137]]]
+    )
+    expected_output_dim2 = Buffer(
+        [[[0.538822531700, 0.242108568549, 0.219068899751], [0.219068899751, 0.538822531700, 0.242108568549]]]
+    )
+
+    softmax_dim0 = tensor.softmax(axis=0)
+    softmax_dim1 = tensor.softmax(axis=1)
+    softmax_dim2 = tensor.softmax(axis=2)
+
+    assert softmax_dim0.shape == (1, 2, 3)
+    assert softmax_dim1.shape == (1, 2, 3)
+
+    positive_tolerance = Buffer([[[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]]])
+    negative_tolerance = Buffer([[[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]]])
+
+    assert all((softmax_dim0.buffer - expected_output_dim0) < positive_tolerance)
+    assert all((softmax_dim0.buffer - expected_output_dim0) > negative_tolerance)
+    assert all((softmax_dim1.buffer - expected_output_dim1) < positive_tolerance)
+    assert all((softmax_dim1.buffer - expected_output_dim1) > negative_tolerance)
+    assert all((softmax_dim2.buffer - expected_output_dim2) < positive_tolerance)
+    assert all((softmax_dim2.buffer - expected_output_dim2) > negative_tolerance)
+
+    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) > -1e-08)
+
+    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) > -1e-08)
+
+    assert all((softmax_dim2.sum(2, keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim2.sum(2, keepdim=True).buffer - 1.0) > -1e-08)
+
+
+def test_gradient_function_backward_with_softmax():
+    # Test backward propagation in GradientFunction with softmax
+    for requires_grad in [True, False]:
+        tensor = Tensor([[1., 0.2, 0.1], [0.1, 1., 0.2]], requires_grad=requires_grad)
+
+        assert tensor.grad is None
+
+        result = tensor.softmax(0).sum(0).sum(0)
+
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            expected_grad = Buffer(
+                [[2.118794562023e-08, -9.239481180146e-09, 0.000000000000e+00],
+                 [8.614375879290e-09, -2.056284209573e-08, 0.000000000000e+00]]
+            )
+            assert all((tensor.grad - expected_grad) < 1e-05)
+            assert all((tensor.grad - expected_grad) > -1e-05)
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+        assert result.grad_fn is None
