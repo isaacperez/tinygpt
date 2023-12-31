@@ -866,3 +866,37 @@ def test_gradient_function_backward_with_softmax():
             assert result.grad is None
 
         assert result.grad_fn is None
+
+
+def test_init_methods():
+
+    for requires_grad in [True, False]:
+        # Empty tensor
+        tensor = Tensor.uniform((), requires_grad=requires_grad)
+        assert tensor.shape == ()
+        assert tensor.dtype == DType.float32
+        assert tensor.requires_grad == requires_grad
+
+        # 1D
+        tensor = Tensor.uniform((54,), requires_grad=requires_grad)
+        assert tensor.shape == (54,)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer >= 0)
+        assert all(tensor.buffer <= 1.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 2D
+        tensor = Tensor.uniform((16, 32), requires_grad=requires_grad)
+        assert tensor.shape == (16, 32)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer >= 0)
+        assert all(tensor.buffer <= 1.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 3D
+        tensor = Tensor.uniform((12, 13, 7), requires_grad=requires_grad)
+        assert tensor.shape == (12, 13, 7)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer >= 0)
+        assert all(tensor.buffer <= 1.0)
+        assert tensor.requires_grad == requires_grad

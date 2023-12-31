@@ -156,6 +156,10 @@ class Tensor():
     def expand(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Expand, self, new_shape=shape)
 
+    @staticmethod
+    def uniform(shape: tuple, **kwargs):
+        return Tensor(Buffer.uniform(shape), **kwargs)
+
     def _increment_backward_references(self) -> None:
         if self.requires_grad:
             self._backward_references += 1

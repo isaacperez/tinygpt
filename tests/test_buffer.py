@@ -1116,3 +1116,50 @@ def test_float():
     second_buffer = Buffer([[1., 1., 0.], [12., 0., 2.]])
 
     assert all((first_buffer > second_buffer).float() == Buffer([[1., 0., 0.], [0., 0., 0.]]))
+
+
+def test_init_methods():
+    # Wrong arguments
+    with pytest.raises(TypeError):
+        Buffer.uniform(None)
+
+    with pytest.raises(TypeError):
+        Buffer.uniform((0))
+
+    with pytest.raises(TypeError):
+        Buffer.uniform([])
+
+    with pytest.raises(ValueError):
+        Buffer.uniform((-1,))
+
+    with pytest.raises(ValueError):
+        Buffer.uniform((1, 2, 3, 0))
+
+    with pytest.raises(ValueError):
+        Buffer.uniform((1, -1, 3))
+
+    # Empty buffer
+    buffer = Buffer.uniform(())
+    assert buffer.shape == ()
+    assert buffer.dtype == DType.float32
+
+    # 1D
+    buffer = Buffer.uniform((54,))
+    assert buffer.shape == (54,)
+    assert buffer.dtype == DType.float32
+    assert all(buffer >= 0)
+    assert all(buffer <= 1.0)
+
+    # 2D
+    buffer = Buffer.uniform((16, 32))
+    assert buffer.shape == (16, 32)
+    assert buffer.dtype == DType.float32
+    assert all(buffer >= 0)
+    assert all(buffer <= 1.0)
+
+    # 3D
+    buffer = Buffer.uniform((12, 13, 7))
+    assert buffer.shape == (12, 13, 7)
+    assert buffer.dtype == DType.float32
+    assert all(buffer >= 0)
+    assert all(buffer <= 1.0)

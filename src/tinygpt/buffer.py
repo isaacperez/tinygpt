@@ -3,6 +3,7 @@ from enum import Enum, auto
 from collections import deque
 from typing import Any, Union
 import math
+import random
 
 from tinygpt.utils import DType
 
@@ -26,6 +27,7 @@ class Buffer():
         NE = auto()
         GT = auto()
         GE = auto()
+        UNIFORM = auto()
 
     def __init__(self, input_data: Any, dtype: DType = None) -> None:
         # Initialize buffer based on the type of input data
@@ -559,3 +561,36 @@ class Buffer():
 
     def max(self, axes: tuple) -> Buffer:
         return self._reduce(self.Op.MAX, axes)
+
+    @staticmethod
+    def _init(init_op: Buffer.Op, shape: tuple) -> Buffer:
+        # Initialize a new Buffer using a specified operation and shape
+
+        # Validate the type of init_op and shape
+        if not isinstance(init_op, Buffer.Op):
+            raise TypeError(f"init_op argument is not an Op. Found {type(init_op)}")
+
+        if not isinstance(shape, tuple):
+            raise TypeError("shape must be a tuple")
+
+        # Validate that each dimension in shape is positive
+        if any(value < 1 for value in shape):
+            raise ValueError(f"One or more values in shape is not positive: {shape}")
+
+        # Calculate the total number of elements
+        numel = Buffer._numel(shape)
+
+        # Initialize buffer data based on the specified operation
+        if init_op == Buffer.Op.UNIFORM:
+            # Generate random values uniformly distributed between 0 and 1
+            data = [random.uniform(0.0, 1.0) for _ in range(numel)]
+        else:
+            raise RuntimeError(f"Initialization operation {init_op.value} not implemented")
+
+        # Return a new Buffer with the generated data and the specified shape
+        return Buffer(data).reshape(shape)
+
+    @staticmethod
+    def uniform(shape: tuple) -> Buffer:
+        # Create a Buffer with data initialized uniformly between 0 and 1
+        return Buffer._init(Buffer.Op.UNIFORM, shape)
