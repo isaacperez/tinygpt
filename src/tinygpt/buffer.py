@@ -524,6 +524,10 @@ class Buffer():
             for index in new_buffer._generate_indexes():
                 reduced_value = self._calculate_reduced_value_with_sum(buffer, index, axis)
                 new_buffer._set(index, reduced_value)
+        elif op == self.Op.MAX:
+            for index in new_buffer._generate_indexes():
+                reduced_value = self._calculate_reduced_value_with_max(buffer, index, axis)
+                new_buffer._set(index, reduced_value)
         else:
             raise RuntimeError(f"Operation {op.value} not implemented")
 
@@ -539,5 +543,19 @@ class Buffer():
 
         return reduced_value
 
+    def _calculate_reduced_value_with_max(self, buffer: Buffer, index: tuple, axis: int) -> float:
+        # Calculate the reduced value for a given index by using the max operation
+        old_index = list(index)
+        old_index[axis] = 0
+        reduced_value = buffer._get(tuple(old_index))
+        for i in range(1, buffer.shape[axis]):
+            old_index[axis] = i
+            reduced_value = max(reduced_value, buffer._get(tuple(old_index)))
+
+        return reduced_value
+
     def sum(self, axes: tuple) -> Buffer:
         return self._reduce(self.Op.ADD, axes)
+
+    def max(self, axes: tuple) -> Buffer:
+        return self._reduce(self.Op.MAX, axes)

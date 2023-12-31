@@ -932,8 +932,50 @@ def test_reduce_sum():
     with pytest.raises(ValueError):
         _ = buffer.sum(4)
 
-    with pytest.raises(RuntimeError):
-        _ = buffer._reduce(Buffer.Op.NEG, 0)  # NEG is not a valid reduction operation
+    with pytest.raises(ValueError):
+        _ = buffer.sum(-1)
+
+
+def test_reduce_max():
+    # Scalar
+    buffer = Buffer(1.0)
+
+    with pytest.raises(ValueError):
+        result = buffer.max(0)
+
+    # 1D
+    buffer = Buffer([i for i in range(9)])
+
+    result = buffer.max(0)
+    assert all(result == Buffer([max([i for i in range(9)])]))
+
+    # 2D
+    buffer = Buffer([[1, 2, 3], [4, 5, 6]])
+
+    result = buffer.max(0)
+    assert all(result == Buffer([[4, 5, 6]]))
+
+    result = buffer.max(1)
+    assert all(result == Buffer([[3], [6]]))
+
+    # 3D
+    buffer = Buffer([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+
+    result = buffer.max(0)
+    assert all(result == Buffer([[[5, 6], [7, 8]]]))
+
+    result = buffer.max(1)
+    assert all(result == Buffer([[[3, 4]], [[7, 8]]]))
+
+    result = buffer.max(2)
+    assert all(result == Buffer([[[2], [4]], [[6], [8]]]))
+
+    # Wrong inputs
+    with pytest.raises(ValueError):
+        _ = buffer.max(4)
+
+    with pytest.raises(ValueError):
+        _ = buffer.max(-1)
 
 
 def test_pow():
