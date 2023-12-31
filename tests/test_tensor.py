@@ -541,6 +541,22 @@ def test_sum():
     assert all(tensor.grad == Buffer([[1.0, 1.0], [1.0, 1.0]]))
 
 
+def test_max():
+    tensor = Tensor([[1., 2.], [3., 4.]], requires_grad=True)
+
+    new_tensor = tensor.max((0, 1), keepdim=True)
+    assert new_tensor.shape == (1, 1)
+    assert all(new_tensor.buffer == Buffer([[4.0]]))
+
+    new_tensor = tensor.max((0, 1), keepdim=False)
+    assert new_tensor.shape == ()
+    assert all(new_tensor.buffer == Buffer(4.0))
+
+    new_tensor.backward()
+
+    assert all(tensor.grad == Buffer([[0.0, 0.0], [0.0, 1.0]]))
+
+
 def test_reshape():
     # Multiple reshape operations
     tensor = Tensor([[[9.0]]], requires_grad=True)
@@ -585,6 +601,18 @@ def test_multiple_ops_with_reduction_ops():
     sum_tensor_2.backward()
 
     assert all(tensor.grad == Buffer([4.0, 4.0, 4.0]))
+
+    # Max reduction
+    tensor = Tensor([3., 5., 7.], requires_grad=True)
+
+    reshaped_tensor = tensor.reshape((1, 3))
+    expanded_tensor = reshaped_tensor.expand((4, 3))
+    sum_tensor_1 = expanded_tensor.max(0)
+    sum_tensor_2 = sum_tensor_1.max(0)
+
+    sum_tensor_2.backward()
+
+    assert all(tensor.grad == Buffer([0.0, 0.0, 1.0]))
 
 
 def test_broadcast_with_all_ops():
@@ -667,8 +695,8 @@ def test_broadcast_with_all_ops():
 
 def test_all_ops():
     # Test multiple operations
-    tensor1 = Tensor([[3.0, 4.0]], requires_grad=True)
-    tensor2 = Tensor([[9.0, -12.0]], requires_grad=True)
+    tensor1 = Tensor([[1.2, 1.4]], requires_grad=True)
+    tensor2 = Tensor([[2.0, -1.0]], requires_grad=True)
 
     assert tensor1.grad is None
     assert tensor2.grad is None
@@ -680,7 +708,7 @@ def test_all_ops():
     result5 = (-result3) ** 2 + result1
     result6 = result5.relu()
     result7 = result6.maximum(result4)
-    result8 = result7.sum((0, 1))
+    result8 = result7.sum((0, 1)) + result2.max((0, 1))
 
     assert result1.grad is None
     assert result1.grad_fn is not None
@@ -701,8 +729,11 @@ def test_all_ops():
 
     result8.backward()
 
-    assert all((tensor1.grad - Buffer([[-7.8793875200e+08,  2.3919500732e+02]])) < Buffer([[1e-05, 1e-05]]))
-    assert all((tensor2.grad - Buffer([[5.5163002880e+09, -6.1494167328e+01]])) < Buffer([[1e-05, 1e-05]]))
+    assert all((tensor1.grad - Buffer([[-82.811744689941, 9.891427993774]])) < Buffer([[1e-05, 1e-05]]))
+    assert all((tensor1.grad - Buffer([[-82.811744689941, 9.891427993774]])) > Buffer([[-1e-05, -1e-05]]))
+
+    assert all((tensor2.grad - Buffer([[1.707202911377e+02, -2.843236923218e-02]])) < Buffer([[1e-05, 1e-05]]))
+    assert all((tensor2.grad - Buffer([[1.707202911377e+02, -2.843236923218e-02]])) > Buffer([[-1e-05, -1e-05]]))
 
     assert result1.grad_fn is None
     assert result2.grad_fn is None

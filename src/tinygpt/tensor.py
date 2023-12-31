@@ -130,6 +130,13 @@ class Tensor():
             result = apply_op(mlops.Sum, self, axes=axes)
             return result.reshape(tuple(val for val in result.shape if val != 1))
 
+    def max(self, axes: tuple, keepdim=False) -> Tensor:
+        if keepdim:
+            return apply_op(mlops.Max, self, axes=axes)
+        else:
+            result = apply_op(mlops.Max, self, axes=axes)
+            return result.reshape(tuple(val for val in result.shape if val != 1))
+
     def reshape(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Reshape, self, new_shape=shape)
 

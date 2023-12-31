@@ -148,6 +148,18 @@ class Sum(Operation):
         return incoming_grad.expand(self.input_shape)
 
 
+class Max(Operation):
+    def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
+        self.buffer, self.axes = buffer, axes
+        self.result = buffer.max(axes)
+        return self.result
+
+    def backward(self, incoming_grad: Buffer) -> Buffer:
+        max_is_1s = 1.0 - (self.buffer < self.result.expand(self.buffer.shape)).float()
+        div = max_is_1s.sum(self.axes).expand(self.buffer.shape)
+        return (max_is_1s / div) * incoming_grad.expand(self.buffer.shape)
+
+
 class Reshape(Operation):
 
     def forward(self, buffer: Buffer, new_shape: tuple) -> Buffer:
