@@ -118,7 +118,7 @@ class Tensor():
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        return apply_op(mlops.Maximum, self, other)
+        return apply_op(mlops.Maximum, *self._broadcasted(other))
 
     def relu(self) -> Tensor:
         return apply_op(mlops.Relu, self)
@@ -146,9 +146,9 @@ class Tensor():
 
         self_normalized = self - self.max(axes=(axis,), keepdim=True)
         self_exponential = self_normalized.exp()
-        sumation = self_exponential.sum(axes=(axis,), keepdim=True)
+        summation = self_exponential.sum(axes=(axis,), keepdim=True)
 
-        return self_exponential / sumation
+        return self_exponential / summation
 
     def reshape(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Reshape, self, new_shape=shape)
