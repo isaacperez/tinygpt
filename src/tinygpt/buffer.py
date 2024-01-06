@@ -594,3 +594,60 @@ class Buffer():
     def uniform(shape: tuple) -> Buffer:
         # Create a Buffer with data initialized uniformly between 0 and 1
         return Buffer._init(Buffer.Op.UNIFORM, shape)
+
+    def _generate_indices_with_custom_order(self, order: tuple) -> tuple:
+        # Generate indices for the buffer by incrementing dimensions in a specified custom order
+
+        if len(order) != self.ndim:
+            raise ValueError("Length of order must match the number of dimensions of the buffer")
+
+        # Initialize the indices for each dimension
+        indices = [0] * self.ndim
+
+        # Iterate over the elements as per the custom order
+        while True:
+            yield tuple(indices)
+
+            # Increment the indices in the specified order
+            for dim in order:
+                if indices[dim] < self.shape[dim] - 1:
+                    indices[dim] += 1
+                    break
+                else:
+                    indices[dim] = 0
+            else:
+                # If all indices have rolled over, the iteration is complete
+                return
+
+    def permute(self, dims: tuple[int, ...]) -> Buffer:
+        # Rearrange the dimensions of the buffer according to a specified order
+
+        if not isinstance(dims, tuple):
+            raise TypeError("dims must be a tuple")
+
+        # Check if the number of dimensions provided matches the buffer's dimensions
+        if len(dims) != self.ndim:
+            raise ValueError("Number of dimensions provided doesn't match the buffer's dimensions")
+
+        # Check if the provided dimensions form a valid permutation of the current dimensions
+        if set(dims) != set(range(self.ndim)):
+            raise ValueError("dims don't form a valid permutation")
+
+        # Calculate the new shape by rearranging the current shape according to the provided dimensions
+        new_shape = tuple(self.shape[dim] for dim in dims)
+
+        # Create the new Buffer
+        if self.is_contiguous():
+            # Calculate the new stride for the contiguous data
+            new_stride = tuple(self.stride[dim] for dim in dims)
+            # For contiguous data, avoid data movement
+            return Buffer._create_buffer_from_data(self.data, new_shape, new_stride, self.offset)
+
+        else:
+            # Reorder the data according to the new dimension order
+            reordered_data = [self._get(index) for index in self._generate_indices_with_custom_order(dims[::-1])]
+
+            # Calculate the new stride for the reordered (now contiguous) data
+            new_stride = self._calculate_stride(new_shape)
+
+            return Buffer._create_buffer_from_data(reordered_data, new_shape, new_stride, 0)

@@ -1163,3 +1163,115 @@ def test_init_methods():
     assert buffer.dtype == DType.float32
     assert all(buffer >= 0)
     assert all(buffer <= 1.0)
+
+
+def test_permute():
+
+    # Wrong values
+    buffer = Buffer([[1.0, 2.0], [3.0, 4.0]])
+
+    with pytest.raises(TypeError):
+        buffer.permute(None)
+
+    with pytest.raises(ValueError):
+        buffer.permute(())
+
+    with pytest.raises(ValueError):
+        buffer.permute((2,))
+
+    with pytest.raises(ValueError):
+        buffer.permute((0, 1, 2))
+
+    with pytest.raises(ValueError):
+        buffer.permute((0, 3))
+
+    with pytest.raises(ValueError):
+        buffer.permute((0, 0))
+
+    # Scalar
+    buffer = Buffer(3.0)
+    assert all(buffer.permute(()) == buffer)
+
+    # 1D Tensor
+    buffer = Buffer([3, 5])
+    assert all(buffer.permute((0,)) == buffer)
+
+    # 2D Tensor
+    buffer = Buffer([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    assert all(buffer.permute((0, 1)) == buffer)
+    assert all(buffer.permute((1, 0)) == Buffer([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]))
+
+    # 3D Tensor
+    buffer = Buffer(
+        [
+            [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+            [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+            [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+            [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+        ]
+    )
+
+    assert all(buffer.permute((0, 1, 2)) == buffer)
+
+    assert all(buffer.permute((0, 2, 1)) == Buffer(
+            [
+                [[1., 4.], [2., 5.], [3., 6.]],
+                [[7., 10.], [8., 11.], [9., 12.]],
+                [[13., 16.], [14., 17.], [15., 18.]],
+                [[19., 22.], [20., 23.], [21., 24.]]
+            ]
+        )
+    )
+
+    assert all(buffer.permute((1, 0, 2)) == Buffer(
+            [
+                [[1., 2., 3.], [7., 8., 9.], [13., 14., 15.], [19., 20., 21.]],
+                [[4., 5., 6.], [10., 11., 12.], [16., 17., 18.], [22., 23., 24.]]
+            ]
+        )
+    )
+
+    assert all(buffer.permute((1, 2, 0)) == Buffer(
+            [
+                [[1., 7., 13., 19.], [2., 8., 14., 20.], [3., 9., 15., 21.]],
+                [[4., 10., 16., 22.], [5., 11., 17., 23.], [6., 12., 18., 24.]]
+            ]
+        )
+    )
+
+    assert all(buffer.permute((2, 1, 0)) == Buffer(
+            [
+                [[1., 7., 13., 19.], [4., 10., 16., 22.]],
+                [[2., 8., 14., 20.], [5., 11., 17., 23.]],
+                [[3., 9., 15., 21.], [6., 12., 18., 24.]]
+            ]
+        )
+    )
+
+    assert all(buffer.permute((2, 0, 1)) == Buffer(
+            [
+                [[1., 4.], [7., 10.], [13., 16.], [19., 22.]],
+                [[2., 5.], [8., 11.], [14., 17.], [20., 23.]],
+                [[3., 6.], [9., 12.], [15., 18.], [21., 24.]]
+            ]
+        )
+    )
+
+    # 1-D non-contiguous data
+    buffer = Buffer._create_buffer_from_data(data=[i for i in range(24)], shape=(4,), stride=(4,), offset=0)
+    assert all(buffer.permute((0,)) == buffer)
+
+    # 2-D non-contiguous data
+    buffer = Buffer._create_buffer_from_data(data=[i for i in range(24)], shape=(3, 2), stride=(4, 1), offset=0)
+    assert all(buffer.permute((0, 1)) == Buffer([[0, 1], [4, 5], [8, 9]]))
+    assert all(buffer.permute((1, 0)) == Buffer([[0, 4, 8], [1, 5, 9]]))
+
+    # 3-D non-contiguous data
+    buffer = Buffer._create_buffer_from_data(data=[i for i in range(64)], shape=(3, 2, 2), stride=(4, 4, 1), offset=0)
+
+    assert all(buffer.permute((0, 1, 2)) == buffer)
+    assert all(buffer.permute((0, 2, 1)) == Buffer([[[0, 4], [1, 5]], [[4, 8], [5, 9]], [[8, 12], [9, 13]]]))
+    assert all(buffer.permute((1, 0, 2)) == Buffer([[[0, 1], [4, 5], [8, 9]], [[4, 5], [8, 9], [12, 13]]]))
+    assert all(buffer.permute((1, 2, 0)) == Buffer([[[0, 4, 8], [1, 5, 9]], [[4, 8, 12], [5, 9, 13]]]))
+    assert all(buffer.permute((2, 1, 0)) == Buffer([[[0, 4, 8], [4, 8, 12]], [[1, 5, 9], [5, 9, 13]]]))
+    assert all(buffer.permute((2, 0, 1)) == Buffer([[[0, 4], [4, 8], [8, 12]], [[1, 5], [5, 9], [9, 13]]]))
