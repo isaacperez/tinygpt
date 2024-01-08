@@ -159,6 +159,26 @@ class Tensor():
     def permute(self, dims: tuple) -> Tensor:
         return apply_op(mlops.Permute, self, dims=dims)
 
+    def transpose(self, axis1: int, axis2: int) -> Tensor:
+        # Transpose method to swap two dimensions (axes) of a Tensor (both axes can be the same, but it has no effect)
+
+        # Validate that axis1 and axis2 are integers
+        if not isinstance(axis1, int) or not isinstance(axis2, int):
+            raise TypeError("axis1 and axis2 must be an integer")
+
+        # Check that axis1 and axis2 are within the valid range of the tensor's dimensions
+        if any(axis < 0 or axis >= self.ndim for axis in [axis1, axis2]):
+            raise ValueError("axis1 and axis2 should be positive and within the dimension range")
+
+        # Generate a sequence representing the order of dimensions
+        order = list(range(self.ndim))
+
+        # Swap the positions of axis1 and axis2 in this order
+        order[axis1], order[axis2] = order[axis2], order[axis1]
+
+        # Apply the permute operation to reorder the dimensions of the tensor according to the new order
+        return self.permute(tuple(order))
+
     @staticmethod
     def uniform(shape: tuple, **kwargs):
         return Tensor(Buffer.uniform(shape), **kwargs)

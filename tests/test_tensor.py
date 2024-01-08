@@ -915,3 +915,18 @@ def test_permute():
     new_tensor_2.sum((0, 1)).backward()
 
     assert all(tensor.grad == Buffer([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]))
+
+
+def test_transpose():
+    # Multiple transpose operations
+    tensor = Tensor([[[1., 2., 3.,], [4., 5., 6.]]], requires_grad=True)
+
+    new_tensor_1 = tensor.transpose(2, 1)
+    assert new_tensor_1.shape == (1, 3, 2)
+
+    new_tensor_2 = new_tensor_1.transpose(1, 2)
+    assert all(new_tensor_2.buffer == tensor.buffer)
+
+    new_tensor_2.sum((0, 1, 2)).backward()
+
+    assert all(tensor.grad == Buffer([[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]))
