@@ -43,3 +43,7 @@ def print_dag(node: Any, indent='', last=True, is_grad_fn=False) -> None:
     for i, child in enumerate(next_nodes):
         if child is not None:
             print_dag(child, indent, i == len(next_nodes) - 1, not is_grad_fn)
+
+
+def argsort(x):
+    return type(x)(sorted(range(len(x)), key=x.__getitem__))

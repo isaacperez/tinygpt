@@ -900,3 +900,18 @@ def test_init_methods():
         assert all(tensor.buffer >= 0)
         assert all(tensor.buffer <= 1.0)
         assert tensor.requires_grad == requires_grad
+
+
+def test_permute():
+    # Multiple permute operations
+    tensor = Tensor([[1., 2., 3.,], [4., 5., 6.]], requires_grad=True)
+
+    new_tensor_1 = tensor.permute((1, 0))
+    assert new_tensor_1.shape == (3, 2)
+
+    new_tensor_2 = new_tensor_1.permute((1, 0))
+    assert all(new_tensor_2.buffer == tensor.buffer)
+
+    new_tensor_2.sum((0, 1)).backward()
+
+    assert all(tensor.grad == Buffer([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]))

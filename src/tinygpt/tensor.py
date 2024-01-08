@@ -156,6 +156,9 @@ class Tensor():
     def expand(self, shape: tuple) -> Tensor:
         return apply_op(mlops.Expand, self, new_shape=shape)
 
+    def permute(self, dims: tuple) -> Tensor:
+        return apply_op(mlops.Permute, self, dims=dims)
+
     @staticmethod
     def uniform(shape: tuple, **kwargs):
         return Tensor(Buffer.uniform(shape), **kwargs)

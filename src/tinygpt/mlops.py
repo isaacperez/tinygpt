@@ -1,6 +1,7 @@
 from typing import Union, Any
 
 from tinygpt.buffer import Buffer
+from tinygpt.utils import argsort
 
 
 class Operation():
@@ -182,3 +183,13 @@ class Expand(Operation):
     def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
         axes = tuple(idx for idx, val in enumerate(incoming_grad.shape) if self.input_shape[idx] != val)
         return incoming_grad.sum(axes) if self.needs_input_grad[0] else None
+
+
+class Permute(Operation):
+
+    def forward(self, buffer: Buffer, dims: tuple) -> Buffer:
+        self.input_order = dims
+        return buffer.permute(dims)
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        return incoming_grad.permute(argsort(self.input_order))
