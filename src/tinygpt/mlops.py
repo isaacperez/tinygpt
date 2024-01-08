@@ -181,8 +181,11 @@ class Expand(Operation):
         return buffer.expand(new_shape)
 
     def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
-        axes = tuple(idx for idx, val in enumerate(incoming_grad.shape) if self.input_shape[idx] != val)
-        return incoming_grad.sum(axes) if self.needs_input_grad[0] else None
+        if self.needs_input_grad[0]:
+            axes = tuple(idx for idx, val in enumerate(incoming_grad.shape) if self.input_shape[idx] != val)
+            return incoming_grad.sum(axes)
+        else:
+            return None
 
 
 class Permute(Operation):
@@ -192,4 +195,4 @@ class Permute(Operation):
         return buffer.permute(dims)
 
     def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
-        return incoming_grad.permute(argsort(self.input_order))
+        return incoming_grad.permute(argsort(self.input_order)) if self.needs_input_grad[0] else None

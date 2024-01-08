@@ -919,14 +919,132 @@ def test_permute():
 
 def test_transpose():
     # Multiple transpose operations
-    tensor = Tensor([[[1., 2., 3.,], [4., 5., 6.]]], requires_grad=True)
+    for requires_grad in [True, False]:
+        tensor = Tensor([[[1., 2., 3.,], [4., 5., 6.]]], requires_grad=requires_grad)
 
-    new_tensor_1 = tensor.transpose(2, 1)
-    assert new_tensor_1.shape == (1, 3, 2)
+        new_tensor_1 = tensor.transpose(2, 1)
+        assert new_tensor_1.shape == (1, 3, 2)
 
-    new_tensor_2 = new_tensor_1.transpose(1, 2)
-    assert all(new_tensor_2.buffer == tensor.buffer)
+        new_tensor_2 = new_tensor_1.transpose(1, 2)
+        assert all(new_tensor_2.buffer == tensor.buffer)
 
-    new_tensor_2.sum((0, 1, 2)).backward()
+        result = new_tensor_2.sum((0, 1, 2))
 
-    assert all(tensor.grad == Buffer([[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]))
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer([[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+
+def test_dot():
+    # (2,) * (2,) -> ()
+    tensor1 = Tensor([1.0, 2.0], requires_grad=True)
+    tensor2 = Tensor([3.0, 4.0], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(11.0))
+
+    # (2,2) * (2, 2) -> (2, 2)
+    tensor1 = Tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+    tensor2 = Tensor([[5.0, 6.0], [7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer([[19.0, 22.0], [43.0, 50.0]]))
+
+    # (2,) * (2, 3) -> (3,)
+    tensor1 = Tensor([1.0, 2.0], requires_grad=True)
+    tensor2 = Tensor([[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer([15.0, 18.0, 21.0]))
+
+    # (4,2) * (2, 3) -> (4, 2)
+    tensor1 = Tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], requires_grad=True)
+    tensor2 = Tensor([[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [[15.0, 18.0, 21.0], [33.0, 40.0, 47.0], [51.0, 62.0, 73.0], [69.0, 84.0, 99.0]]
+        )
+    )
+
+    # (2, 4, 2) * (2, 2, 2) -> (2, 4, 2)
+    tensor1 = Tensor(
+        [[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]]],
+        requires_grad=True
+    )
+    tensor2 = Tensor([[[17.0, 18.0], [19.0, 20.0]], [[21.0, 22.0], [23.0, 24.0]]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [
+                [[55.0, 58.0], [127.0, 134.0], [199.0, 210.0], [271.0, 286.0]],
+                [[419.0, 438.0], [507.0, 530.0], [595.0, 622.0], [683.0, 714.0]]
+            ]
+        )
+    )
+
+    # (3, 4, 2) * (2,) -> (3, 4)
+    tensor1 = Tensor(
+        [
+            [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+            [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]],
+            [[18.0, 19.0], [20.0, 21.0], [22.0, 23.0], [24.0, 25.0]]
+        ],
+        requires_grad=True
+    )
+
+    tensor2 = Tensor([1.0, 2.0], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [[5.0, 11.0, 17.0, 23.0], [29.0, 35.0, 41.0, 47.0], [56.0, 62.0, 68.0, 74.0]]
+        )
+    )
+
+
+def test_dot_backward():
+
+    for require_grad in [True, False]:
+        # (3, 4, 2) * (3, 2, 3) -> (3, 4, 3)
+        tensor1 = Tensor(
+            [
+                [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+                [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]],
+                [[18.0, 19.0], [20.0, 21.0], [22.0, 23.0], [24.0, 25.0]]
+            ],
+            requires_grad=require_grad
+        )
+
+        tensor2 = Tensor(
+            [
+                [[17.0, 18.0, 19.0], [20.0, 21.0, 22.0]],
+                [[23.0, 24.0, 25.0], [26.0, 27.0, 28.0]],
+                [[29.0, 30.0, 31.0], [32.0, 33.0, 34.0]]
+            ],
+            requires_grad=require_grad
+        )
+
+        result = tensor1.dot(tensor2).sum((0, 1, 2))
+        result.backward()
+
+        if require_grad:
+            assert all(tensor1.grad == Buffer(
+                    [
+                        [[54.0, 63.0], [54.0, 63.0], [54.0, 63.0], [54.0, 63.0]],
+                        [[72.0, 81.0], [72.0, 81.0], [72.0, 81.0], [72.0, 81.0]],
+                        [[90.0, 99.0], [90.0, 99.0], [90.0, 99.0], [90.0, 99.0]]
+                    ]
+                )
+            )
+
+            assert all(tensor2.grad == Buffer(
+                    [
+                        [[16.0, 16.0, 16.0], [20.0, 20.0, 20.0]],
+                        [[48.0, 48.0, 48.0], [52.0, 52.0, 52.0]],
+                        [[84.0, 84.0, 84.0], [88.0, 88.0, 88.0]]
+                    ]
+                )
+            )
+
+        else:
+            assert tensor1.grad is None
+            assert tensor2.grad is None
