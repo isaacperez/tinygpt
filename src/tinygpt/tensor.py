@@ -180,40 +180,46 @@ class Tensor():
         return self.permute(tuple(order))
 
     def dot(self, other: Tensor):
-        # Perform matrix multiplication between self and other
+        # Perform matrix multiplication (dot product) between this tensor (`self`) and another tensor (`other`)
 
+        # Check if the other operand is a tensor
         if not isinstance(other, Tensor):
             raise TypeError(f"Expecting Tensor, but found type {type(other)}")
 
-        # Check the shape of the tensors
+        # Ensure both tensors are at least 1-dimensional, as matrix multiplication is not defined for 0D tensors
         if self.ndim == 0 or other.ndim == 0:
             raise RuntimeError(
                 f"Both arguments to matmul need to be at least 1D, but they are {self.ndim}D and {other.ndim}D"
             )
 
-        # Ensures that the inner dimensions of the two tensors are compatible for matrix multiplication.
-        # In matrix multiplication, the number of columns in the first matrix must be equal to the number of rows in
-        # the second matrix. In tensors, this translates to self.shape[-1] (the last dimension of self) being equal
-        # to other.shape[-min(n2, 2)] (the appropriate dimension of other).
+        # Check if the inner dimensions are compatible. In matrix multiplication, the number of columns in the first
+        # matrix (last dimension of `self`) must be equal to the number of rows in the second matrix
+        # (appropriate dimension of `other`)
         if self.shape[-1] != other.shape[-min(other.ndim, 2)]:
             raise RuntimeError(
                 f"Input Tensor shapes {self.shape} and {other.shape} cannot be multiplied"
                 f"({self.shape[-1]} != {other.shape[-min(other.ndim, 2)]})")
 
-        # Prepare both tensors for the operation
+        # Reshape the tensors to make their dimensions compatible for element-wise multiplication
+        # This involves adding a singleton dimension before the last dimension of `self` and before the last two
+        # dimensions of `other`. It aligns the 'row' dimension of `self` with a new singleton dimension in `other`,
+        # and vice versa for the 'col' dimension. This step is necessary to enable broadcasting during the element-wise
+        # multiplication.
         x = self.reshape((*self.shape[0:-1], *[1] * min(self.ndim - 1, other.ndim - 1, 1), self.shape[-1]))
         w = other.reshape(
             (*other.shape[0:-2], *[1] * min(self.ndim - 1, other.ndim - 1, 1), *other.shape[-min(other.ndim, 2):])
         )
 
-        # Transpose the last two dimensions of w
+        # Transpose the last two dimensions of `w` to align it properly with `x` for element-wise multiplication
         dims_of_w = list(range(w.ndim))
         w = w.transpose(dims_of_w[-1], dims_of_w[-min(w.ndim, 2)])
 
-        # Performn a element-wise multiplication of the two tensors
+        # Perform element-wise multiplication of the two tensors. This mimics matrix multiplication by multiplying
+        # corresponding elements in the aligned dimensions
         mult = x * w
 
-        # The final step is a sum over the last dimension of the tensor
+        # Sum over the last dimension to collapse the result into the final matrix multiplication output. This step
+        # effectively sums the products of corresponding elements, completing the matrix multiplication process
         return (mult).sum((mult.ndim - 1,))
 
     @staticmethod
