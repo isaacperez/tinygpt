@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
 from collections import deque
-from typing import Any, Union
+from typing import Any, Union, Iterator
 import math
 import random
 
@@ -235,7 +235,7 @@ class Buffer():
 
         return total_elements
 
-    def __iter__(self) -> Union[float, int, bool]:
+    def __iter__(self) -> Iterator[Union[float, int, bool]]:
         # Iterator to enable looping over the buffer elements
         # This accounts for the multi-dimensional nature of the buffer
         if self.ndim == 0:
@@ -496,7 +496,7 @@ class Buffer():
 
         return expanded_buffer
 
-    def _generate_indexes(self) -> tuple:
+    def _generate_indexes(self) -> Iterator[tuple]:
         # Generate all possible multi-dimensional indices for the current buffer
         if self.ndim == 0:
             # Handle scalar buffer
@@ -611,7 +611,7 @@ class Buffer():
         # Create a Buffer with data initialized uniformly between 0 and 1
         return Buffer._init(Buffer.Op.UNIFORM, shape)
 
-    def _generate_indices_with_custom_order(self, order: tuple) -> tuple:
+    def _generate_indices_with_custom_order(self, order: tuple) -> Iterator[tuple]:
         # Generate indices for the buffer by incrementing dimensions in a specified custom order
 
         if len(order) != self.ndim:
