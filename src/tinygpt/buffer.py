@@ -81,14 +81,30 @@ class Buffer():
         self.ndim = 0
         self.numel = self._numel(self.shape)
 
-    def _get_buffer_str(self) -> str:
+    def _get_buffer_str(self, max_display_elements: int = 2) -> str:
         # Generate a string representation of the buffer's data respecting its shape
         def recurser(index):
             # Recursive function to format the buffer data according to its multi-dimensional shape
             if len(index) == self.ndim:
+                # Base case: If the current index is at the deepest dimension, return the element at that index
                 return str(self._get(index))
             else:
-                return "[" + ", ".join(recurser(index + (i,)) for i in range(self.shape[len(index)])) + "]"
+                elements = []
+                size = self.shape[len(index)]
+
+                # Add elements from the beginning of the current dimension
+                for i in range(min(size, max_display_elements)):
+                    elements.append(recurser(index + (i,)))
+
+                # Insert '...' to indicate skipped elements if the dimension size is large
+                if size > 2 * max_display_elements:
+                    elements.append('...')
+
+                # Add elements from the end of the current dimension
+                for i in range(max(size - max_display_elements, max_display_elements), size):
+                    elements.append(recurser(index + (i,)))
+
+                return "[" + ", ".join(elements) + "]"
 
         return recurser(())
 
