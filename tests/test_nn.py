@@ -55,6 +55,8 @@ def test_FullyConnectedLayer():
                 assert p.shape == (in_features, out_features)
             else:
                 assert p.shape == (out_features,)
+            
+            assert p.requires_grad
 
         # Use different shapes for the input tensor
         for input_shape in [(in_features,), (24, in_features), (12, 3, in_features)]:
@@ -80,11 +82,108 @@ def test_FullyConnectedLayer():
 
 
 def test_FullyConnectedLayer_zero_grad():
-    pass
+    # Call zero_grad after backward pass
+    for in_features, out_features in [(12, 12), (12, 6), (12, 24)]:
+        # Create the layers with different configurations
+        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
+        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+
+        # Do the forward and backward pass
+        for input_shape in [(in_features,), (24, in_features), (12, 3, in_features)]:
+            input_tensor = Tensor.uniform(input_shape, requires_grad=True)
+
+            # Do the forward pass
+            output_tensor_without_bias = layer_without_bias(input_tensor)
+            output_tensor_with_bias = layer_with_bias(input_tensor)
+
+            # Do the backward pass
+            output_tensor_without_bias.sum(axes=tuple(i for i in range(output_tensor_without_bias.ndim))).backward()
+            output_tensor_with_bias.sum(axes=tuple(i for i in range(output_tensor_with_bias.ndim))).backward()
+
+            # Check weights of the layer has gradient
+            for p in layer_without_bias.parameters():
+                assert p.grad is not None
+                assert p.grad.shape == p.shape
+
+            for p in layer_with_bias.parameters():
+                assert p.grad is not None
+                assert p.grad.shape == p.shape
+
+            # Call zero_grad()
+            layer_without_bias.zero_grad()
+            layer_with_bias.zero_grad()
+
+            # Check weights of the layer has gradient
+            for p in layer_without_bias.parameters():
+                assert p.grad is None
+
+            for p in layer_with_bias.parameters():
+                assert p.grad is None
 
 
 def test_FullyConnectedLayer_save_and_load():
-    pass
+    # Create different layers and save and restore it
+    for in_features, out_features in [(12, 12), (12, 6), (12, 24)]:
+        # Create the layers with different configurations
+        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
+        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+
+        # Do the forward and backward pass
+        input_shape = (12, 3, in_features)
+        input_tensor = Tensor.uniform(input_shape, requires_grad=True)
+
+        # Do the forward pass
+        output_tensor_without_bias = layer_without_bias(input_tensor)
+        output_tensor_with_bias = layer_with_bias(input_tensor)
+
+        # Get the state_dict of the layers
+        state_dict_layer_without_bias = layer_without_bias.state_dict()
+        state_dict_layer_with_bias = layer_with_bias.state_dict()
+
+        # Create the layer again
+        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
+        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+
+        # Load the weights
+        layer_without_bias.load_state_dict(state_dict_layer_without_bias)
+        layer_with_bias.load_state_dict(state_dict_layer_with_bias)
+
+        # Do the inference again
+        new_output_tensor_without_bias = layer_without_bias(input_tensor)
+        new_output_tensor_with_bias = layer_with_bias(input_tensor)
+
+        # Check results are equal to the results before
+        assert all(new_output_tensor_without_bias.buffer == output_tensor_without_bias.buffer)
+        assert all(new_output_tensor_with_bias.buffer == output_tensor_with_bias.buffer)
+
+        # Try to load the state dict with a wrong dictionary
+        with pytest.raises(KeyError):    
+            layer_without_bias.load_state_dict(state_dict_layer_with_bias)
+        
+        with pytest.raises(KeyError):
+            layer_with_bias.load_state_dict(state_dict_layer_without_bias)
+        
+        # Test with a different type for the value in the dict
+        wrong_dict = state_dict_layer_without_bias.copy()
+        wrong_dict['weights'] = None
+        with pytest.raises(TypeError):    
+            layer_without_bias.load_state_dict(wrong_dict)
+
+        wrong_dict = state_dict_layer_with_bias.copy()
+        wrong_dict['weights'] = None
+        with pytest.raises(TypeError):
+            layer_with_bias.load_state_dict(wrong_dict)
+
+        # Test a different shape
+        wrong_dict = state_dict_layer_without_bias.copy()
+        wrong_dict['weights'] = Tensor.uniform(wrong_dict['weights'].shape + (1,))
+        with pytest.raises(RuntimeError):    
+            layer_without_bias.load_state_dict(wrong_dict)
+
+        wrong_dict = state_dict_layer_with_bias.copy()
+        wrong_dict['weights'] = Tensor.uniform(wrong_dict['weights'].shape + (1,))
+        with pytest.raises(RuntimeError):
+            layer_with_bias.load_state_dict(wrong_dict)
 
 
 def test_MLP():

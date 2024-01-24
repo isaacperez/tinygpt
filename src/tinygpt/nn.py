@@ -38,33 +38,46 @@ class Module:
 
     def _load_from_state_dict(self, state_dict: dict, prefix: str) -> None:
         # Load the module's state from the given state dictionary. Used internally for load_state_dict.
+        unexpected_keys_from_state_dict = list(state_dict.keys())
         for name, param in self._parameters.items():
             if param is None:
                 continue
 
             key = prefix + name
             if key in state_dict:
+                unexpected_keys_from_state_dict.remove(key)
                 input_param = state_dict[key]
 
+                # Check it's a tensor
+                if not isinstance(input_param, Tensor):
+                    raise TypeError(
+                        f'Expecting type tensor for {key}, found type {type(input_param)} from checkpoint.'
+                    )
+
+                # Local shape should match the one in checkpoint
                 if input_param.shape != param.shape:
-                    # local shape should match the one in checkpoint
                     raise RuntimeError(
-                        f'size mismatch for {key}: copying a param with shape {input_param.shape} from checkpoint, '
+                        f'size mismatch for {key}: copying a tensor with shape {input_param.shape} from checkpoint, '
                         f'the shape in current model is {param.shape}.'
                     )
 
+                # Add the attribute to the module
                 try:
                     setattr(self, name, input_param)
                 except Exception as ex:
                     raise RuntimeError(
-                        f'While copying the parameter named "{key}", '
-                        f'whose dimensions in the model are {param.size()} and '
-                        f'whose dimensions in the checkpoint are {input_param.size()}, '
+                        f'While copying the tensor named "{key}", '
+                        f'whose shape in the model are {param.shape} and '
+                        f'whose shape in the checkpoint are {input_param.shape}, '
                         f'an exception occurred : {ex.args}.'
                     )
 
             else:
                 raise KeyError(f"Missing key {key} in state_dict")
+
+        # Raise an error if there are unexpected keys in the state_dict
+        if len(unexpected_keys_from_state_dict) > 0:
+            raise KeyError(f'Found unexpected keys in the state_dict: {unexpected_keys_from_state_dict}')
 
     def load_state_dict(self, state_dict: dict) -> None:
         #  Copies parameters from `state_dict` into this module and its descendants
@@ -95,8 +108,6 @@ class Module:
             raise KeyError("attribute name can't contain \".\"")
         elif name == '':
             raise KeyError("attribute name can't be empty string \"\"")
-        elif hasattr(self, name) or name in self._parameters or name in self._modules:
-            raise KeyError(f"attribute '{name}' already exists")
         elif name in ['_parameters', '_modules']:
             raise ValueError(f"name '{name}' is reserved")
 
@@ -226,9 +237,9 @@ class FullyConnectedLayer(Module):
         self.validate_configuration()
 
         # Create the weights of the layer
-        self.weights = Tensor.uniform((self.in_features, self.out_features))
+        self.weights = Tensor.uniform((self.in_features, self.out_features), requires_grad=True)
         if self.use_bias:
-            self.bias = Tensor.uniform((self.out_features,))
+            self.bias = Tensor.uniform((self.out_features,), requires_grad=True)
         else:
             self.bias = None
 

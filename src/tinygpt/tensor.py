@@ -273,6 +273,9 @@ class Tensor():
             del self.grad_fn
             self.grad_fn = None
 
+    def zero_grad(self) -> None:
+        # Reset the gradient of the tensor
+        self.grad = None
 
 class GradientFunction():
 
