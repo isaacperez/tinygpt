@@ -4,7 +4,6 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.buffer import Buffer
-from tinygpt.buffer import Buffer
 from tinygpt.utils import DType
 
 
