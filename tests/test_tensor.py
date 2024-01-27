@@ -3,7 +3,7 @@ import math
 import pytest
 
 from tinygpt.tensor import Tensor
-from tinygpt.tensor import Buffer
+from tinygpt.buffer import Buffer
 from tinygpt.utils import DType
 
 
@@ -198,7 +198,7 @@ def test_gradient_function_backward_with_add():
             assert tensor2.grad is None
 
         assert all(result.grad == Buffer(1.0))
-        assert result.grad_fn is None
+        assert result.grad_fn is not None
 
 
 def test_gradient_function_backward_with_sub():
@@ -228,7 +228,7 @@ def test_gradient_function_backward_with_sub():
             assert tensor2.grad is None
 
         assert all(result.grad == Buffer(1.0))
-        assert result.grad_fn is None
+        assert result.grad_fn is not None
 
 
 def test_gradient_function_backward_with_neg():
@@ -251,11 +251,13 @@ def test_gradient_function_backward_with_neg():
         if requires_grad:
             assert all(tensor.grad == Buffer(-1.0))
             assert all(result.grad == Buffer(1.0))
+            assert result.grad_fn is not None
+
         else:
             assert tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_gradient_function_backward_with_mul():
@@ -285,7 +287,7 @@ def test_gradient_function_backward_with_mul():
             assert tensor2.grad is None
 
         assert all(result.grad == Buffer(1.0))
-        assert result.grad_fn is None
+        assert result.grad_fn is not None
 
 
 def test_gradient_function_backward_with_div():
@@ -315,7 +317,7 @@ def test_gradient_function_backward_with_div():
             assert tensor2.grad is None
 
         assert all(result.grad == Buffer(1.0))
-        assert result.grad_fn is None
+        assert result.grad_fn is not None
 
 
 def test_gradient_function_backward_with_pow():
@@ -338,11 +340,14 @@ def test_gradient_function_backward_with_pow():
         if requires_grad:
             assert all(tensor.grad == Buffer(6.0))
             assert all(result.grad == Buffer(1.0))
+
+            assert result.grad_fn is not None
+
         else:
             assert tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_gradient_function_backward_with_exp():
@@ -365,11 +370,14 @@ def test_gradient_function_backward_with_exp():
         if requires_grad:
             assert all(tensor.grad == Buffer(math.exp(3.0)))
             assert all(result.grad == Buffer(1.0))
+
+            assert result.grad_fn is not None
+
         else:
             assert tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_gradient_function_backward_with_log():
@@ -392,11 +400,14 @@ def test_gradient_function_backward_with_log():
         if requires_grad:
             assert all(tensor.grad == Buffer(1 / 3.0))
             assert all(result.grad == Buffer(1.0))
+
+            assert result.grad_fn is not None
+
         else:
             assert tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_gradient_function_backward_with_maximum():
@@ -422,12 +433,15 @@ def test_gradient_function_backward_with_maximum():
             assert all(first_tensor.grad == Buffer(0.0))
             assert all(second_tensor.grad == Buffer(1.0))
             assert all(result.grad == Buffer(1.0))
+            
+            assert result.grad_fn is not None
+
         else:
             assert first_tensor.grad is None
             assert second_tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_gradient_function_backward_with_relu():
@@ -451,11 +465,14 @@ def test_gradient_function_backward_with_relu():
             if requires_grad:
                 assert all(tensor.grad == Buffer(float(data > 0.0)))
                 assert all(result.grad == Buffer(1.0))
+
+                assert result.grad_fn is not None
+
             else:
                 assert tensor.grad is None
                 assert result.grad is None
 
-            assert result.grad_fn is None
+                assert result.grad_fn is None
 
 
 def test_exp():
@@ -518,11 +535,11 @@ def test_multiple_ops():
     assert all(tensor4.grad == Buffer(10.0))
 
     assert all(result1.grad == Buffer(20.0))
-    assert result1.grad_fn is None
+    assert result1.grad_fn is not None
     assert all(result2.grad == Buffer(10.0))
-    assert result2.grad_fn is None
+    assert result2.grad_fn is not None
     assert all(result3.grad == Buffer(1.0))
-    assert result3.grad_fn is None
+    assert result3.grad_fn is not None
 
 
 def test_sum():
@@ -735,14 +752,14 @@ def test_all_ops():
     assert all((tensor2.grad - Buffer([[1.707202911377e+02, -2.843236923218e-02]])) < Buffer([[1e-05, 1e-05]]))
     assert all((tensor2.grad - Buffer([[1.707202911377e+02, -2.843236923218e-02]])) > Buffer([[-1e-05, -1e-05]]))
 
-    assert result1.grad_fn is None
-    assert result2.grad_fn is None
-    assert result3.grad_fn is None
-    assert result4.grad_fn is None
-    assert result5.grad_fn is None
-    assert result6.grad_fn is None
-    assert result7.grad_fn is None
-    assert result8.grad_fn is None
+    assert result1.grad_fn is not None
+    assert result2.grad_fn is not None
+    assert result3.grad_fn is not None
+    assert result4.grad_fn is not None
+    assert result5.grad_fn is not None
+    assert result6.grad_fn is not None
+    assert result7.grad_fn is not None
+    assert result8.grad_fn is not None
 
 
 def test_softmax():
@@ -858,14 +875,18 @@ def test_gradient_function_backward_with_softmax():
                 [[2.118794562023e-08, -9.239481180146e-09, 0.000000000000e+00],
                  [8.614375879290e-09, -2.056284209573e-08, 0.000000000000e+00]]
             )
+
             assert all((tensor.grad - expected_grad) < 1e-05)
             assert all((tensor.grad - expected_grad) > -1e-05)
             assert all(result.grad == Buffer(1.0))
+
+            assert result.grad_fn is not None
+
         else:
             assert tensor.grad is None
             assert result.grad is None
 
-        assert result.grad_fn is None
+            assert result.grad_fn is None
 
 
 def test_init_methods():
@@ -919,14 +940,157 @@ def test_permute():
 
 def test_transpose():
     # Multiple transpose operations
-    tensor = Tensor([[[1., 2., 3.,], [4., 5., 6.]]], requires_grad=True)
+    for requires_grad in [True, False]:
+        tensor = Tensor([[[1., 2., 3.,], [4., 5., 6.]]], requires_grad=requires_grad)
 
-    new_tensor_1 = tensor.transpose(2, 1)
-    assert new_tensor_1.shape == (1, 3, 2)
+        new_tensor_1 = tensor.transpose(2, 1)
+        assert new_tensor_1.shape == (1, 3, 2)
 
-    new_tensor_2 = new_tensor_1.transpose(1, 2)
-    assert all(new_tensor_2.buffer == tensor.buffer)
+        new_tensor_2 = new_tensor_1.transpose(1, 2)
+        assert all(new_tensor_2.buffer == tensor.buffer)
 
-    new_tensor_2.sum((0, 1, 2)).backward()
+        result = new_tensor_2.sum((0, 1, 2))
 
-    assert all(tensor.grad == Buffer([[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]))
+        assert result.grad is None
+        if requires_grad:
+            assert result.grad_fn is not None
+        else:
+            assert result.grad_fn is None
+
+        result.backward()
+
+        if requires_grad:
+            assert all(tensor.grad == Buffer([[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]]))
+            assert all(result.grad == Buffer(1.0))
+        else:
+            assert tensor.grad is None
+            assert result.grad is None
+
+
+def test_dot():
+    # (2,) * (2,) -> ()
+    tensor1 = Tensor([1.0, 2.0], requires_grad=True)
+    tensor2 = Tensor([3.0, 4.0], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(11.0))
+
+    # (2,2) * (2, 2) -> (2, 2)
+    tensor1 = Tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+    tensor2 = Tensor([[5.0, 6.0], [7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer([[19.0, 22.0], [43.0, 50.0]]))
+
+    # (2,) * (2, 3) -> (3,)
+    tensor1 = Tensor([1.0, 2.0], requires_grad=True)
+    tensor2 = Tensor([[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer([15.0, 18.0, 21.0]))
+
+    # (4,2) * (2, 3) -> (4, 2)
+    tensor1 = Tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], requires_grad=True)
+    tensor2 = Tensor([[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [[15.0, 18.0, 21.0], [33.0, 40.0, 47.0], [51.0, 62.0, 73.0], [69.0, 84.0, 99.0]]
+        )
+    )
+
+    # (2, 4, 2) * (2, 2, 2) -> (2, 4, 2)
+    tensor1 = Tensor(
+        [[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]]],
+        requires_grad=True
+    )
+    tensor2 = Tensor([[[17.0, 18.0], [19.0, 20.0]], [[21.0, 22.0], [23.0, 24.0]]], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [
+                [[55.0, 58.0], [127.0, 134.0], [199.0, 210.0], [271.0, 286.0]],
+                [[419.0, 438.0], [507.0, 530.0], [595.0, 622.0], [683.0, 714.0]]
+            ]
+        )
+    )
+
+    # (3, 4, 2) * (2,) -> (3, 4)
+    tensor1 = Tensor(
+        [
+            [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+            [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]],
+            [[18.0, 19.0], [20.0, 21.0], [22.0, 23.0], [24.0, 25.0]]
+        ],
+        requires_grad=True
+    )
+
+    tensor2 = Tensor([1.0, 2.0], requires_grad=True)
+    assert all(tensor1.dot(tensor2).buffer == Buffer(
+            [[5.0, 11.0, 17.0, 23.0], [29.0, 35.0, 41.0, 47.0], [56.0, 62.0, 68.0, 74.0]]
+        )
+    )
+
+
+def test_dot_backward():
+
+    for require_grad in [True, False]:
+        # (3, 4, 2) * (3, 2, 3) -> (3, 4, 3)
+        tensor1 = Tensor(
+            [
+                [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+                [[9.0, 10.0], [11.0, 12.0], [13.0, 14.0], [15.0, 16.0]],
+                [[18.0, 19.0], [20.0, 21.0], [22.0, 23.0], [24.0, 25.0]]
+            ],
+            requires_grad=require_grad
+        )
+
+        tensor2 = Tensor(
+            [
+                [[17.0, 18.0, 19.0], [20.0, 21.0, 22.0]],
+                [[23.0, 24.0, 25.0], [26.0, 27.0, 28.0]],
+                [[29.0, 30.0, 31.0], [32.0, 33.0, 34.0]]
+            ],
+            requires_grad=require_grad
+        )
+
+        result = tensor1.dot(tensor2).sum((0, 1, 2))
+        result.backward()
+
+        if require_grad:
+            assert all(tensor1.grad == Buffer(
+                    [
+                        [[54.0, 63.0], [54.0, 63.0], [54.0, 63.0], [54.0, 63.0]],
+                        [[72.0, 81.0], [72.0, 81.0], [72.0, 81.0], [72.0, 81.0]],
+                        [[90.0, 99.0], [90.0, 99.0], [90.0, 99.0], [90.0, 99.0]]
+                    ]
+                )
+            )
+
+            assert all(tensor2.grad == Buffer(
+                    [
+                        [[16.0, 16.0, 16.0], [20.0, 20.0, 20.0]],
+                        [[48.0, 48.0, 48.0], [52.0, 52.0, 52.0]],
+                        [[84.0, 84.0, 84.0], [88.0, 88.0, 88.0]]
+                    ]
+                )
+            )
+
+        else:
+            assert tensor1.grad is None
+            assert tensor2.grad is None
+
+
+def test_dead_branch():
+    # Check gradient propagate even when there are dead branches on the DAG
+    a = Tensor(1.0, requires_grad=True)
+    b = Tensor(1.0, requires_grad=True)
+
+    # Create the DAG with a dead branch
+    # a, b  --->  c = a + b  --->  d = c * 2.0  --->  f = d / 4.0
+    #                    \
+    #                     \-->  e = c + 2.0  (Dead branch)
+    c = a + b
+    d = c * 2.0
+    e = c + 2.0
+    f = d / 4.0
+
+    # Verify that `e` has been calculated
+    assert all(e.buffer == Buffer(4.0))
+
+    # Do the backward pass
+    f.backward()
+
+    # Check that a and b have received the expected gradients
+    assert all(a.grad == Buffer(0.5))
+    assert all(b.grad == Buffer(0.5))

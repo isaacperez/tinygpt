@@ -16,7 +16,6 @@ class Tensor():
         self.requires_grad = requires_grad
         self.grad = None
         self.grad_fn = None
-        self._backward_references = 0
 
         if self.requires_grad and self.dtype != DType.float32:
             raise RuntimeError("Only float32 Tensors can require gradients")
@@ -179,20 +178,59 @@ class Tensor():
         # Apply the permute operation to reorder the dimensions of the tensor according to the new order
         return self.permute(tuple(order))
 
+    def dot(self, other: Tensor):
+        # Perform matrix multiplication (dot product) between this tensor (`self`) and another tensor (`other`)
+
+        # Check if the other operand is a tensor
+        if not isinstance(other, Tensor):
+            raise TypeError(f"Expecting Tensor, but found type {type(other)}")
+
+        # Ensure both tensors are at least 1-dimensional, as matrix multiplication is not defined for 0D tensors
+        if self.ndim == 0 or other.ndim == 0:
+            raise RuntimeError(
+                f"Both arguments to matmul need to be at least 1D, but they are {self.ndim}D and {other.ndim}D"
+            )
+
+        # Check if the inner dimensions are compatible. In matrix multiplication, the number of columns in the first
+        # matrix (last dimension of `self`) must be equal to the number of rows in the second matrix
+        # (appropriate dimension of `other`)
+        if self.shape[-1] != other.shape[-min(other.ndim, 2)]:
+            raise RuntimeError(
+                f"Input Tensor shapes {self.shape} and {other.shape} cannot be multiplied"
+                f"({self.shape[-1]} != {other.shape[-min(other.ndim, 2)]})")
+
+        # Reshape the tensors to make their dimensions compatible for element-wise multiplication
+        # This involves adding a singleton dimension before the last dimension of `self` and before the last two
+        # dimensions of `other`. It aligns the 'row' dimension of `self` with a new singleton dimension in `other`,
+        # and vice versa for the 'col' dimension. This step is necessary to enable broadcasting during the element-wise
+        # multiplication.
+        x = self.reshape((*self.shape[0:-1], *[1] * min(self.ndim - 1, other.ndim - 1, 1), self.shape[-1]))
+        w = other.reshape(
+            (*other.shape[0:-2], *[1] * min(self.ndim - 1, other.ndim - 1, 1), *other.shape[-min(other.ndim, 2):])
+        )
+
+        # Transpose the last two dimensions of `w` to align it properly with `x` for element-wise multiplication
+        dims_of_w = list(range(w.ndim))
+        w = w.transpose(dims_of_w[-1], dims_of_w[-min(w.ndim, 2)])
+
+        # Perform element-wise multiplication of the two tensors. This mimics matrix multiplication by multiplying
+        # corresponding elements in the aligned dimensions
+        mult = x * w
+
+        # Sum over the last dimension to collapse the result into the final matrix multiplication output. This step
+        # effectively sums the products of corresponding elements, completing the matrix multiplication process
+        return (mult).sum((mult.ndim - 1,))
+
     @staticmethod
     def uniform(shape: tuple, **kwargs):
         return Tensor(Buffer.uniform(shape), **kwargs)
-
-    def _increment_backward_references(self) -> None:
-        if self.requires_grad:
-            self._backward_references += 1
 
     def backward(self, incoming_gradient=None) -> None:
         # Perform the backward pass to compute gradients
         if self.requires_grad:
             incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
             self._accumulate_gradient(incoming_gradient)
-            self._propagate_gradient()
+            self._propagate_gradient(incoming_gradient)
 
     def _initialize_incoming_gradient(self, incoming_gradient: Buffer) -> Buffer:
         # Initialize the incoming gradient for backward pass
@@ -207,8 +245,7 @@ class Tensor():
         else:
             # Handle subsequent backward calls
             # The backward method has been called from an operation in which this tensor participated and we are now
-            # receiving a gradient from that operation so we have to decrement the backward references
-            self._backward_references -= 1
+            # receiving a gradient from that operation
 
             # User may set incoming_gradient to something else
             if not isinstance(incoming_gradient, Buffer):
@@ -221,15 +258,14 @@ class Tensor():
         # Accumulate the incoming gradient with the existing gradient
         self.grad = incoming_gradient if self.grad is None else self.grad + incoming_gradient
 
-    def _propagate_gradient(self) -> None:
-        # If the tensor has received all expected gradients, propagate them to the function that created this tensor
-        if self._backward_references == 0 and self.grad_fn is not None:
-            self.grad_fn.backward(self.grad)
+    def _propagate_gradient(self, incoming_gradient: Buffer) -> None:
+        # If the tensor has received a gradient, propagate it to the function that created this tensor
+        if self.grad_fn is not None:
+            self.grad_fn.backward(incoming_gradient)
 
-            # Delete the gradient function
-            del self.grad_fn
-            self.grad_fn = None
-
+    def zero_grad(self) -> None:
+        # Reset the gradient of the tensor
+        self.grad = None
 
 class GradientFunction():
 
@@ -279,10 +315,5 @@ def apply_op(operation_cls: mlops.Operation, *tensors: Tensor, **kwargs) -> Tens
     # If the output tensor requires a gradient, set up the gradient function
     if output_tensor.requires_grad:
         output_tensor.grad_fn = GradientFunction(operation=operation_object, inputs=tensors)
-
-        # Increment the backward reference counter for input tensors that require gradients
-        for tensor in tensors:
-            if tensor.requires_grad:
-                tensor._increment_backward_references()
 
     return output_tensor
