@@ -1094,3 +1094,10 @@ def test_dead_branch():
     # Check that a and b have received the expected gradients
     assert all(a.grad == Buffer(0.5))
     assert all(b.grad == Buffer(0.5))
+
+    # Do the backward pass a second time
+    f.backward()
+
+    # Check that a and b have received the expected gradients
+    assert all(a.grad == Buffer(1.0))
+    assert all(b.grad == Buffer(1.0))
