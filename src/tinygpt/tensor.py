@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 from tinygpt.utils import DType, print_dag
 from tinygpt.buffer import Buffer
@@ -16,6 +16,7 @@ class Tensor():
         self.requires_grad = requires_grad
         self.grad = None
         self.grad_fn = None
+        self.is_leaf = True
 
         self._pending_gradients_count = 0
         self._accumulated_gradient_to_propagate = None
@@ -228,9 +229,12 @@ class Tensor():
     def uniform(shape: tuple, **kwargs):
         return Tensor(Buffer.uniform(shape), **kwargs)
 
-    def backward(self, incoming_gradient=None) -> None:
+    def backward(self, incoming_gradient: Optional[Buffer] = None, retain_graph: bool = False) -> None:
         """
         Perform the backward pass to compute gradients.
+
+        The method first checks if the computational graph has been previously released. If so, and if the tensor is not 
+        a leaf, it raises a RuntimeError.
 
         Steps in the backward pass:
         1. Gradient Initialization: Before any propagation, the incoming gradient is initialized or validated. It 
@@ -253,7 +257,9 @@ class Tensor():
         """
         # Check if the tensor requires gradient computation
         if self.requires_grad:
-            
+            # Validate the state of the computational graph
+            self._validate_graph_state()
+
             # Step 1: Initialize the incoming gradient
             incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
 
@@ -264,7 +270,21 @@ class Tensor():
             self._accumulate_gradient(incoming_gradient)
 
             # Step 4: Propagate the gradient backward through the graph
-            self._propagate_gradient()
+            self._propagate_gradient(retain_graph)
+
+    def _validate_graph_state(self) -> None:
+        """
+        Validate the state of the computational graph before performing the backward pass.
+
+        This method checks if the tensor's computational graph is available for backpropagation. It raises an error 
+        if attempting to backpropagate through a non-leaf tensor whose graph has already been released (i.e., `grad_fn` 
+        is None).
+        """
+        if not self.is_leaf and self.grad_fn is None:
+            raise RuntimeError(
+                "Trying to backward through the graph a second time. The graph is freed when you call .backward(). "
+                "Specify retain_graph=True if you need to backward through the graph a second time."
+            )
 
     def _initialize_incoming_gradient(self, incoming_gradient: Buffer) -> Buffer:
         """
@@ -328,27 +348,59 @@ class Tensor():
         else:
             self._accumulated_gradient_to_propagate += incoming_gradient
 
-    def _propagate_gradient(self) -> None:
+    def _propagate_gradient(self, retain_graph: bool = False) -> None:
         """
         Propagate the accumulated gradient backward through the computational graph.
 
         This method sends the accumulated gradient to the `GradientFunction` that was responsible for creating this 
-        tensor.
+        tensor, allowing gradients to flow back through the network.
 
         The gradient is only propagated if the following conditions are met:
         1. The tensor has an associated `GradientFunction` (i.e., it is not a leaf node in the computational graph).
         2. The tensor has received all expected gradients (`_pending_gradients_count` is zero). This ensures that the 
         tensor waits until it has accumulated all gradients from the operations it was involved in.
 
+        The `retain_graph` parameter determines whether the computational graph is preserved after the backward pass. 
+        This is crucial for scenarios where multiple backward passes are necessary, such as in higher-order gradient 
+        calculations. 
+
         After propagating the gradient, the accumulated gradient used for propagation is reset to `None`, preparing this 
-        tensor for potential future backward passes.
+        tensor for potential future backward passes. 
+        
+        The decision to release or retain the graph is taken at this stage because it ensures that the graph is released 
+        only after all gradients have been fully propagated. It prevents unnecessary memory usage by releasing the graph 
+        when it is no longer needed.
         """
         if self.grad_fn is not None and self._pending_gradients_count == 0:
             # Propagate the accumulated gradient backward to the GradientFunction that creates this tensor
-            self.grad_fn.backward(self._accumulated_gradient_to_propagate)
+            self.grad_fn.backward(self._accumulated_gradient_to_propagate, retain_graph)
 
             # Reset the accumulated gradient after propagation
             self._accumulated_gradient_to_propagate = None
+
+            # Handle the retain_graph functionality
+            if not retain_graph:
+                self._release_graph()
+
+    def _release_graph(self):
+        """
+        Release the computational graph.
+
+        This method is called after the backward pass when retain_graph is False. It clears the reference to the 
+        gradient function to free up memory and prevent further backward passes on the same graph. The method behaves 
+        differently based on whether the tensor is a leaf or a non-leaf node in the computational graph:
+
+        - Non-Leaf Tensors: For tensors that are results of an operation (non-leaf), the method clears their gradient 
+        function (`grad_fn`). If `grad_fn` is already None, it indicates an attempt to backpropagate through an 
+        already released graph, and thus a RuntimeError is raised.
+
+        - Leaf Tensors: Leaf tensors are the initial tensors in the graph (like input data) and do not have a `grad_fn`. 
+        Therefore, for leaf tensors, this method does not raise an error if `grad_fn` is None, as this is the expected 
+        state for such tensors.
+        """
+        if self.grad_fn is not None:
+            # Clear the gradient function to release the graph for non-leaf tensors 
+            self.grad_fn = None
 
     def _propagate_reference_signal(self) -> None:
         """
@@ -436,7 +488,7 @@ class GradientFunction():
             for input_tensor in self.inputs:
                 input_tensor._increment_pending_gradients()
 
-    def backward(self, incoming_gradient: Buffer) -> None:
+    def backward(self, incoming_gradient: Buffer, retain_graph: bool = False) -> None:
         """
         Backpropagate the gradient through the operation.
 
@@ -453,7 +505,7 @@ class GradientFunction():
 
             # Propagate the gradient of the operation to its input tensors
             for input_tensor, grad in zip(self.inputs, gradients):
-                input_tensor.backward(grad)
+                input_tensor.backward(grad, retain_graph)
 
             # Reset the reference signal flag for potential reuse of this graph
             self._reference_signal_propagated = False
@@ -485,5 +537,6 @@ def apply_op(operation_cls: mlops.Operation, *tensors: Tensor, **kwargs) -> Tens
     # If the output tensor requires a gradient, set up the gradient function
     if output_tensor.requires_grad:
         output_tensor.grad_fn = GradientFunction(operation=operation_object, inputs=tensors)
+        output_tensor.is_leaf = False  # The tensor is a result of an operation, hence not a leaf
 
     return output_tensor
