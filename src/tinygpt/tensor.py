@@ -233,17 +233,20 @@ class Tensor():
         Perform the backward pass to compute gradients.
 
         Steps in the backward pass:
-        1. Propagation of reference signal: This initial step sends a notification signal to each tensor and operation 
+        1. Gradient Initialization: Before any propagation, the incoming gradient is initialized or validated. It 
+           ensures that the incoming gradient is correctly formatted and compatible with the tensor's shape and type.
+
+        2. Propagation of reference signal: This initial step sends a notification signal to each tensor and operation 
            involved in the computational graph. This signal helps tensors count the number of operations they are 
            involved in. This information is crucial because a tensor should not send its gradient back through the graph 
            until it has received all expected gradients from subsequent operations. Accumulating gradients is crucial 
            to avoid repeatedly traversing the graph back to the leaf nodes every time a new gradient is received.
 
-        2. Gradient accumulation: The incoming gradient is combined with any existing gradients the tensor may have.
+        3. Gradient accumulation: The incoming gradient is combined with any existing gradients the tensor may have.
            This is especially important in scenarios where a tensor contributes to multiple operations, as it needs to 
            accumulate gradients from all of them before sending them backward.
 
-        3. Gradient propagation: Once a tensor has received all expected gradients (as determined in step 1), it 
+        4. Gradient propagation: Once a tensor has received all expected gradients (as determined in step 1), it 
            sends its accumulated gradient backward through the graph. This step involves calling the backward method of 
            the `GradientFunction` associated with the tensor, which further propagates the gradient to the tensor's 
            inputs.
@@ -251,20 +254,34 @@ class Tensor():
         # Check if the tensor requires gradient computation
         if self.requires_grad:
             
-            # Step 1: Propagate reference signal through the graph
+            # Step 1: Initialize the incoming gradient
+            incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
+
+            # Step 2: Propagate reference signal through the graph
             self._propagate_reference_signal()
 
-            # Step 2: Initialize and accumulate the incoming gradient
-            incoming_gradient = self._initialize_incoming_gradient(incoming_gradient)
+            # Step 3: Initialize and accumulate the incoming gradient
             self._accumulate_gradient(incoming_gradient)
 
-            # Step 3: Propagate the gradient backward through the graph
+            # Step 4: Propagate the gradient backward through the graph
             self._propagate_gradient()
 
     def _initialize_incoming_gradient(self, incoming_gradient: Buffer) -> Buffer:
-        # Initialize the incoming gradient for backward pass
+        """
+        Initialize the incoming gradient for the backward pass.
+
+        This method prepares the gradient that will be used for the backward pass, either by initializing it or by 
+        validating the provided gradient.
+
+        The initialization process varies based on whether the incoming gradient is provided:
+        - If no incoming gradient is provided (`None`), it means this is the starting point of backpropagation. For 
+        scalar tensors, the gradient is initialized to 1.0, representing the derivative of the tensor with respect to 
+        itself. However, for non-scalar tensors, a gradient must be provided; hence an error is raised.
+        - If an incoming gradient is provided, this method checks its validity. The gradient must be a `Buffer` object 
+        of dtype `float32` and must have the same shape as the tensor. Any deviation from this results in an error.
+        """
         if incoming_gradient is None:
-            # Handle the first backward call
+            # Handle the initialization for the first backward call
             if self.ndim == 0:
                 # Initialize the gradient as 1.0 for scalar tensors
                 return Buffer(1.0)
@@ -272,15 +289,16 @@ class Tensor():
                 # Backward on non-scalar tensors must have an incoming gradient
                 raise RuntimeError("backward can only be called on scalar tensors or with an existing gradient")
         else:
-            # Handle subsequent backward calls
-            # The backward method has been called from an operation in which this tensor participated and we are now
-            # receiving a gradient from that operation
-
-            # User may set incoming_gradient to something else
+            # Handle subsequent backward calls with provided gradient
             if not isinstance(incoming_gradient, Buffer):
-                raise TypeError("incoming_gradient is not a Buffer")
+                raise TypeError(f"incoming_gradient is not a Buffer. Found {type(incoming_gradient)}")
+            if incoming_gradient.dtype != DType.float32:
+                raise TypeError(f"Expecting float32 for dtype of incoming_gradient. Found {incoming_gradient.dtype}")
+            if incoming_gradient.shape != self.shape:
+                raise RuntimeError(
+                    f"incoming_gradient ({incoming_gradient.shape}) doesn't match tensor shape ({self.shape})"
+                )
 
-            # Use the incoming gradient provided by the operation
             return incoming_gradient
 
     def _accumulate_gradient(self, incoming_gradient: Buffer) -> None:

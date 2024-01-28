@@ -1101,3 +1101,29 @@ def test_dead_branch():
     # Check that a and b have received the expected gradients
     assert all(a.grad == Buffer(1.0))
     assert all(b.grad == Buffer(1.0))
+
+
+def test_wrong_incoming_gradient():    
+    # Check backward() method throws an error when incoming_gradient is not correct
+    a = Tensor(1.0, requires_grad=True)
+    b = Tensor(1.0, requires_grad=True)
+
+    c = a + b
+    d = a * b
+    e = c / d
+
+    # Call backward with the wrong value
+    with pytest.raises(TypeError):
+        e.backward(incoming_gradient=True)
+
+    with pytest.raises(RuntimeError):
+        e.backward(incoming_gradient=Buffer([1.0, 1.0]))
+
+    with pytest.raises(TypeError):
+        e.backward(incoming_gradient=Buffer(True))
+
+    # Check with a valid incoming_gradient
+    e.backward(incoming_gradient=Buffer(1.0))
+
+    assert all(a.grad == Buffer(-1.0))
+    assert all(b.grad == Buffer(-1.0))
