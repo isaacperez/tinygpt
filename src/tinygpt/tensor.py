@@ -590,7 +590,8 @@ class GradientFunction():
             for input_tensor in self.inputs:
                 if input_tensor._version != self.input_versions[id(input_tensor)]:
                     raise RuntimeError(
-                        "The tensor has been modified (version changed) since its use in this operation. "
+                        f"The tensor {repr(input_tensor)} has been modified (version is {input_tensor._version}) since "
+                        f"its use in this operation (when version was {self.input_versions[id(input_tensor)]}). "
                         "Backward pass is not allowed after in-place operations."
                     )
 
