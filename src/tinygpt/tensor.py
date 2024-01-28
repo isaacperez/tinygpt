@@ -17,6 +17,7 @@ class Tensor():
         self.grad = None
         self.grad_fn = None
         self.is_leaf = True
+        self._version = 0
 
         self._pending_gradients_count = 0
         self._accumulated_gradient_to_propagate = None
@@ -110,6 +111,81 @@ class Tensor():
             raise TypeError("Only supporting int/float powers for now")
 
         return apply_op(mlops.Pow, self, exponent=exponent)
+
+    def _validate_inplace_operation(self,) -> None:
+        # Validate whether an in-place operation is permissible on this tensor
+        if self.is_leaf and self.requires_grad:
+            raise RuntimeError("a leaf Tensor that requires grad is being used in an in-place operation.")
+
+    def __iadd__(self, other: Any) -> Tensor: 
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        self._validate_inplace_operation()
+
+        # Perform the in-place operation
+        self.buffer += other.buffer
+
+        # Increment the version of the tensor
+        self._increment_version()
+
+        return self
+
+    def __isub__(self, other: Any) -> Tensor: 
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        self._validate_inplace_operation()
+
+        # Perform the in-place operation
+        self.buffer -= other.buffer
+
+        # Increment the version of the tensor
+        self._increment_version()
+
+        return self
+
+    def __imul__(self, other: Any) -> Tensor: 
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        self._validate_inplace_operation()
+
+        # Perform the in-place operation
+        self.buffer *= other.buffer
+
+        # Increment the version of the tensor
+        self._increment_version()
+
+        return self
+
+    def __itruediv__(self, other: Any) -> Tensor: 
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        self._validate_inplace_operation()
+
+        # Perform the in-place operation
+        self.buffer /= other.buffer
+
+        # Increment the version of the tensor
+        self._increment_version()
+
+        return self
+
+    def __ipow__(self, exponent: Union[int, float]) -> Tensor: 
+        if not isinstance(exponent, (int, float)):
+            raise TypeError("Only supporting int/float powers for now")
+
+        self._validate_inplace_operation()
+
+        # Perform the in-place operation
+        self.buffer = self.buffer ** exponent
+
+        # Increment the version of the tensor
+        self._increment_version()
+
+        return self
 
     def exp(self) -> Tensor:
         return apply_op(mlops.Exp, self)
@@ -266,7 +342,7 @@ class Tensor():
             # Step 2: Propagate reference signal through the graph
             self._propagate_reference_signal()
 
-            # Step 3: Initialize and accumulate the incoming gradient
+            # Step 3: Accumulate the incoming gradient
             self._accumulate_gradient(incoming_gradient)
 
             # Step 4: Propagate the gradient backward through the graph
@@ -465,13 +541,21 @@ class Tensor():
         # Reset the gradient of the tensor
         self.grad = None
 
+    def _increment_version(self):
+        """
+        Increment the version counter of the tensor.
+
+        This method should be called every time an in-place operation is performed on the tensor.
+        """
+        self._version += 1
+
 
 class GradientFunction():
 
     def __init__(self, operation: mlops.Operation = None, inputs: list[Tensor] = []) -> None:
         self.operation = operation
         self.inputs = inputs
-
+        self.input_versions = {id(tensor): tensor._version for tensor in inputs}
         self._reference_signal_propagated = False
 
     def _propagate_reference_signal(self) -> None:
@@ -492,10 +576,24 @@ class GradientFunction():
         """
         Backpropagate the gradient through the operation.
 
-        This method computes the gradients for the operation and propagates them backward to each input tensor. The 
-        backward propagation continues recursively through the graph until reaching the leaf tensors.
+        This method first checks the version of each input tensor to ensure they have not been modified since their
+        last use in an operation. If any tensor's version has changed, it indicates that an in-place operation has
+        been performed on the tensor after its involvement in the operation, making the current computational graph
+        invalid for backpropagation. In such cases, a RuntimeError is raised.
+
+        After validating tensor versions, the method computes the gradients for the operation and propagates them
+        backward to each input tensor. The backward propagation continues recursively through the graph until reaching
+        the leaf tensors.
         """
         if self.operation:
+            # Check for version consistency of input tensors to ensure graph integrity
+            for input_tensor in self.inputs:
+                if input_tensor._version != self.input_versions[id(input_tensor)]:
+                    raise RuntimeError(
+                        "The tensor has been modified (version changed) since its use in this operation. "
+                        "Backward pass is not allowed after in-place operations."
+                    )
+
             # Computes the gradient of the operation
             gradients = self.operation.backward(incoming_gradient)
 

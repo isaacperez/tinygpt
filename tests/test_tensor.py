@@ -1161,3 +1161,41 @@ def test_wrong_incoming_gradient():
 
     assert all(a.grad == Buffer(-1.0))
     assert all(b.grad == Buffer(-1.0))
+
+
+def test_backward_with_inplace_operations():
+    # Check backward fails after in-place operations
+
+    def iadd(x):
+        x += 1.0
+
+    def isub(x):
+        x -= 1.0
+
+    def imul(x):
+        x *= 1.0
+
+    def itruediv(x):
+        x /= 1.0
+
+    def ipow(x):
+        x **= 1.0
+
+    for op in [iadd, isub, imul, itruediv, ipow]:
+
+        # Check backward fails when in-place operations are used
+        a = Tensor(1.0, requires_grad=True)
+        b = a * 1.0
+        c = a + 1.0
+        d = c + b 
+
+        # Update a in place on a leaf tensor that requires grad is not allowed
+        with pytest.raises(RuntimeError):
+            op(a)
+        
+        # In-place operation with a non-leaf tensor
+        op(c)
+
+        # we cannot do the backward pass after an in-place operation
+        with pytest.raises(RuntimeError):
+            d.backward()
