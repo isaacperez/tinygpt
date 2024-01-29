@@ -1,6 +1,7 @@
 # TinyGPT
 Like [NanoGPT](https://github.com/karpathy/nanoGPT) but tiny. It is also conceptually inspired by [Tinygrad](https://github.com/tinygrad/tinygrad) and [Pytorch](https://github.com/pytorch/pytorch).
 
+
 The main objective of this project is to be as didactic as possible, avoiding optimizations that make the code difficult to understand.
 
 I hope we can understand how to train and run a model like GPT-3 using as few libraries as possible and programming everything from scratch, including the library to train and run the model.

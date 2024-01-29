@@ -1275,3 +1275,19 @@ def test_permute():
     assert all(buffer.permute((1, 2, 0)) == Buffer([[[0, 4, 8], [1, 5, 9]], [[4, 8, 12], [5, 9, 13]]]))
     assert all(buffer.permute((2, 1, 0)) == Buffer([[[0, 4, 8], [4, 8, 12]], [[1, 5, 9], [5, 9, 13]]]))
     assert all(buffer.permute((2, 0, 1)) == Buffer([[[0, 4], [4, 8], [8, 12]], [[1, 5], [5, 9], [9, 13]]]))
+
+
+def test_to_python():
+
+    for dtype in DType:
+        for value in [dtype.cast(-1), dtype.cast(0), dtype.cast(1)]:
+            for data in [value, [value], [], [value, value, value], [[value, value], [value, value]], [[], []]]:
+                # Create a Buffer
+                buffer = Buffer(data)
+
+                # Get the Python value
+                python_data = buffer.to_python()
+
+                # Check is the expected value
+                assert isinstance(python_data, type(data))
+                assert python_data == data

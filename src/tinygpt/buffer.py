@@ -165,7 +165,7 @@ class Buffer():
         return DType.deduce_dtype(first_element) if not isinstance(first_element, (list, tuple)) else DType.float32
 
     @staticmethod
-    def _create_buffer_from_data(data: list, shape: tuple, stride: tuple, offset: int) -> None:
+    def _create_buffer_from_data(data: list, shape: tuple, stride: tuple, offset: int) -> Buffer:
         # Validate the buffer's data, shape, stride, and offset
         Buffer._validate_data_types(data, shape, stride, offset)
         Buffer._validate_data_values(data, shape, stride, offset)
@@ -341,11 +341,9 @@ class Buffer():
             raise RuntimeError(f"Operation {op.value} not implemented")
 
         # Assign the data and its metadata to the new buffer
-        result = Buffer._create_buffer_from_data(
+        return Buffer._create_buffer_from_data(
             data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0
         )
-
-        return result
 
     def _validate_input_buffer(self, op: Op, other: Union[Buffer, int, float]) -> None:
         # Validate compatibility of two buffers for an operation
@@ -667,3 +665,25 @@ class Buffer():
             new_stride = self._calculate_stride(new_shape)
 
             return Buffer._create_buffer_from_data(reordered_data, new_shape, new_stride, 0)
+
+    def to_python(self) -> Union[float, int, bool, list]:
+        # Convert the buffer's data to a Python scalar or nested list.
+        # Handle scalar buffer
+        if self.ndim == 0:
+            return self._get((0,))
+
+        # Handle multi-dimensional buffer
+        return self._convert_to_nested_list(self.shape, [])
+
+    def _convert_to_nested_list(self, shape, index):
+        # Helper method to recursively build a nested list from the buffer's data.
+        # Base case: If the index length equals the number of dimensions, retrieve the value
+        if len(index) == self.ndim:
+            return self._get(tuple(index))
+
+        # Recursive case: Build a list for the current dimension
+        nested_list = []
+        for i in range(shape[len(index)]):
+            nested_list.append(self._convert_to_nested_list(shape, index + [i]))
+
+        return nested_list
