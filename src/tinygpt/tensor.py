@@ -180,7 +180,7 @@ class Tensor():
         self._validate_inplace_operation()
 
         # Perform the in-place operation
-        self.buffer = self.buffer ** exponent
+        self.buffer **= exponent
 
         # Increment the version of the tensor
         self._increment_version()
