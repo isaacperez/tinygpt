@@ -10,7 +10,10 @@ class Tensor():
 
     def __init__(self, data: Any, dtype: DType = None, requires_grad: bool = False) -> None:
         # Save the data in a buffer
-        self.buffer = Buffer(data, dtype)
+        if isinstance(data, Buffer):
+            self.buffer = data
+        else:
+            self.buffer = Buffer(data, dtype)
 
         # Gradient-related metadata
         self.requires_grad = requires_grad
@@ -112,81 +115,6 @@ class Tensor():
             raise TypeError("Only supporting int/float powers for now")
 
         return apply_op(mlops.Pow, self, exponent=exponent)
-
-    def _validate_inplace_operation(self,) -> None:
-        # Validate whether an in-place operation is permissible on this tensor
-        if self.is_leaf and self.requires_grad:
-            raise RuntimeError("a leaf Tensor that requires grad is being used in an in-place operation.")
-
-    def __iadd__(self, other: Any) -> Tensor: 
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation
-        self.buffer += other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
-
-        return self
-
-    def __isub__(self, other: Any) -> Tensor: 
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation
-        self.buffer -= other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
-
-        return self
-
-    def __imul__(self, other: Any) -> Tensor: 
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation
-        self.buffer *= other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
-
-        return self
-
-    def __itruediv__(self, other: Any) -> Tensor: 
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation
-        self.buffer /= other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
-
-        return self
-
-    def __ipow__(self, exponent: Union[int, float]) -> Tensor: 
-        if not isinstance(exponent, (int, float)):
-            raise TypeError("Only supporting int/float powers for now")
-
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation
-        self.buffer **= exponent
-
-        # Increment the version of the tensor
-        self._increment_version()
-
-        return self
 
     def exp(self) -> Tensor:
         return apply_op(mlops.Exp, self)
@@ -547,7 +475,7 @@ class Tensor():
         # Allows to retain the gradient in non-leaf tensors
         self._retain_grad = True
 
-    def _increment_version(self):
+    def _increment_version(self) -> None:
         """
         Increment the version counter of the tensor.
 
@@ -555,6 +483,12 @@ class Tensor():
         """
         self._version += 1
 
+    def detach(self) -> Tensor:
+        """
+        Create a new tensor that shares the same data but is not part of the computational graph. So no gradient will 
+        be backpropagated along this variable.
+        """
+        return Tensor(self.buffer, requires_grad=False)
 
 class GradientFunction():
 

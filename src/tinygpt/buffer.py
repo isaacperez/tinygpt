@@ -165,7 +165,7 @@ class Buffer():
         return DType.deduce_dtype(first_element) if not isinstance(first_element, (list, tuple)) else DType.float32
 
     @staticmethod
-    def _create_buffer_from_data(data: list, shape: tuple, stride: tuple, offset: int) -> None:
+    def _create_buffer_from_data(data: list, shape: tuple, stride: tuple, offset: int) -> Buffer:
         # Validate the buffer's data, shape, stride, and offset
         Buffer._validate_data_types(data, shape, stride, offset)
         Buffer._validate_data_values(data, shape, stride, offset)
@@ -341,11 +341,9 @@ class Buffer():
             raise RuntimeError(f"Operation {op.value} not implemented")
 
         # Assign the data and its metadata to the new buffer
-        result = Buffer._create_buffer_from_data(
+        return Buffer._create_buffer_from_data(
             data=data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0
         )
-
-        return result
 
     def _validate_input_buffer(self, op: Op, other: Union[Buffer, int, float]) -> None:
         # Validate compatibility of two buffers for an operation

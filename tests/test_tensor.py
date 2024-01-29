@@ -1178,44 +1178,6 @@ def test_wrong_incoming_gradient():
     assert all(b.grad == Buffer(-1.0))
 
 
-def test_backward_with_inplace_operations():
-    # Check backward fails after in-place operations
-
-    def iadd(x):
-        x += 1.0
-
-    def isub(x):
-        x -= 1.0
-
-    def imul(x):
-        x *= 1.0
-
-    def itruediv(x):
-        x /= 1.0
-
-    def ipow(x):
-        x **= 1.0
-
-    for op in [iadd, isub, imul, itruediv, ipow]:
-
-        # Check backward fails when in-place operations are used
-        a = Tensor(1.0, requires_grad=True)
-        b = a * 1.0
-        c = a + 1.0
-        d = c + b 
-
-        # Update a in place on a leaf tensor that requires grad is not allowed
-        with pytest.raises(RuntimeError):
-            op(a)
-        
-        # In-place operation with a non-leaf tensor
-        op(c)
-
-        # we cannot do the backward pass after an in-place operation
-        with pytest.raises(RuntimeError):
-            d.backward()
-
-
 def test_retain_grad():
     # Check we have access to the gradients on non-leaf tensors if we call retain_grad() on them
     a = Tensor(1.0, requires_grad=True)
@@ -1244,3 +1206,29 @@ def test_retain_grad():
     assert all(b.grad  == Buffer(0.5))
     assert all(c.grad == Buffer(3.0))
     assert all(d.grad == Buffer(1.0))
+
+
+def test_detach():
+    # Try to detach tensors from the computational graph
+    a = Tensor([2.0] * 20, requires_grad=True)
+
+    # Detach the tensor
+    a_detached = a.detach()
+    assert not a_detached.requires_grad
+    assert a is not a_detached
+    assert a.buffer is a_detached.buffer
+
+    # Modifications on the detached tensor doesn't affect the original one because it get copy after the operation
+    a_detached += Tensor([1.0] * 20, requires_grad=False)
+    assert a.buffer is not a_detached.buffer
+    assert all(a.buffer != a_detached.buffer)
+
+    # Do some operations with both versions (gradient doesn't flow back to a through c because we detached a)
+    b = a ** 3
+    c = a_detached ** 6
+    i = (b + c).sum((0,))
+    
+    i.backward()
+
+    assert all(a.grad == 12.0)
+    assert a_detached.grad is None
