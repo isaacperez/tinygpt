@@ -18,6 +18,7 @@ class Tensor():
         self.grad_fn = None
         self.is_leaf = True
         self._version = 0
+        self._retain_grad = False
 
         self._pending_gradients_count = 0
         self._accumulated_gradient_to_propagate = None
@@ -401,22 +402,23 @@ class Tensor():
         """
         Accumulate the incoming gradient in preparation for backpropagation.
 
-        This function updates two key attributes:
-        - `grad`: This attribute accumulates the total gradient for the current tensor. It represents the tensor's 
-        gradient that has been calculated so far in the backpropagation process. If the tensor is involved in 
-        multiple operations, `grad` will be the sum of gradients from all these operations.
-        - `_accumulated_gradient_to_propagate`: This is used to store the accumulated gradient that needs to be sent 
-        backward to the previous tensors (or operations) in the computational graph. It's a temporary storage to hold 
-        gradients until this tensor has received all expected gradients, after which it will send them backward.
+        This function manages the accumulation of gradients in two scenarios:
+        - For leaf tensors (tensors that are not results of an operation), it always accumulates gradients in the `grad` 
+          attribute.
+        - For non-leaf tensors, gradients are accumulated in the `grad` attribute only if the `_retain_grad` flag is set
+          to True. This flag allows users to specify whether they want to retain gradients for non-leaf tensors after 
+          backpropagation. By default, non-leaf tensors do not retain gradients to conserve memory.
 
-        This method ensures that the tensor can correctly participate in multiple operations by summing up gradients 
-        from each operation it is involved in.
+        Additionally, the function updates `_accumulated_gradient_to_propagate`, which stores the gradient to be sent 
+        backward to previous tensors in the computational graph. This temporary storage holds gradients until the tensor 
+        has received all expected gradients, after which it will propagate them backward.
         """
-        # Accumulate the gradient for the current tensor
-        if self.grad is None:
-            self.grad = incoming_gradient
-        else:
-            self.grad += incoming_gradient
+        # Accumulate the gradient for the current tensor (only for leaf tensors or tensors marked to retain gradient)
+        if self.is_leaf or self._retain_grad:
+            if self.grad is None:
+                self.grad = incoming_gradient
+            else:
+                self.grad += incoming_gradient
 
         # Accumulate the gradient to be propagated backward
         if self._accumulated_gradient_to_propagate is None:
@@ -540,6 +542,10 @@ class Tensor():
     def zero_grad(self) -> None:
         # Reset the gradient of the tensor
         self.grad = None
+
+    def retain_grad(self) -> None:
+        # Allows to retain the gradient in non-leaf tensors
+        self._retain_grad = True
 
     def _increment_version(self):
         """
