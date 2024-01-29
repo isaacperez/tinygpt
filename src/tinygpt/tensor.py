@@ -490,6 +490,11 @@ class Tensor():
         """
         return Tensor(self.buffer, requires_grad=False)
 
+    def to_python(self) -> Union[float, int, bool, list]:
+        # Convert the tensor's data to a Python scalar or nested list
+        return self.buffer.to_python()
+
+
 class GradientFunction():
 
     def __init__(self, operation: mlops.Operation = None, inputs: list[Tensor] = []) -> None:

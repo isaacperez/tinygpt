@@ -1232,3 +1232,19 @@ def test_detach():
 
     assert all(a.grad == 12.0)
     assert a_detached.grad is None
+
+
+def test_to_python():
+
+    for dtype in DType:
+        for value in [dtype.cast(-1), dtype.cast(0), dtype.cast(1)]:
+            for data in [value, [value], [], [value, value, value], [[value, value], [value, value]], [[], []]]:
+                # Create a Tensor
+                tensor = Tensor(data)
+
+                # Get the Python value
+                python_data = tensor.to_python()
+
+                # Check is the expected value
+                assert isinstance(python_data, type(data))
+                assert python_data == data
