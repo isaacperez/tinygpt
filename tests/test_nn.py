@@ -8,58 +8,56 @@ from tinygpt.nn import FullyConnectedLayer, MLP
 def test_FullyConnectedLayer():
     # Wrong data types
     with pytest.raises(TypeError):
-        _ = FullyConnectedLayer(in_features=None, out_features=12, use_bias=True)
+        _ = FullyConnectedLayer(input_dims=None, output_dims=12, bias=True)
     with pytest.raises(TypeError):
-        _ = FullyConnectedLayer(in_features=12, out_features=None, use_bias=True)
-    with pytest.raises(TypeError):
-        _ = FullyConnectedLayer(in_features=12, out_features=12, use_bias=None)
+        _ = FullyConnectedLayer(input_dims=12, output_dims=None, bias=True)
     
     # Wrong values
     for wrong_value in [-1, 0]:
         with pytest.raises(ValueError):
-            _ = FullyConnectedLayer(in_features=wrong_value, out_features=12, use_bias=True)
+            _ = FullyConnectedLayer(input_dims=wrong_value, output_dims=12, bias=True)
         
         with pytest.raises(ValueError):
-            _ = FullyConnectedLayer(in_features=12, out_features=wrong_value, use_bias=True)
+            _ = FullyConnectedLayer(input_dims=12, output_dims=wrong_value, bias=True)
 
     # Do the inference
-    for in_features, out_features in [(12, 12), (12, 6), (12, 24)]:
+    for input_dims, output_dims in [(12, 12), (12, 6), (12, 24)]:
         
-        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
-        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
 
         # Check the modules have the expected components
-        assert len([c for c in layer_without_bias.children()]) == 0
-        assert len([c for c in layer_with_bias.children()]) == 0
-        
-        assert len([(n, c) for n, c in layer_without_bias.named_children()]) == 0
-        assert len([(n, c) for n, c in layer_with_bias.named_children()]) == 0
+        assert len(layer_without_bias.children()) == 0
+        assert len(layer_with_bias.children()) == 0
 
-        assert len([m for m in layer_without_bias.modules()]) == 1
-        assert len([m for m in layer_with_bias.modules()]) == 1
+        assert len(layer_without_bias.modules()) == 1
+        assert len(layer_with_bias.modules()) == 1
 
-        assert len([(n, m) for n, m in layer_without_bias.named_modules()]) == 1
-        assert len([(n, m) for n, m in layer_with_bias.named_modules()]) == 1
+        assert len(layer_without_bias.named_modules()) == 1
+        assert len(layer_with_bias.named_modules()) == 1
         
-        assert len([p for p in layer_without_bias.parameters()]) == 1
-        assert len([p for p in layer_with_bias.parameters()]) == 2
+        assert len(layer_without_bias.parameters()) == 1
+        assert len(layer_with_bias.parameters()) == 2
         
-        assert len([(n, p) for n, p in layer_without_bias.named_parameters()]) == 1
-        assert len([(n, p) for n, p in layer_with_bias.named_parameters()]) == 2
+        assert len(layer_without_bias.trainable_parameters()) == 1
+        assert len(layer_with_bias.trainable_parameters()) == 2
         
+        assert len(layer_without_bias.leaf_modules()) == 0
+        assert len(layer_with_bias.leaf_modules()) == 0
+
         # Check parameters has the expected name and shape
-        for n, p in layer_with_bias.named_parameters():
+        for n, p in layer_with_bias.parameters().items():
             assert n in ('weights', 'bias')
 
             if n == 'weights':
-                assert p.shape == (in_features, out_features)
+                assert p.shape == (input_dims, output_dims)
             else:
-                assert p.shape == (out_features,)
+                assert p.shape == (output_dims,)
             
             assert p.requires_grad
 
         # Use different shapes for the input tensor
-        for input_shape in [(in_features,), (24, in_features), (12, 3, in_features)]:
+        for input_shape in [(input_dims,), (24, input_dims), (12, 3, input_dims)]:
             input_tensor = Tensor.uniform(input_shape, requires_grad=True)
 
             # Do inference
@@ -67,8 +65,8 @@ def test_FullyConnectedLayer():
             output_tensor_with_bias = layer_with_bias(input_tensor)
 
             # Check the output
-            assert output_tensor_without_bias.shape == (*input_shape[:-1], out_features)
-            assert output_tensor_with_bias.shape == (*input_shape[:-1], out_features)
+            assert output_tensor_without_bias.shape == (*input_shape[:-1], output_dims)
+            assert output_tensor_with_bias.shape == (*input_shape[:-1], output_dims)
 
             assert output_tensor_without_bias.requires_grad
             assert output_tensor_with_bias.requires_grad
@@ -83,13 +81,13 @@ def test_FullyConnectedLayer():
 
 def test_FullyConnectedLayer_zero_grad():
     # Call zero_grad after backward pass
-    for in_features, out_features in [(12, 12), (12, 6), (12, 24)]:
+    for input_dims, output_dims in [(12, 12), (12, 6), (12, 24)]:
         # Create the layers with different configurations
-        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
-        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
 
         # Do the forward and backward pass
-        for input_shape in [(in_features,), (24, in_features), (12, 3, in_features)]:
+        for input_shape in [(input_dims,), (24, input_dims), (12, 3, input_dims)]:
             input_tensor = Tensor.uniform(input_shape, requires_grad=True)
 
             # Do the forward pass
@@ -101,11 +99,11 @@ def test_FullyConnectedLayer_zero_grad():
             output_tensor_with_bias.sum(axes=tuple(i for i in range(output_tensor_with_bias.ndim))).backward()
 
             # Check weights of the layer has gradient
-            for p in layer_without_bias.parameters():
+            for p in layer_without_bias.parameters().values():
                 assert p.grad is not None
                 assert p.grad.shape == p.shape
 
-            for p in layer_with_bias.parameters():
+            for p in layer_with_bias.parameters().values():
                 assert p.grad is not None
                 assert p.grad.shape == p.shape
 
@@ -114,39 +112,87 @@ def test_FullyConnectedLayer_zero_grad():
             layer_with_bias.zero_grad()
 
             # Check weights of the layer has gradient
-            for p in layer_without_bias.parameters():
+            for p in layer_without_bias.parameters().values():
                 assert p.grad is None
 
-            for p in layer_with_bias.parameters():
+            for p in layer_with_bias.parameters().values():
                 assert p.grad is None
 
 
-def test_FullyConnectedLayer_save_and_load():
-    # Create different layers and save and restore it
-    for in_features, out_features in [(12, 12), (12, 6), (12, 24)]:
+def test_FullyConnectedLayer_freeze_and_unfreeze():
+    for input_dims, output_dims in [(12, 12), (12, 6), (12, 24)]:
         # Create the layers with different configurations
-        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
-        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
+
+        # Freeze the weights
+        layer_without_bias.freeze()
+        layer_with_bias.freeze()
+
+        # Check weights of the layer doesn't requires gradient
+        assert len(layer_without_bias.trainable_parameters()) == 0
+        assert len(layer_with_bias.trainable_parameters()) == 0
+
+        # Unfreeze the weights
+        layer_without_bias.unfreeze()
+        layer_with_bias.unfreeze()
+
+        # Check weights of the layer doesn't requires gradient
+        assert len(layer_without_bias.trainable_parameters()) == 1
+        assert len(layer_with_bias.trainable_parameters()) == 2
+
+
+def test_FullyConnectedLayer_train_and_eval():
+    for input_dims, output_dims in [(12, 12), (12, 6), (12, 24)]:
+        # Create the layers with different configurations
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
+
+        # Freeze the weights
+        layer_without_bias.eval()
+        layer_with_bias.eval()
+
+        # Check layers are not in training mode
+        assert not layer_without_bias.training
+        assert not layer_with_bias.training
+
+        # Unfreeze the weights
+        layer_without_bias.train()
+        layer_with_bias.train()
+
+        # Check layers are in training mode
+        assert layer_without_bias.training
+        assert layer_with_bias.training
+
+
+def test_FullyConnectedLayer_save_and_load(tmp_path):
+    # Create different layers and save and restore it
+    tmp_dir = tmp_path / "test_FullyConnectedLayer_save_and_load"
+    tmp_dir.mkdir()
+    for input_dims, output_dims in [(12, 12), (12, 6), (12, 24)]:
+        # Create the layers with different configurations
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
 
         # Do the forward and backward pass
-        input_shape = (12, 3, in_features)
+        input_shape = (12, 3, input_dims)
         input_tensor = Tensor.uniform(input_shape, requires_grad=True)
 
         # Do the forward pass
         output_tensor_without_bias = layer_without_bias(input_tensor)
         output_tensor_with_bias = layer_with_bias(input_tensor)
 
-        # Get the state_dict of the layers
-        state_dict_layer_without_bias = layer_without_bias.state_dict()
-        state_dict_layer_with_bias = layer_with_bias.state_dict()
+        # Save the layers
+        layer_without_bias.save_weights(str(tmp_dir / "layer_without_bias.json"))
+        layer_with_bias.save_weights(str(tmp_dir / "layer_with_bias.json"))
 
         # Create the layer again
-        layer_without_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=False)
-        layer_with_bias = FullyConnectedLayer(in_features=in_features, out_features=out_features, use_bias=True)
+        layer_without_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=False)
+        layer_with_bias = FullyConnectedLayer(input_dims=input_dims, output_dims=output_dims, bias=True)
 
         # Load the weights
-        layer_without_bias.load_state_dict(state_dict_layer_without_bias)
-        layer_with_bias.load_state_dict(state_dict_layer_with_bias)
+        layer_without_bias.load_weights(str(tmp_dir / "layer_without_bias.json"))
+        layer_with_bias.load_weights(str(tmp_dir / "layer_with_bias.json"))
 
         # Do the inference again
         new_output_tensor_without_bias = layer_without_bias(input_tensor)
@@ -156,35 +202,13 @@ def test_FullyConnectedLayer_save_and_load():
         assert all(new_output_tensor_without_bias.buffer == output_tensor_without_bias.buffer)
         assert all(new_output_tensor_with_bias.buffer == output_tensor_with_bias.buffer)
 
-        # Try to load the state dict with a wrong dictionary
-        with pytest.raises(KeyError):    
-            layer_without_bias.load_state_dict(state_dict_layer_with_bias)
+        # Try to load wrong weight file
+        with pytest.raises(ValueError):    
+            layer_without_bias.load_weights(str(tmp_dir / "layer_with_bias.json"))
         
-        with pytest.raises(KeyError):
-            layer_with_bias.load_state_dict(state_dict_layer_without_bias)
+        with pytest.raises(ValueError):
+            layer_with_bias.load_weights(str(tmp_dir / "layer_without_bias.json"))
         
-        # Test with a different type for the value in the dict
-        wrong_dict = state_dict_layer_without_bias.copy()
-        wrong_dict['weights'] = None
-        with pytest.raises(TypeError):    
-            layer_without_bias.load_state_dict(wrong_dict)
-
-        wrong_dict = state_dict_layer_with_bias.copy()
-        wrong_dict['weights'] = None
-        with pytest.raises(TypeError):
-            layer_with_bias.load_state_dict(wrong_dict)
-
-        # Test a different shape
-        wrong_dict = state_dict_layer_without_bias.copy()
-        wrong_dict['weights'] = Tensor.uniform(wrong_dict['weights'].shape + (1,))
-        with pytest.raises(RuntimeError):    
-            layer_without_bias.load_state_dict(wrong_dict)
-
-        wrong_dict = state_dict_layer_with_bias.copy()
-        wrong_dict['weights'] = Tensor.uniform(wrong_dict['weights'].shape + (1,))
-        with pytest.raises(RuntimeError):
-            layer_with_bias.load_state_dict(wrong_dict)
-
 
 def test_MLP():
     pass

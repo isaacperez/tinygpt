@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Any
 from enum import Enum
+from typing import Any
+from collections import defaultdict
 
 
 class DType(Enum):
@@ -47,3 +48,94 @@ def print_dag(node: Any, indent='', last=True, is_grad_fn=False) -> None:
 
 def argsort(x):
     return type(x)(sorted(range(len(x)), key=x.__getitem__))
+
+
+def tree_flatten(tree, prefix="", is_leaf=None):
+    """Flattens a python tree to a list of key, value tuples.
+
+    The keys are using the dot notation to define trees of arbitrary depth and
+    complexity.
+
+    .. code-block:: python
+
+        from tinygpt.utils import tree_flatten
+
+        print(tree_flatten([[[0]]]))
+        # [("0.0.0", 0)]
+
+        print(tree_flatten([[[0]]], ".hello"))
+        # [("hello.0.0.0", 0)]
+
+    .. note::
+       Dictionaries should have keys that are valid python identifiers.
+
+    Args:
+        tree (Any): The python tree to be flattened.
+        prefix (str): A prefix to use for the keys. The first character is
+            always discarded.
+        is_leaf (Callable): An optional callable that returns True if the
+            passed object is considered a leaf or False otherwise.
+
+    Returns:
+        List[Tuple[str, Any]]: The flat representation of the python tree.
+    """
+    flat_tree = []
+
+    if is_leaf is None or not is_leaf(tree):
+        if isinstance(tree, (list, tuple)):
+            for i, t in enumerate(tree):
+                flat_tree.extend(tree_flatten(t, f"{prefix}.{i}", is_leaf))
+            return flat_tree
+        if isinstance(tree, dict):
+            for k, t in tree.items():
+                flat_tree.extend(tree_flatten(t, f"{prefix}.{k}", is_leaf))
+            return flat_tree
+
+    return [(prefix[1:], tree)]
+
+
+def tree_unflatten(tree):
+    """Recreate a python tree from its flat representation.
+
+    .. code-block:: python
+
+        from tinygpt.utils import tree_unflatten
+
+        d = tree_unflatten([("hello.world", 42)])
+        print(d)
+        # {"hello": {"world": 42}}
+
+    Args:
+        tree (List[Tuple[str, Any]]): The flat representation of a python tree.
+                                      For instance as returned by :meth:`tree_flatten`.
+
+    Returns:
+        A python tree.
+    """
+    if len(tree) == 1 and tree[0][0] == "":
+        return tree[0][1]
+
+    try:
+        int(tree[0][0].split(".", maxsplit=1)[0])
+        is_list = True
+    except ValueError:
+        is_list = False
+
+    # collect children
+    children = defaultdict(list)
+    for key, value in tree:
+        current_idx, *next_idx = key.split(".", maxsplit=1)
+        next_idx = "" if not next_idx else next_idx[0]
+        children[current_idx].append((next_idx, value))
+
+    # recursively map them to the original container
+    if is_list:
+        keys = sorted((int(idx), idx) for idx in children.keys())
+        l = []
+        for i, k in keys:
+            # if i <= len(l), no {} will be appended.
+            l.extend([{} for _ in range(i - len(l))])
+            l.append(tree_unflatten(children[k]))
+        return l
+    else:
+        return {k: tree_unflatten(v) for k, v in children.items()}
