@@ -167,6 +167,11 @@ class Tensor():
     def permute(self, dims: tuple) -> Tensor:
         return apply_op(mlops.Permute, self, dims=dims)
 
+    def __eq__(self, other: Tensor) -> Tensor:
+        if not isinstance(other, Tensor):
+            raise TypeError(f"Expecting Tensor, but found type {type(other)}")
+        return Tensor(self.buffer == other.buffer, requires_grad=False)
+
     def transpose(self, axis1: int, axis2: int) -> Tensor:
         # Transpose method to swap two dimensions (axes) of a Tensor (both axes can be the same, but it has no effect)
 
@@ -467,9 +472,11 @@ class Tensor():
         if self.grad_fn is not None:
             self.grad_fn._propagate_reference_signal()
 
-    def zero_grad(self) -> None:
-        # Reset the gradient of the tensor
+    def zero_grad(self) -> Tensor:
+        # Reset the gradient of the tensor and return the Tensor
         self.grad = None
+
+        return self
 
     def retain_grad(self) -> None:
         # Allows to retain the gradient in non-leaf tensors
@@ -493,6 +500,9 @@ class Tensor():
     def to_python(self) -> Union[float, int, bool, list]:
         # Convert the tensor's data to a Python scalar or nested list
         return self.buffer.to_python()
+
+    def serialize_tensor(self) -> dict:
+        return dict(requires_grad=self.requires_grad, data=self.to_python())
 
 
 class GradientFunction():

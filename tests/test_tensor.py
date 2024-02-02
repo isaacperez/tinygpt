@@ -1248,3 +1248,52 @@ def test_to_python():
                 # Check is the expected value
                 assert isinstance(python_data, type(data))
                 assert python_data == data
+
+
+def test_eq_op():
+    for requires_grad_t1, requires_grad_t2 in [(True, False), (False, True), (False, False), (True, True)]:
+        # Empty tensor
+        tensor1 = Tensor.uniform((), requires_grad=requires_grad_t1)
+        tensor2_eq = tensor1.detach()
+
+        assert all((tensor1 == tensor2_eq).buffer)
+
+        # 1D
+        tensor1 = Tensor.uniform((54,), requires_grad=requires_grad_t1)
+        tensor2_noneq = Tensor((tensor1 + 1.0).buffer, requires_grad=requires_grad_t2)
+        tensor2_eq = tensor1.detach()
+        
+        assert all((tensor1 == tensor2_eq).buffer)
+        assert not all((tensor1 == tensor2_noneq).buffer)
+
+        # 2D
+        tensor1 = Tensor.uniform((16, 32), requires_grad=requires_grad_t1)
+        tensor2_noneq = Tensor((tensor1 + 1.0).buffer, requires_grad=requires_grad_t2)
+        tensor2_eq = tensor1.detach()
+
+        assert all((tensor1 == tensor2_eq).buffer)
+        assert not all((tensor1 == tensor2_noneq).buffer)
+
+        # 3D
+        tensor1 = Tensor.uniform((12, 13, 7), requires_grad=requires_grad_t1)
+        tensor2_noneq = Tensor((tensor1 + 1.0).buffer, requires_grad=requires_grad_t2)
+        tensor2_eq = tensor1.detach()
+
+        assert all((tensor1 == tensor2_eq).buffer)
+        assert not all((tensor1 == tensor2_noneq).buffer)
+
+
+def test_serialize_tensor():
+    for requires_grad in [True, False]:
+        for shape in [(), (54,), (16, 32), (12, 13, 7)]:
+            # Create the tensor with the current configuration
+            tensor = Tensor.uniform(shape, requires_grad=requires_grad)
+
+            # Serialize the tensor
+            serialized_tensor = tensor.serialize_tensor()
+
+            # Check it's the expected serialization
+            assert isinstance(serialized_tensor, dict)
+            assert 'requires_grad' in serialized_tensor and 'data' in serialized_tensor
+            assert serialized_tensor['requires_grad'] == requires_grad
+            assert serialized_tensor['data'] == tensor.to_python()
