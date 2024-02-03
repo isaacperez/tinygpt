@@ -1,8 +1,8 @@
 from __future__ import annotations
+import re
 from enum import Enum
 from typing import Any
 from collections import defaultdict
-
 
 class DType(Enum):
     # Each type has an equivalent Python type and a priority associated
@@ -139,3 +139,51 @@ def tree_unflatten(tree):
         return l
     else:
         return {k: tree_unflatten(v) for k, v in children.items()}
+
+
+def parse_value(input_str):
+    # Check for boolean
+    if input_str == "True":
+        return True
+    elif input_str == "False":
+        return False
+    
+    # Check for integer or float
+    if re.match(r"^-?\d+$", input_str):
+        return int(input_str)
+    elif re.match(r"^-?\d+(\.\d+)?([eE][-+]?\d+)?$", input_str):
+        return float(input_str)
+    
+    # Check for list
+    if input_str.startswith("[") and input_str.endswith("]"):
+        return parse_list(input_str[1:-1])
+    
+    raise ValueError(f"Unsupported format: {input_str}")
+
+
+def parse_list(input_str):
+    list_items = split_list_items(input_str)
+    return [parse_value(item) for item in list_items]
+
+
+def split_list_items(input_str):
+    items = []
+    bracket_level = 0
+    current_item = []
+    for char in input_str:
+        if char == '[':
+            bracket_level += 1
+            current_item.append(char)
+        elif char == ']':
+            bracket_level -= 1
+            current_item.append(char)
+        elif char == ',' and bracket_level == 0:
+            items.append(''.join(current_item).strip())
+            current_item = []
+        else:
+            current_item.append(char)
+
+    if current_item:
+        items.append(''.join(current_item).strip())
+
+    return items
