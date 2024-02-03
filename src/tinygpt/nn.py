@@ -65,7 +65,7 @@ class Module(dict):
             with open(weights, mode='r') as json_file:
                 raw_weights = list(json.load(json_file).items())
 
-            # We store the weights as dict so we have to convert them back to Tensor
+            # We store the weights as str so we have to convert them back to Tensor
             weights = tree_flatten(raw_weights)
             for idx, (k, v) in enumerate(weights):
                 if isinstance(v, str) and Tensor.validate_serialized_tensor(v):
