@@ -31,6 +31,9 @@ class Buffer():
 
     def __init__(self, input_data: Any, dtype: DType = None) -> None:
         # Initialize buffer based on the type of input data
+        if not isinstance(dtype, DType) and dtype is not None:
+            raise ValueError(f"Expecting type DType or None for dtype but found {type(dtype)}")
+
         if isinstance(input_data, Buffer):
             self._copy_from_existing_buffer(input_data, dtype)
         else:
