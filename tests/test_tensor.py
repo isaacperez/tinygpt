@@ -1283,17 +1283,23 @@ def test_eq_op():
         assert not all((tensor1 == tensor2_noneq).buffer)
 
 
-def test_serialize_tensor():
-    for requires_grad in [True, False]:
+def test_serialization():
+    # Try to serialize and deserialize different tensors
+    for requires_grad in (True, False):
         for shape in [(), (54,), (16, 32), (12, 13, 7)]:
-            # Create the tensor with the current configuration
+            # Create tensor
             tensor = Tensor.uniform(shape, requires_grad=requires_grad)
 
             # Serialize the tensor
             serialized_tensor = tensor.serialize_tensor()
 
-            # Check it's the expected serialization
-            assert isinstance(serialized_tensor, dict)
-            assert 'requires_grad' in serialized_tensor and 'data' in serialized_tensor
-            assert serialized_tensor['requires_grad'] == requires_grad
-            assert serialized_tensor['data'] == tensor.to_python()
+            # Validate the serialization
+            assert isinstance(serialized_tensor, str)
+            assert Tensor.validate_serialized_tensor(serialized_tensor)
+
+            # Deserialize the tensor
+            deserialized_tensor = Tensor.deserialize_tensor(serialized_tensor)
+
+            # Validate the deserialization
+            assert all((deserialized_tensor == tensor).buffer)
+            assert deserialized_tensor.requires_grad == tensor.requires_grad

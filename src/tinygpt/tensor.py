@@ -1,7 +1,8 @@
 from __future__ import annotations
+import re
 from typing import Any, Union, Optional
 
-from tinygpt.utils import DType, print_dag
+from tinygpt.utils import DType, print_dag, parse_value
 from tinygpt.buffer import Buffer
 import tinygpt.mlops as mlops
 
@@ -501,8 +502,36 @@ class Tensor():
         # Convert the tensor's data to a Python scalar or nested list
         return self.buffer.to_python()
 
-    def serialize_tensor(self) -> dict:
-        return dict(requires_grad=self.requires_grad, data=self.to_python())
+    def serialize_tensor(self) -> str:
+        return f"Tensor(data={self.to_python()}, requires_grad={self.requires_grad})"
+
+    @staticmethod
+    def _serialized_pattern() -> str:
+        # Define a regex pattern to match the serialized tensor format
+        return r"Tensor\(data=(.+), requires_grad=(True|False)\)$"
+
+    @staticmethod
+    def validate_serialized_tensor(serialized_str: str) -> bool:
+        # Use the re.match function to check if the entire string matches the pattern
+        if re.match(Tensor._serialized_pattern(), serialized_str):
+            return True  # The string is valid
+        else:
+            return False  # The string is invalid
+    
+    @staticmethod
+    def deserialize_tensor(serialized_str: str) -> Tensor:
+        match = re.match(Tensor._serialized_pattern(), serialized_str)
+        if match:
+            # Split the string in data and requires_grad strings
+            data_str, requires_grad_str = match.groups()
+
+            # Convert each element into Python values
+            data = parse_value(data_str)
+            requires_grad = requires_grad_str == "True"
+
+            return Tensor(data=data, requires_grad=requires_grad)
+        else:
+            raise ValueError("Invalid serialized tensor format")
 
 
 class GradientFunction():
