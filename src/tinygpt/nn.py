@@ -64,20 +64,13 @@ class Module(dict):
         if isinstance(weights, str):
             with open(weights, mode='r') as json_file:
                 raw_weights = list(json.load(json_file).items())
-                weights = tree_unflatten(raw_weights)
-                for k, v in weights.items():
-                    if isinstance(v, dict) and 'requires_grad' in v and 'data' in v:
-                        if {'requires_grad', 'data'} != set(v.keys()):
-                            raise ValueError(f"Expected keys 'requires_grad' and 'data' but found {set(v.keys())}")
 
-                        # Create the tensor
-                        v_new = Tensor(data=v["data"], requires_grad=v["requires_grad"])
-                                        
-                        # Update the tensor
-                        weights[k] = v_new
-
-                # Update method is expecting a list of weights
-                weights = tree_flatten(weights)
+            # We store the weights as dict so we have to convert them back to Tensor
+            weights = tree_flatten(raw_weights)
+            for idx, (k, v) in enumerate(weights):
+                if isinstance(v, str) and Tensor.validate_serialized_tensor(v):
+                    weights[idx] = (k, Tensor.deserialize_tensor(v))
+            weights = tree_unflatten(weights)
 
         if strict:
             new_weights = dict(weights)
@@ -481,6 +474,12 @@ class MLP(Module):
 
     def __init__(self, input_dims: int,  hidden_dims: list[int], activation_fn: str, bias: bool = True) -> None:
         super().__init__()
+
+        if activation_fn not in self.activation_functions:
+            raise ValueError(
+                f"Unknown activation function '{activation_fn}'. "
+                f"Expecting one of {list(self.activation_functions.keys())}"
+            )
 
         self.activation_fn = activation_fn
         self.layers = []
