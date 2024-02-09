@@ -240,6 +240,14 @@ class Tensor():
     def uniform(shape: tuple, **kwargs):
         return Tensor(Buffer.uniform(shape), **kwargs)
 
+    @staticmethod
+    def zeros(shape: tuple, **kwargs):
+        return Tensor(Buffer.zeros(shape), **kwargs)
+
+    @staticmethod
+    def ones(shape: tuple, **kwargs):
+        return Tensor(Buffer.ones(shape), **kwargs)
+
     def backward(self, incoming_gradient: Optional[Buffer] = None, retain_graph: bool = False) -> None:
         """
         Perform the backward pass to compute gradients.

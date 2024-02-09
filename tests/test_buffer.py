@@ -1118,7 +1118,7 @@ def test_float():
     assert all((first_buffer > second_buffer).float() == Buffer([[1., 0., 0.], [0., 0., 0.]]))
 
 
-def test_init_methods():
+def test_uniform_initialization():
     # Wrong arguments
     with pytest.raises(TypeError):
         Buffer.uniform(None)
@@ -1163,6 +1163,94 @@ def test_init_methods():
     assert buffer.dtype == DType.float32
     assert all(buffer >= 0)
     assert all(buffer <= 1.0)
+
+
+def test_zeros_initialization():
+    # Wrong arguments
+    with pytest.raises(TypeError):
+        Buffer.zeros(None)
+
+    with pytest.raises(TypeError):
+        Buffer.zeros((0))
+
+    with pytest.raises(TypeError):
+        Buffer.zeros([])
+
+    with pytest.raises(ValueError):
+        Buffer.zeros((-1,))
+
+    with pytest.raises(ValueError):
+        Buffer.zeros((1, 2, 3, 0))
+
+    with pytest.raises(ValueError):
+        Buffer.zeros((1, -1, 3))
+
+    # Empty buffer
+    buffer = Buffer.zeros(())
+    assert buffer.shape == ()
+    assert buffer.dtype == DType.float32
+
+    # 1D
+    buffer = Buffer.zeros((54,))
+    assert buffer.shape == (54,)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 0.0)
+
+    # 2D
+    buffer = Buffer.zeros((16, 32))
+    assert buffer.shape == (16, 32)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 0.0)
+
+    # 3D
+    buffer = Buffer.zeros((12, 13, 7))
+    assert buffer.shape == (12, 13, 7)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 0.0)
+
+
+def test_ones_initialization():
+    # Wrong arguments
+    with pytest.raises(TypeError):
+        Buffer.ones(None)
+
+    with pytest.raises(TypeError):
+        Buffer.ones((0))
+
+    with pytest.raises(TypeError):
+        Buffer.ones([])
+
+    with pytest.raises(ValueError):
+        Buffer.ones((-1,))
+
+    with pytest.raises(ValueError):
+        Buffer.ones((1, 2, 3, 0))
+
+    with pytest.raises(ValueError):
+        Buffer.ones((1, -1, 3))
+
+    # Empty buffer
+    buffer = Buffer.ones(())
+    assert buffer.shape == ()
+    assert buffer.dtype == DType.float32
+
+    # 1D
+    buffer = Buffer.ones((54,))
+    assert buffer.shape == (54,)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 1.0)
+
+    # 2D
+    buffer = Buffer.ones((16, 32))
+    assert buffer.shape == (16, 32)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 1.0)
+
+    # 3D
+    buffer = Buffer.ones((12, 13, 7))
+    assert buffer.shape == (12, 13, 7)
+    assert buffer.dtype == DType.float32
+    assert all(buffer == 1.0)
 
 
 def test_permute():

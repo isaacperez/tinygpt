@@ -448,7 +448,6 @@ class Module(dict):
             mode (bool): Indicate if the model should be in training or
                 evaluation mode. Default: `True`.
         """
-
         def _set_train(_, m):
             m._training = mode
 

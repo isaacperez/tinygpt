@@ -904,7 +904,7 @@ def test_gradient_function_backward_with_softmax():
             assert result.grad_fn is None
 
 
-def test_init_methods():
+def test_uniform_initialization():
 
     for requires_grad in [True, False]:
         # Empty tensor
@@ -935,6 +935,68 @@ def test_init_methods():
         assert tensor.dtype == DType.float32
         assert all(tensor.buffer >= 0)
         assert all(tensor.buffer <= 1.0)
+        assert tensor.requires_grad == requires_grad
+
+
+def test_zeros_initialization():
+
+    for requires_grad in [True, False]:
+        # Empty tensor
+        tensor = Tensor.zeros((), requires_grad=requires_grad)
+        assert tensor.shape == ()
+        assert tensor.dtype == DType.float32
+        assert tensor.requires_grad == requires_grad
+
+        # 1D
+        tensor = Tensor.zeros((54,), requires_grad=requires_grad)
+        assert tensor.shape == (54,)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 0.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 2D
+        tensor = Tensor.zeros((16, 32), requires_grad=requires_grad)
+        assert tensor.shape == (16, 32)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 0.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 3D
+        tensor = Tensor.zeros((12, 13, 7), requires_grad=requires_grad)
+        assert tensor.shape == (12, 13, 7)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 0.0)
+        assert tensor.requires_grad == requires_grad
+
+
+def test_ones_initialization():
+
+    for requires_grad in [True, False]:
+        # Empty tensor
+        tensor = Tensor.ones((), requires_grad=requires_grad)
+        assert tensor.shape == ()
+        assert tensor.dtype == DType.float32
+        assert tensor.requires_grad == requires_grad
+
+        # 1D
+        tensor = Tensor.ones((54,), requires_grad=requires_grad)
+        assert tensor.shape == (54,)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 1.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 2D
+        tensor = Tensor.ones((16, 32), requires_grad=requires_grad)
+        assert tensor.shape == (16, 32)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 1.0)
+        assert tensor.requires_grad == requires_grad
+
+        # 3D
+        tensor = Tensor.ones((12, 13, 7), requires_grad=requires_grad)
+        assert tensor.shape == (12, 13, 7)
+        assert tensor.dtype == DType.float32
+        assert all(tensor.buffer == 1.0)
         assert tensor.requires_grad == requires_grad
 
 

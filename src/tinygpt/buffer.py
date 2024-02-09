@@ -28,6 +28,8 @@ class Buffer():
         GT = auto()
         GE = auto()
         UNIFORM = auto()
+        ZEROS = auto()
+        ONES = auto()
 
     def __init__(self, input_data: Any, dtype: DType = None) -> None:
         # Initialize buffer based on the type of input data
@@ -601,6 +603,10 @@ class Buffer():
         if init_op == Buffer.Op.UNIFORM:
             # Generate random values uniformly distributed between 0 and 1
             data = [random.uniform(0.0, 1.0) for _ in range(numel)]
+        elif init_op == Buffer.Op.ZEROS:
+            data = [0.0 for _ in range(numel)]
+        elif init_op == Buffer.Op.ONES:
+            data = [1.0 for _ in range(numel)]
         else:
             raise RuntimeError(f"Initialization operation {init_op.value} not implemented")
 
@@ -609,8 +615,18 @@ class Buffer():
 
     @staticmethod
     def uniform(shape: tuple) -> Buffer:
-        # Create a Buffer with data initialized uniformly between 0 and 1
+        # Create a Float Buffer with data initialized uniformly between 0 and 1
         return Buffer._init(Buffer.Op.UNIFORM, shape)
+
+    @staticmethod
+    def zeros(shape: tuple) -> Buffer:
+        # Create a Float Buffer with data initialized with 0s
+        return Buffer._init(Buffer.Op.ZEROS, shape)
+
+    @staticmethod
+    def ones(shape: tuple) -> Buffer:
+        # Create a Float Buffer with data initialized with 0s
+        return Buffer._init(Buffer.Op.ONES, shape)
 
     def _generate_indices_with_custom_order(self, order: tuple) -> Iterator[tuple]:
         # Generate indices for the buffer by incrementing dimensions in a specified custom order
