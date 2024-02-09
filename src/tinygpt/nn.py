@@ -125,14 +125,8 @@ class Module(dict):
     @staticmethod
     def trainable_parameter_filter(module: Any, key: Any, value: Any) -> bool:
         is_a_valid_parameter = Module.valid_parameter_filter(module, key, value)
-        is_not_frozen = True
-        if isinstance(value, Tensor):
-            is_not_frozen = Module.froozen_parameter_filter(module, key, value)
+        is_not_frozen = value.requires_grad if isinstance(value, Tensor) else True
         return is_a_valid_parameter and is_not_frozen
-    
-    @staticmethod
-    def froozen_parameter_filter(module: Any, key: Any, value: Any) -> bool:
-        return value.requires_grad
 
     def filter_and_map(
         self,
