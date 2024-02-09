@@ -2,7 +2,7 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.buffer import Buffer
-from tinygpt.nn import FullyConnectedLayer, MLP
+from tinygpt.nn import Module, FullyConnectedLayer, MLP
 
 
 def test_FullyConnectedLayer():
@@ -246,7 +246,7 @@ def test_MLP():
 
             assert len(mlp_without_bias.named_modules()) == len(hidden_dims) + 1
             assert len(mlp_with_bias.named_modules()) == len(hidden_dims) + 1
-            
+
             assert len(mlp_without_bias.parameters()) == 1
             assert len(mlp_with_bias.parameters()) == 1
             
@@ -462,3 +462,182 @@ def test_MLP_save_and_load(tmp_path):
             
             with pytest.raises(ValueError):
                 mlp_with_bias.load_weights(str(tmp_dir / "mlp_without_bias.json"))
+
+
+def test_freeze_and_unfreeze():
+    # Create a fake class to test the methods
+    class Temp(Module):
+        def __init__(self):
+            super().__init__()
+            # Private members
+            self._private_tensor = Tensor.uniform((1, 3), requires_grad=False)
+            self._private_list = [
+                Tensor.uniform((1, 4), requires_grad=False), Tensor.uniform((1, 5), requires_grad=False)
+            ]
+            self._private_dict = dict(
+                first=Tensor.uniform((1, 6), requires_grad=False), second=Tensor.uniform((1, 7), requires_grad=False)
+            )
+
+            # Normal trainable members
+            self.trainable_tensor = Tensor.uniform((1, 8), requires_grad=True)
+            self.trainable_list = [
+                Tensor.uniform((1, 9), requires_grad=True), Tensor.uniform((1, 10), requires_grad=True)
+            ]
+            self.trainable_dict = dict(
+                first=Tensor.uniform((1, 11), requires_grad=True), second=Tensor.uniform((1, 12), requires_grad=True)
+            )
+
+            # Normal non-trainable members
+            self.non_trainable_tensor = Tensor.uniform((1, 13), requires_grad=False)
+            self.non_trainable_list = [
+                Tensor.uniform((1, 14), requires_grad=False), Tensor.uniform((1, 15), requires_grad=False)
+            ]
+            self.non_trainable_dict = dict(
+                first=Tensor.uniform((1, 16), requires_grad=False), second=Tensor.uniform((1, 17), requires_grad=False)
+            )
+
+        def __call__(self, x: Tensor) -> Tensor:
+            output = x
+            output = (self.trainable_tensor + output).sum((0,1))
+
+            for tensor in self.trainable_list:
+                output = (tensor + output).sum((0,1))
+            
+            for tensor in self.trainable_dict.values():
+                output = (tensor + output).sum((0,1))
+
+            return output
+    
+
+    # Create an object and validate all the parameters
+    temp = Temp()
+
+    # Check all parameters
+    assert len(temp.parameters()) == 6
+
+    # Check trainable parameters
+    trainable_tensors = 0
+    for k, v in temp.trainable_parameters().items():
+        assert not k.startswith("_")
+        if isinstance(v, Tensor):
+            assert not k.startswith("non_trainable")
+            trainable_tensors += 1
+        elif isinstance(v, dict):
+            for tensor in v.values():
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+        elif isinstance(v, list):
+            for tensor in v:
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+
+    assert trainable_tensors == 5
+
+    # Freeze all of them
+    temp.freeze()
+
+    assert len(temp.parameters()) == 6 
+    for k, v in temp.trainable_parameters().items():
+        assert not k.startswith("_")
+        assert not isinstance(v, Tensor)
+        if isinstance(v, dict):
+            for tensor in v.values():
+                assert not isinstance(v, Tensor)
+        elif isinstance(v, list):
+            for tensor in v:
+                assert not isinstance(v, Tensor)
+
+    # Unfreeze all of them
+    temp.unfreeze()
+
+    assert len(temp.parameters()) == 6 
+    trainable_tensors = 0
+    for k, v in temp.trainable_parameters().items():
+        assert not k.startswith("_")
+        if isinstance(v, Tensor):
+            trainable_tensors += 1
+        elif isinstance(v, dict):
+            for tensor in v.values():
+                if isinstance(tensor, Tensor):
+                    trainable_tensors += 1
+        elif isinstance(v, list):
+            for tensor in v:
+                if isinstance(tensor, Tensor):
+                    trainable_tensors += 1
+
+    assert trainable_tensors == 10
+
+    # Unfreeze those that starts with 'non_trainable'
+    temp.freeze()
+    temp.unfreeze(
+        keys=[
+            'trainable_tensor', 'trainable_list', 'trainable_dict', 
+            'trainable_list.0', 'trainable_list.1', 
+            'trainable_dict.first', 'trainable_dict.second'
+        ]
+    )
+
+    assert len(temp.parameters()) == 6
+    trainable_tensors = 0
+    for k, v in temp.trainable_parameters().items():
+        assert not k.startswith("_")
+        if isinstance(v, Tensor):
+            assert not k.startswith("non_trainable")
+            trainable_tensors += 1
+        elif isinstance(v, dict):
+            for tensor in v.keys():
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+        elif isinstance(v, list):
+            for tensor in v:
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+
+    assert trainable_tensors == 3
+
+    # Freeze some parameters
+    temp.freeze(keys='trainable_tensor')
+
+    assert len(temp.parameters()) == 6
+    trainable_tensors = 0
+    for k, v in temp.trainable_parameters().items():
+        assert not k.startswith("_")
+        assert not isinstance(v, Tensor)
+        if isinstance(v, dict):
+            for tensor in v.values():
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+        elif isinstance(v, list):
+            for tensor in v:
+                if isinstance(tensor, Tensor):
+                    assert not k.startswith("non_trainable") 
+                    trainable_tensors += 1
+
+    assert trainable_tensors == 4
+
+    # Do a forward pass
+    result = temp(Tensor.uniform((1, 1)))
+
+    # Check the gradient is empty
+    assert temp.trainable_tensor.grad is None
+    assert all([tensor.grad is None for tensor in temp.trainable_list])
+    assert all([tensor.grad is None for tensor in temp.trainable_dict.values()])
+    assert temp.non_trainable_tensor.grad is None
+    assert all([tensor.grad is None for tensor in temp.non_trainable_list])
+    assert all([tensor.grad is None for tensor in temp.non_trainable_dict.values()])
+
+    # Do the backward pass 
+    result.backward()
+
+    # Check all parameters have the expected gradient
+    assert temp.trainable_tensor.grad is None
+    assert all([tensor.grad is not None for tensor in temp.trainable_list])
+    assert all([tensor.grad is not None for tensor in temp.trainable_dict.values()])
+    assert temp.non_trainable_tensor.grad is None
+    assert all([tensor.grad is None for tensor in temp.non_trainable_list])
+    assert all([tensor.grad is None for tensor in temp.non_trainable_dict.values()])

@@ -13,7 +13,6 @@ class Module(dict):
 
     def __init__(self):
         """Should be called by the subclasses of `Module`"""
-        self._no_grad = set()
         self._training = True
 
     @property
@@ -125,7 +124,15 @@ class Module(dict):
 
     @staticmethod
     def trainable_parameter_filter(module: Any, key: Any, value: Any) -> bool:
-        return Module.valid_parameter_filter(module, key, value) and key not in module._no_grad
+        is_a_valid_parameter = Module.valid_parameter_filter(module, key, value)
+        is_not_frozen = True
+        if isinstance(value, Tensor):
+            is_not_frozen = Module.froozen_parameter_filter(module, key, value)
+        return is_a_valid_parameter and is_not_frozen
+    
+    @staticmethod
+    def froozen_parameter_filter(module: Any, key: Any, value: Any) -> bool:
+        return value.requires_grad
 
     def filter_and_map(
         self,
@@ -203,8 +210,7 @@ class Module(dict):
     def update(self, parameters: dict) -> None:
         """Replace the parameters of this Module with the provided ones in the dict of dicts and lists.
 
-        Commonly used by the optimizer to change the model to the updated (optimized) parameters. Also used by the 
-        :meth:`tinygpt.nn.value_and_grad` to set the tracers in the model in order to compute gradients.
+        Commonly used by the optimizer to change the model to the updated (optimized) parameters.
 
         The passed in parameters dictionary need not be a full dictionary similar to :meth:`parameters`. Only the 
         provided locations will be updated.
@@ -366,10 +372,18 @@ class Module(dict):
                 local_keys = tree_flatten(
                     m.filter_and_map(lambda m, k, v: (not isinstance(v, Module)) and m.valid_parameter_filter(m, k, v))
                 )
-                local_keys = [k for (k, v) in local_keys]
-
-            local_keys = m._validate_keys(local_keys, strict)
-            m._no_grad.update(local_keys)
+            else:
+                local_keys = m._validate_keys(local_keys, strict)
+                local_keys = tree_flatten(
+                    m.filter_and_map(
+                        lambda m, k, v: 
+                            k in local_keys and (not isinstance(v, Module)) and m.valid_parameter_filter(m, k, v)
+                    )
+                )
+            
+            # Freeze the parameters
+            for key, value in local_keys:
+                value.requires_grad = False
 
         if recurse:
             self.apply_to_modules(_freeze_impl)
@@ -403,13 +417,26 @@ class Module(dict):
                 parameters of a module. For instance unfreeze all biases by calling `module.unfreeze(keys="bias")`.
             strict (bool, optional): If set to `True` validate that the passed keys exist. Default: `False`.
         """
-
         def _unfreeze_impl(_, m):
             if keys is None:
-                m._no_grad.clear()
+                # Get all parameters
+                local_keys = tree_flatten(
+                    m.filter_and_map(lambda m, k, v: (not isinstance(v, Module)) and m.valid_parameter_filter(m, k, v))
+                )
             else:
+                # Get selected parameters
                 local_keys = m._validate_keys(keys, strict)
-                m._no_grad.difference_update(local_keys)
+                local_keys = tree_flatten(
+                    m.filter_and_map(
+                        lambda m, k, v: 
+                            k in local_keys and (not isinstance(v, Module)) and m.valid_parameter_filter(m, k, v)
+                    )
+                )
+
+            # Update the parameters
+            for key, value in local_keys:
+                value.requires_grad = True
+
 
         if recurse:
             self.apply_to_modules(_unfreeze_impl)
