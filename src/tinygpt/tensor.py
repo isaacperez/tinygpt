@@ -251,6 +251,9 @@ class Tensor():
     def _assign(self, new_buffer:Buffer) -> None:
         # Validate whether an in-place operation is permissible on this tensor
         if self.requires_grad:
+            # A tensor only requires grad if it is created with requires_grad=True or is the result of an operation 
+            # where there is a tensor that requires grad invovled, so it is not necessary to check if the buffer is a 
+            # view or not
             raise RuntimeError("a Tensor that requires grad is being used in an in-place operation.")
         
         # Update the buffer
