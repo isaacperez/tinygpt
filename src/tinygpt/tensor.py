@@ -248,22 +248,22 @@ class Tensor():
     def ones(shape: tuple, **kwargs):
         return Tensor(Buffer.ones(shape), **kwargs)
 
-    def _validate_inplace_operation(self,) -> None:
+    def _assign(self, new_buffer:Buffer) -> None:
         # Validate whether an in-place operation is permissible on this tensor
         if self.requires_grad:
             raise RuntimeError("a Tensor that requires grad is being used in an in-place operation.")
+        
+        # Update the buffer
+        self.buffer = new_buffer
+
+        # Increment the version of the tensor
+        self._increment_version()
 
     def __iadd__(self, other: Any) -> Tensor: 
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation by creating an intermediary buffer to hold the result
-        self.buffer = self.buffer + other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
+        self._assign(self.buffer + other.buffer)
 
         return self
 
@@ -271,13 +271,7 @@ class Tensor():
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation by creating an intermediary buffer to hold the result
-        self.buffer = self.buffer - other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
+        self._assign(self.buffer - other.buffer)
 
         return self
 
@@ -285,13 +279,7 @@ class Tensor():
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation by creating an intermediary buffer to hold the result
-        self.buffer = self.buffer * other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
+        self._assign(self.buffer * other.buffer)
 
         return self
 
@@ -299,13 +287,7 @@ class Tensor():
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation by creating an intermediary buffer to hold the result
-        self.buffer = self.buffer / other.buffer
-
-        # Increment the version of the tensor
-        self._increment_version()
+        self._assign(self.buffer / other.buffer)
 
         return self
 
@@ -313,13 +295,7 @@ class Tensor():
         if not isinstance(exponent, (int, float)):
             raise TypeError("Only supporting int/float powers for now")
 
-        self._validate_inplace_operation()
-
-        # Perform the in-place operation by creating an intermediary buffer to hold the result
-        self.buffer = self.buffer ** exponent
-
-        # Increment the version of the tensor
-        self._increment_version()
+        self._assign(self.buffer ** exponent)
 
         return self
 
