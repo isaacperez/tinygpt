@@ -1365,3 +1365,72 @@ def test_serialization():
             # Validate the deserialization
             assert all((deserialized_tensor == tensor).buffer)
             assert deserialized_tensor.requires_grad == tensor.requires_grad
+
+
+def test_backward_with_inplace_operations():
+    # Check backward fails after in-place operations
+
+    def iadd(x):
+        x += 1.0
+
+    def isub(x):
+        x -= 1.0
+
+    def imul(x):
+        x *= 1.0
+
+    def itruediv(x):
+        x /= 1.0
+
+    def ipow(x):
+        x **= 1.0
+
+    for op in [iadd, isub, imul, itruediv, ipow]:
+
+        # Check backward fails when in-place operations are used
+        a = Tensor(1.0, requires_grad=True)
+        b = a * 1.0
+        c = Tensor(1.0, requires_grad=False)
+        d = c + b 
+
+        # Update a in place on a tensor that requires grad is not allowed
+        with pytest.raises(RuntimeError):
+            op(a)
+        
+        # In-place operation with a tensor that doesn't requires grad
+        previous_version = c._version
+        op(c)
+
+        # Check c has a new version
+        assert c._version > previous_version
+
+        # we cannot do the backward pass after an in-place operation
+        with pytest.raises(RuntimeError):
+            d.backward()
+
+        # Check we can create a graph with a tensor that has been involved in an in-place operation
+        a = Tensor(1.0, requires_grad=True)
+        b = a * 1.0
+        d = c + b 
+
+        d.backward()
+
+        assert all(a.grad == 1.0)
+
+
+def test_inplace_operations():
+    # Check we can do in-place operations
+    a = Tensor(1.0, requires_grad=False)
+    b = a * 2.0
+    c = a + 2.0
+
+    # Perform some in-place operaions
+    a += 3.0
+    a -= 2.0
+    a *= 2.0
+    a /= 2.0
+    a **= 3.0
+
+    assert all(a.buffer == 8.0)
+    assert all(b.buffer == 2.0)
+    assert all(c.buffer == 3.0)
