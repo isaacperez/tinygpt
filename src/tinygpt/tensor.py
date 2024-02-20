@@ -111,6 +111,18 @@ class Tensor():
 
         return apply_op(mlops.Div, *self._broadcasted(other))
 
+    def __radd__(self, other: Any) -> Tensor: 
+        return Tensor(other) + self
+
+    def __rsub__(self, other: Any) -> Tensor: 
+        return Tensor(other) - self
+
+    def __rmul__(self, other: Any) -> Tensor: 
+        return Tensor(other) * self
+
+    def __rtruediv__(self, other: Any) -> Tensor: 
+        return Tensor(other) / self
+
     def __pow__(self, exponent: Union[int, float]) -> Tensor:
         if not isinstance(exponent, (int, float)):
             raise TypeError("Only supporting int/float powers for now")
@@ -411,10 +423,11 @@ class Tensor():
         """
         # Accumulate the gradient for the current tensor (only for leaf tensors or tensors marked to retain gradient)
         if self.is_leaf or self._retain_grad:
+            # We store the gradient as a Tensor but propagate it as Buffer
             if self.grad is None:
-                self.grad = incoming_gradient
+                self.grad = Tensor(incoming_gradient)
             else:
-                self.grad += incoming_gradient
+                self.grad += Tensor(incoming_gradient)
 
         # Accumulate the gradient to be propagated backward
         if self._accumulated_gradient_to_propagate is None:

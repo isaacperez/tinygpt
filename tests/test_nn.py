@@ -1,7 +1,6 @@
 import pytest
 
 from tinygpt.tensor import Tensor
-from tinygpt.buffer import Buffer
 from tinygpt.nn import Module, FullyConnectedLayer, MLP
 
 
