@@ -260,59 +260,63 @@ class Tensor():
     def ones(shape: tuple, **kwargs):
         return Tensor(Buffer.ones(shape), **kwargs)
 
-    def _assign(self, new_buffer:Buffer) -> None:
-        # Validate whether an in-place operation is permissible on this tensor
-        if self.requires_grad:
+    def assign(self, other: Tensor) -> None:
+        # Validate the type of the new tensor
+        if not isinstance(other, Tensor):
+            raise TypeError(f"Expecting Tensor, but found {type(other)}")
+
+        # Validate whether we can use the new tensor to update the current one
+        if other.requires_grad:
             # A tensor only requires grad if it is created with requires_grad=True or is the result of an operation 
             # where there is a tensor that requires grad invovled, so it is not necessary to check if the buffer is a 
             # view or not
             raise RuntimeError("a Tensor that requires grad is being used in an in-place operation.")
         
+        # Validate the shape
+        if self.shape != other.shape:
+            raise RuntimeError(f"Shape mismatch. Found {self.shape} and {other.shape}")
+
+        # Validate the type
+        if self.dtype != other.dtype:
+            raise RuntimeError(f"Dtype mismatch. Found {self.dtype} and {other.dtype}")
+
         # Update the buffer
-        self.buffer = new_buffer
+        self.buffer = other.buffer
 
         # Increment the version of the tensor
         self._increment_version()
+
+        return self
 
     def __iadd__(self, other: Any) -> Tensor: 
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._assign(self.buffer + other.buffer)
-
-        return self
+        return self.assign(self + other)
 
     def __isub__(self, other: Any) -> Tensor: 
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._assign(self.buffer - other.buffer)
-
-        return self
+        return self.assign(self - other)
 
     def __imul__(self, other: Any) -> Tensor: 
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._assign(self.buffer * other.buffer)
-
-        return self
+        return self.assign(self * other)
 
     def __itruediv__(self, other: Any) -> Tensor: 
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        self._assign(self.buffer / other.buffer)
-
-        return self
+        return self.assign(self / other)
 
     def __ipow__(self, exponent: Union[int, float]) -> Tensor: 
         if not isinstance(exponent, (int, float)):
             raise TypeError("Only supporting int/float powers for now")
 
-        self._assign(self.buffer ** exponent)
-
-        return self
+        return self.assign(self ** exponent)
 
     def backward(self, incoming_gradient: Optional[Buffer] = None, retain_graph: bool = False) -> None:
         """

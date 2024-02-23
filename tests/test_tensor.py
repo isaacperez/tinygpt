@@ -1434,3 +1434,37 @@ def test_inplace_operations():
     assert all(a.buffer == 8.0)
     assert all(b.buffer == 2.0)
     assert all(c.buffer == 3.0)
+
+
+def test_assign():
+    tensor_a = Tensor([1., 2., 3.], requires_grad=False)
+    tensor_b = Tensor([4., 5., 6.], requires_grad=False)
+    tensor_c = Tensor([[1., 2.], [3., 4.]], requires_grad=True)
+    tensor_d = Tensor([7., 8.], requires_grad=False)
+    tensor_e = Tensor([7, 8, 9], requires_grad=False)
+
+    # Valid use
+    tensor_a.assign(tensor_b)
+    assert tensor_a.to_python() == tensor_b.to_python()
+
+    # When the tensor requires grad, assign should fail
+    with pytest.raises(RuntimeError):
+        tensor_a.assign(tensor_c)
+
+    # Should fail with different shapes
+    with pytest.raises(RuntimeError):
+        tensor_a.assign(tensor_c)
+
+    with pytest.raises(RuntimeError):
+        tensor_a.assign(tensor_d)
+
+    # Test different types
+    with pytest.raises(RuntimeError):
+        tensor_a.assign(tensor_e)  
+
+    # Test assigning a non-tensor should raise an error
+    with pytest.raises(TypeError):
+        tensor_a.assign([1, 2, 3])
+
+    # Check tensor_a keep the expected value after all the exceptions
+    assert tensor_a.to_python() == tensor_b.to_python()
