@@ -1,6 +1,7 @@
+import json
 from typing import List, Union, Tuple
 
-from tinygpt.utils import tree_map
+from tinygpt.utils import tree_map, tree_flatten
 from tinygpt.tensor import Tensor 
 from tinygpt.nn import Module
 
@@ -51,10 +52,53 @@ class Optimizer:
         self.module.zero_grad()
 
     def load_state(self, file_or_weights: Union[str, List[Tuple[str, Tensor]]], strict: bool = True) -> None:
-        raise NotImplementedError()
+        weights = file_or_weights
+        if isinstance(weights, str):
+            with open(weights, mode='r') as json_file:
+                raw_weights = json.load(json_file)
+            
+            # We store the weights as str so we have to convert them back to Tensor
+            def from_str_to_tensor(v):
+                if isinstance(v, str) and Tensor.validate_serialized_tensor(v):
+                    return Tensor.deserialize_tensor(v)  
+                else:
+                    return v
+
+            weights = tree_map(from_str_to_tensor, raw_weights)
+
+        if strict:
+            new_weights = dict(weights)
+            curr_weights = dict(tree_flatten(self.state))
+            if extras := (new_weights.keys() - curr_weights.keys()):
+                extras = " ".join(extras)
+                raise ValueError(f"Received parameters not in the optimizer: {extras}.")
+
+            if missing := (curr_weights.keys() - new_weights.keys()):
+                missing = " ".join(missing)
+                raise ValueError(f"Missing parameters: {missing}.")
+
+            for k, v in curr_weights.items():
+                v_new = new_weights[k]
+                if not isinstance(v_new, Tensor):
+                    raise ValueError(f"Expected dict but received {type(v_new)} for parameter {k}")
+                if v_new.shape != v.shape:
+                    raise ValueError(f"Expected shape {v.shape} but received shape {v_new.shape} for parameter {k}")
+
+        self.state = weights
     
     def save_state(self, file: str) -> None:
-        raise NotImplementedError()
+        # We need a custom method to transform Tensor into a JSON format
+        def serializer(obj):
+            if isinstance(obj, Tensor):
+                return obj.serialize_tensor()
+            else:
+                return obj.__dict__
+
+        if file.endswith(".json"):
+            with open(file, mode='w') as json_file:
+                json.dump(self.state, json_file, indent=2, default=serializer)
+        else:
+            raise ValueError("Unsupported file extension. Use '.json'.")
 
 
 class SGD(Optimizer):

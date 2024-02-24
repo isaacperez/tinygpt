@@ -1,5 +1,7 @@
 import copy
 
+import pytest
+
 from tinygpt.tensor import Tensor
 from tinygpt.utils import tree_flatten
 from tinygpt.nn import Module, MLP
@@ -72,3 +74,40 @@ def test_SGD():
         assert all(-1e-05 < (output.buffer - expected_outputs[it].buffer) < 1e-05)
         assert all(-1e-05 < (module.tensor.buffer - expected_new_tensors[it].buffer) < 1e-05)
         assert all(-1e-05 < (module.tensor.grad.buffer - expected_grad.buffer) < 1e-05)
+
+
+def test_save_and_load_optimizer(tmp_path):
+    # Create a temp folder
+    tmp_dir = tmp_path / "test_save_and_load_optimizer"
+    tmp_dir.mkdir()
+
+    # Create a MLP to test the optimizer
+    mlp = MLP(input_dims=4, hidden_dims=[4, 4], activation_fn='relu', bias=True)
+
+    # Create the optimizer
+    sgd = SGD(module=mlp, learning_rate=0.1, momentum=0.9, weight_decay=0.1, dampening=0.1, nesterov=False)
+
+    # Do a forward and backward pass
+    sgd.zero_grad()
+    output = mlp(Tensor.zeros((2, 4)))
+    output.sum((0, 1)).backward()
+
+    # Apply the gradients
+    sgd.update() 
+
+    # Store the state
+    sgd.save_state(str(tmp_dir / "sgd.json"))
+
+    # Create a new optimizer
+    new_sgd = SGD(module=mlp, learning_rate=0.1, momentum=0.9, weight_decay=0.1, dampening=0.1, nesterov=False)
+
+    assert tree_flatten(new_sgd.state) != tree_flatten(sgd.state)
+
+    # Load the state into the new optimizer with strict mode (it should fail because the state is empty)
+    with pytest.raises(ValueError): 
+        new_sgd.load_state(str(tmp_dir / "sgd.json"))
+
+    # Load the state without strict mode
+    new_sgd.load_state(str(tmp_dir / "sgd.json"), strict=False)
+
+    assert tree_flatten(new_sgd.state) == tree_flatten(sgd.state)
