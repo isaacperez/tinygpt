@@ -115,6 +115,7 @@ class Exp(Operation):
 
 
 class Maximum(Operation):
+
     def forward(self, first_buffer: Buffer, second_buffer: Buffer) -> Buffer:
         self.first_buffer, self.second_buffer = first_buffer, second_buffer
         return first_buffer.maximum(second_buffer)
@@ -132,6 +133,7 @@ class Maximum(Operation):
 
 
 class Relu(Operation):
+
     def forward(self, buffer: Buffer) -> Buffer:
         self.buffer = buffer
         return buffer.maximum(0.)
@@ -141,6 +143,7 @@ class Relu(Operation):
 
 
 class Sum(Operation):
+
     def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
         self.input_shape = buffer.shape
         return buffer.sum(axes)
@@ -150,6 +153,7 @@ class Sum(Operation):
 
 
 class Max(Operation):
+
     def forward(self, buffer: Buffer, axes: tuple) -> Buffer:
         self.buffer, self.axes = buffer, axes
         self.result = buffer.max(axes)
