@@ -625,8 +625,8 @@ def test_multiple_ops_with_reduction_ops():
 
     reshaped_tensor = tensor.reshape((1, 3))
     expanded_tensor = reshaped_tensor.expand((4, 3))
-    sum_tensor_1 = expanded_tensor.sum(0)
-    sum_tensor_2 = sum_tensor_1.sum(0)
+    sum_tensor_1 = expanded_tensor.sum((0,))
+    sum_tensor_2 = sum_tensor_1.sum((0,))
 
     sum_tensor_2.backward()
 
@@ -637,8 +637,8 @@ def test_multiple_ops_with_reduction_ops():
 
     reshaped_tensor = tensor.reshape((1, 3))
     expanded_tensor = reshaped_tensor.expand((4, 3))
-    sum_tensor_1 = expanded_tensor.max(0)
-    sum_tensor_2 = sum_tensor_1.max(0)
+    sum_tensor_1 = expanded_tensor.max((0,))
+    sum_tensor_2 = sum_tensor_1.max((0,))
 
     sum_tensor_2.backward()
 
@@ -796,7 +796,7 @@ def test_softmax():
     assert softmax.shape == (3,)
     assert all((softmax.buffer - expected_output) < Buffer([1e-05, 1e-05, 1e-05]))
     assert all((softmax.buffer - expected_output) > Buffer([-1e-05, -1e-05, -1e-05]))
-    assert all(softmax.sum(0, keepdim=True).buffer == 1.0)
+    assert all(softmax.sum((0,), keepdim=True).buffer == 1.0)
 
     # 2D
     tensor = Tensor([[1., 0.2, 0.1], [0.1, 1., 0.2]])
@@ -821,11 +821,11 @@ def test_softmax():
     assert all((softmax_dim1.buffer - expected_output_dim1) < positive_tolerance)
     assert all((softmax_dim1.buffer - expected_output_dim1) > negative_tolerance)
 
-    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) < 1e-08)
-    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) > -1e-08)
+    assert all((softmax_dim0.sum((0,), keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim0.sum((0,), keepdim=True).buffer - 1.0) > -1e-08)
 
-    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) < 1e-08)
-    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) > -1e-08)
+    assert all((softmax_dim1.sum((1,), keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim1.sum((1,), keepdim=True).buffer - 1.0) > -1e-08)
 
     # 3D
     tensor = Tensor([[[1., 0.2, 0.1], [0.1, 1., 0.2]]])
@@ -856,14 +856,14 @@ def test_softmax():
     assert all((softmax_dim2.buffer - expected_output_dim2) < positive_tolerance)
     assert all((softmax_dim2.buffer - expected_output_dim2) > negative_tolerance)
 
-    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) < 1e-08)
-    assert all((softmax_dim0.sum(0, keepdim=True).buffer - 1.0) > -1e-08)
+    assert all((softmax_dim0.sum((0,), keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim0.sum((0,), keepdim=True).buffer - 1.0) > -1e-08)
 
-    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) < 1e-08)
-    assert all((softmax_dim1.sum(1, keepdim=True).buffer - 1.0) > -1e-08)
+    assert all((softmax_dim1.sum((1,), keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim1.sum((1,), keepdim=True).buffer - 1.0) > -1e-08)
 
-    assert all((softmax_dim2.sum(2, keepdim=True).buffer - 1.0) < 1e-08)
-    assert all((softmax_dim2.sum(2, keepdim=True).buffer - 1.0) > -1e-08)
+    assert all((softmax_dim2.sum((2,), keepdim=True).buffer - 1.0) < 1e-08)
+    assert all((softmax_dim2.sum((2,), keepdim=True).buffer - 1.0) > -1e-08)
 
 
 def test_gradient_function_backward_with_softmax():
@@ -873,8 +873,8 @@ def test_gradient_function_backward_with_softmax():
 
         assert tensor.grad is None
         a = tensor.softmax(0)
-        b = a.sum(0)
-        result = b.sum(0)
+        b = a.sum((0,))
+        result = b.sum((0,))
 
         assert result.grad is None
         if requires_grad:

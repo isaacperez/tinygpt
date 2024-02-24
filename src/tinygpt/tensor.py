@@ -145,18 +145,22 @@ class Tensor():
         return apply_op(mlops.Relu, self)
 
     def sum(self, axes: tuple, keepdim: bool = False) -> Tensor:
-        if keepdim:
+        if not isinstance(axes, tuple):
+            raise TypeError(f"axes argument type is tuple, but found {type(axes)}")
+        elif keepdim:
             return apply_op(mlops.Sum, self, axes=axes)
         else:
             result = apply_op(mlops.Sum, self, axes=axes)
-            return result.reshape(tuple(val for val in result.shape if val != 1))
+            return result.reshape(tuple(val for idx, val in enumerate(result.shape) if val != 1 or idx not in axes))
 
     def max(self, axes: tuple, keepdim: bool = False) -> Tensor:
-        if keepdim:
+        if not isinstance(axes, tuple):
+            raise TypeError(f"axes argument type is tuple, but found {type(axes)}")
+        elif keepdim:
             return apply_op(mlops.Max, self, axes=axes)
         else:
             result = apply_op(mlops.Max, self, axes=axes)
-            return result.reshape(tuple(val for val in result.shape if val != 1))
+            return result.reshape(tuple(val for idx, val in enumerate(result.shape) if val != 1 or idx not in axes))
 
     def softmax(self, axis: int) -> Tensor:
         if not isinstance(axis, int):

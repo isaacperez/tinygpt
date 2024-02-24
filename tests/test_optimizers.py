@@ -71,9 +71,17 @@ def test_SGD():
         current_version = module.tensor._version
 
         # Check the values
-        assert all(-1e-05 < (output.buffer - expected_outputs[it].buffer) < 1e-05)
-        assert all(-1e-05 < (module.tensor.buffer - expected_new_tensors[it].buffer) < 1e-05)
-        assert all(-1e-05 < (module.tensor.grad.buffer - expected_grad.buffer) < 1e-05)
+        delta = output.buffer - expected_outputs[it].buffer
+        assert all(delta > -1e-05)
+        assert all(delta < 1e-05)
+
+        delta = module.tensor.buffer - expected_new_tensors[it].buffer
+        assert all(delta > -1e-05)
+        assert all(delta < 1e-05)
+
+        delta = module.tensor.grad.buffer - expected_grad.buffer
+        assert all(delta > -1e-05)
+        assert all(delta < 1e-05)
 
 
 def test_save_and_load_optimizer(tmp_path):
