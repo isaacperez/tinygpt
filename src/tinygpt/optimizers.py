@@ -1,9 +1,9 @@
 import json
 from typing import List, Union, Tuple
 
-from tinygpt.utils import tree_map, tree_flatten
 from tinygpt.tensor import Tensor 
-from tinygpt.nn import Module
+from tinygpt.module import Module
+from tinygpt.utils import tree_map, tree_flatten
 
 
 class OptimizerState(dict):

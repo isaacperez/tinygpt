@@ -1,5 +1,5 @@
 from tinygpt.tensor import Tensor
-from tinygpt.nn import Module
+from tinygpt.module import Module
 
 
 class CrossEntropyLoss(Module):

@@ -2,10 +2,11 @@ import copy
 
 import pytest
 
+from tinygpt.nn import MLP
 from tinygpt.tensor import Tensor
-from tinygpt.utils import tree_flatten
-from tinygpt.nn import Module, MLP
+from tinygpt.module import Module
 from tinygpt.optimizers import SGD
+from tinygpt.utils import tree_flatten
 
 
 def test_SGD_with_MLP():

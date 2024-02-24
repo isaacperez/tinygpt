@@ -1,7 +1,8 @@
 import pytest
 
 from tinygpt.tensor import Tensor
-from tinygpt.nn import Module, FullyConnectedLayer, MLP
+from tinygpt.module import Module
+from tinygpt.nn import FullyConnectedLayer, MLP
 
 
 def test_FullyConnectedLayer():
