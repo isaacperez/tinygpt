@@ -1,3 +1,5 @@
+import math
+
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
 
@@ -7,10 +9,10 @@ class FullyConnectedLayer(Module):
 
     def __init__(self, input_dims: int, output_dims: int, bias: bool = True) -> None:
         super().__init__()
-
-        self.weights = Tensor.uniform(shape=(input_dims, output_dims), requires_grad=True)
+        scale = math.sqrt(1.0 / input_dims)
+        self.weights = Tensor.uniform(shape=(input_dims, output_dims), low=-scale, high=scale, requires_grad=True)
         if bias:
-            self.bias = Tensor.uniform(shape=(output_dims,), requires_grad=True)
+            self.bias = Tensor.uniform(shape=(output_dims,), low=-scale, high=scale, requires_grad=True)
 
     def _extra_repr(self) -> str:
         return f"input_dims={self.weights.shape[0]}, output_dims={self.weights.shape[1]}, bias={'bias' in self}"

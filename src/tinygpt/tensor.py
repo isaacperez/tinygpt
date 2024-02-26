@@ -253,8 +253,8 @@ class Tensor():
         return (mult).sum((mult.ndim - 1,))
 
     @staticmethod
-    def uniform(shape: tuple, **kwargs):
-        return Tensor(Buffer.uniform(shape), **kwargs)
+    def uniform(shape: tuple, low: float = 0.0, high: float = 1.0, **kwargs):
+        return Tensor((high - low) * Buffer.uniform(shape) + low, **kwargs)
 
     @staticmethod
     def zeros(shape: tuple, **kwargs):
