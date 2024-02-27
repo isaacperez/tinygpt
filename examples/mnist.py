@@ -187,19 +187,19 @@ if __name__ == "__main__":
             accuracies.extend(accuracy)
 
             print(
-                f"[VAL][Epoch {epoch + 1} of {num_epochs}]"
+                f"[VAL][Epoch {epoch + 1} of {num_epochs}][it. {it + 1} of {num_test_iterations}]"
                 f" mean it. loss = {sum(loss) / len(loss):.4f}"
                 f" | mean it. accuracy = {sum(accuracy) / len(accuracy):.4f}"
                 f" | Time {toc - tic:.3f} (s)"
             )
 
         print(
-            f"[VAL][Epoch {epoch + 1} of {num_epochs}][it. {it + 1} of {num_test_iterations}]"
+            f"[VAL][Epoch {epoch + 1} of {num_epochs}]"
             f" mean epoch loss = {sum(losses) / len(losses):.4f}"
             f" | accuracy = {sum(accuracies) / len(accuracies):.4f}"
         )
 
     """
     This is what I got after one epoch: 
-    [VAL][Epoch 1 of 5][it. 40 of 235] mean epoch loss = 0.2192 | accuracy = 0.9309
+    [VAL][Epoch 1 of 5] mean epoch loss = 0.2192 | accuracy = 0.9309
     """
