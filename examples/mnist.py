@@ -13,95 +13,83 @@ from tinygpt.nn import MLP, FullyConnectedLayer
 from tinygpt.losses import CrossEntropyLoss
 
 
-def download_dataset(
-        save_dir: str = '/tmp', 
-        base_url: str = "http://yann.lecun.com/exdb/mnist/", 
-        filename: str = "mnist.pkl"
-    ):
 
-    def download_and_save(save_file):
-        filename = [
-            ["training_images", "train-images-idx3-ubyte.gz"],
-            ["test_images", "t10k-images-idx3-ubyte.gz"],
-            ["training_labels", "train-labels-idx1-ubyte.gz"],
-            ["test_labels", "t10k-labels-idx1-ubyte.gz"],
+MNIST_URL = "http://yann.lecun.com/exdb/mnist/"
+MNIST_FILES = [
+    ("training_images", "train-images-idx3-ubyte.gz"),
+    ("test_images", "t10k-images-idx3-ubyte.gz"),
+    ("training_labels", "train-labels-idx1-ubyte.gz"),
+    ("test_labels", "t10k-labels-idx1-ubyte.gz"),
+]
+
+
+def download_file(url, save_path):
+    print(f"Downloading file {os.path.basename(save_path)}...")
+    request.urlretrieve(url, save_path)
+
+
+def extract_images(file_path):
+    with gzip.open(file_path, "rb") as f:
+        magic, num_images, rows, cols = struct.unpack('>4I', f.read(16))
+        assert magic == 2051, "Invalid magic number for image file"
+        assert num_images in [10000, 60000], "Invalid number of images"
+        assert rows == 28 and cols == 28, "Invalid image dimensions"
+
+        images = [
+            [float(pixel) / 255.0 for pixel in struct.unpack(f'>{rows*cols}B', f.read(rows*cols))]
+            for _ in range(num_images)
         ]
+        return images
 
-        mnist = {}
-        # Download the files
-        for name in filename:
-            out_file = os.path.join(save_dir, name[1])
-            print(f"Downloading file {name[1]}...")
-            request.urlretrieve(base_url + name[1], out_file)
 
-        # Read the images
-        print("Reading the images...")
-        for name in filename[:2]:
-            out_file = os.path.join(save_dir, name[1])
-            with gzip.open(out_file, "rb") as f:
-                magic, num_images, rows, cols = struct.unpack('>4I', f.read(16))
-                
-                # Should get values specified here http://yann.lecun.com/exdb/mnist/
-                assert magic == 2051
-                assert num_images == 10000 or num_images == 60000
-                assert rows == 28
-                assert cols == 28
-                
-                num_pixels = rows * cols
-                mnist[name[0]] = [
-                    list(map(lambda x: float(x) / 255.0, struct.unpack('>{}B'.format(num_pixels), f.read(num_pixels))))
-                    for _ in range(num_images)
-                ]
-            
-                # Verify data looks appropriate
-                for img in mnist[name[0]]:
-                    for p in img:
-                        try:
-                            assert 0. <= p <= 1.
-                        except AssertionError:
-                            print("{} is not a valid pixel value".format(p))
-                            raise
-        
-        # Read the labels
-        print("Reading the labels")
-        for name in filename[-2:]:
-            out_file = os.path.join(save_dir, name[1])
-            with gzip.open(out_file, "rb") as f:
-                magic, num_labels = struct.unpack('>II', f.read(8))
+def extract_labels(file_path):
+    with gzip.open(file_path, "rb") as f:
+        magic, num_labels = struct.unpack('>II', f.read(8))
+        assert magic == 2049, "Invalid magic number for label file"
+        assert num_labels in [10000, 60000], "Invalid number of labels"
 
-                # Should get values specified here http://yann.lecun.com/exdb/mnist/
-                assert magic == 2049
-                assert num_labels == 10000 or num_labels == 60000
+        labels = [float(label) for label in struct.unpack(f'>{num_labels}b', f.read(num_labels))]
+        return [[label] for label in labels]
 
-                mnist[name[0]] = [[f] for f in map(float, struct.unpack('>{}b'.format(num_labels), f.read(num_labels)))]
 
-        # Save the data for next time
-        print("Saving the data..")
-        with open(save_file, "wb") as f:
-            pickle.dump(mnist, f)
+def download_mnist_dataset(save_dir='/tmp', base_url=MNIST_URL, filename="mnist.pkl"):
+    dataset_path = os.path.join(save_dir, filename)
+    if os.path.exists(dataset_path):
+        print("MNIST dataset already downloaded.")
+    else:
+        mnist_data = {}
+        for name, file in MNIST_FILES:
+            file_path = os.path.join(save_dir, file)
+            download_file(base_url + file, file_path)
+            if "images" in name:
+                mnist_data[name] = extract_images(file_path)
+            else:
+                mnist_data[name] = extract_labels(file_path)
 
-    # Check if the data is already downloaded
-    save_file = os.path.join(save_dir, filename)
-    if not os.path.exists(save_file):
-        download_and_save(save_file)
+        with open(dataset_path, 'wb') as f:
+            pickle.dump(mnist_data, f)
+        print("MNIST dataset downloaded and saved.")
 
-    # Read the data
-    print("Loading the data")
-    with open(save_file, "rb") as f:
+    print("Loading MNIST dataset...")
+    with open(dataset_path, 'rb') as f:
         mnist = pickle.load(f)
 
     return mnist["training_images"], mnist["training_labels"], mnist["test_images"], mnist["test_labels"]
 
 
-def to_one_hot(labels: list[int], num_classes: int):
-    one_hot_encoding = []
-    for label in labels:
-        one_hot_encoding.append([1.0 if label[0] == idx else 0.0 for idx in range(num_classes)])
-
-    return one_hot_encoding
+def to_one_hot(labels, num_classes=10):
+    return [[1.0 if i == label[0] else 0.0 for i in range(num_classes)] for label in labels]
 
 
-class Model(Module):
+def calculate_accuracy(predictions, labels, reduce=True):
+    correct_predictions = ((predictions * labels).sum(axes=(1,)) == predictions.max(axes=(1,))).to_python()
+    if reduce:
+        return sum(correct_predictions) / predictions.shape[0]
+    else:
+        return correct_predictions
+
+
+class MNISTModel(Module):
     def __init__(self):
         super().__init__()
 
@@ -112,21 +100,12 @@ class Model(Module):
         return self.classification_layer(self.mlp(x))
 
 
-def get_accuracy(model_output, labels, reduce=True):
-    max_output = model_output.max(axes=(1,))
-    accuracy = ((model_output * labels).sum(axes=(1,)) == max_output).to_python()
-    if reduce:
-        accuracy = sum(accuracy) / max_output.shape[0]
-
-    return accuracy
-
-
 if __name__ == "__main__":
     # Load the dataset
-    train_img, train_labels, test_img, test_labels = download_dataset()
+    train_img, train_labels, test_img, test_labels = download_mnist_dataset()
 
     # Create the model
-    model = Model()
+    model = MNISTModel()
 
     # Create the optimizer
     sgd = SGD(model, learning_rate=0.1, momentum=0.9)
@@ -140,6 +119,7 @@ if __name__ == "__main__":
     num_train_iterations = int(len(train_img) / batch_size + 1)
     num_test_iterations = int(len(test_img) / batch_size + 1)
     for epoch in range(num_epochs):
+        # Training
         for it, (images, labels) in enumerate(zip(batched(train_img, batch_size), batched(train_labels, batch_size))):
             # Conver the data into tensors
             images, labels = Tensor(images), Tensor(to_one_hot(labels, 10))
@@ -150,7 +130,7 @@ if __name__ == "__main__":
             model_output = model(images)
 
             # Calculate the loss and the accuracy
-            accuracy = get_accuracy(model_output=model_output, labels=labels)
+            accuracy = calculate_accuracy(predictions=model_output, labels=labels)
             loss = loss_fn(logits=model_output, labels=labels)
             mean_loss = loss.sum(axes=(0,)) / float(loss.shape[0])
             
@@ -166,7 +146,7 @@ if __name__ == "__main__":
                 f" | Time {toc - tic:.3f} (s)"
             )
 
-        # Do one validation on test set
+        # Test
         accuracies = []
         losses = []
         for it, (images, labels) in enumerate(zip(batched(test_img, batch_size), batched(test_labels, batch_size))):
@@ -179,7 +159,7 @@ if __name__ == "__main__":
             toc = time.perf_counter()
 
             # Calculate the loss and the accuracy
-            accuracy = get_accuracy(model_output=model_output, labels=labels, reduce=False)
+            accuracy = calculate_accuracy(predictions=model_output, labels=labels, reduce=False)
             loss = loss_fn(logits=model_output, labels=labels).to_python()
 
             # Save the results
@@ -187,19 +167,19 @@ if __name__ == "__main__":
             accuracies.extend(accuracy)
 
             print(
-                f"[VAL][Epoch {epoch + 1} of {num_epochs}][it. {it + 1} of {num_test_iterations}]"
+                f"[TEST][Epoch {epoch + 1} of {num_epochs}][it. {it + 1} of {num_test_iterations}]"
                 f" mean it. loss = {sum(loss) / len(loss):.4f}"
                 f" | mean it. accuracy = {sum(accuracy) / len(accuracy):.4f}"
                 f" | Time {toc - tic:.3f} (s)"
             )
 
         print(
-            f"[VAL][Epoch {epoch + 1} of {num_epochs}]"
+            f"[TEST][Epoch {epoch + 1} of {num_epochs}]"
             f" mean epoch loss = {sum(losses) / len(losses):.4f}"
             f" | accuracy = {sum(accuracies) / len(accuracies):.4f}"
         )
 
     """
     This is what I got after one epoch: 
-    [VAL][Epoch 1 of 5] mean epoch loss = 0.2192 | accuracy = 0.9309
+    [TEST][Epoch 1 of 5] mean epoch loss = 0.2192 | accuracy = 0.9309
     """
