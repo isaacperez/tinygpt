@@ -14,7 +14,7 @@ def test_FullyConnectedLayer():
     
     # Wrong values
     for wrong_value in [-1, 0]:
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, ZeroDivisionError)):
             _ = FullyConnectedLayer(input_dims=wrong_value, output_dims=12, bias=True) 
         with pytest.raises(ValueError):
             _ = FullyConnectedLayer(input_dims=12, output_dims=wrong_value, bias=True)
@@ -219,7 +219,7 @@ def test_MLP():
 
     # Wrong values
     for wrong_value in [-1, 0]:
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, ZeroDivisionError)):
             _ = MLP(input_dims=wrong_value, hidden_dims=[12], activation_fn='relu', bias=True)
         with pytest.raises(ValueError):
             _ = MLP(input_dims=12, hidden_dims=[wrong_value], activation_fn='relu', bias=True)

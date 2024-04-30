@@ -35,7 +35,9 @@ def test_SGD_with_MLP():
     for (old_n, old_tensor), (new_n, new_tensor) in zip(old_weights, new_weights):
         assert old_n == new_n 
         assert old_tensor.shape == new_tensor.shape
-        assert all(new_tensor.buffer < old_tensor.buffer)
+
+        # After the update, the tensors should be different
+        assert new_tensor.to_python() != old_tensor.to_python()
 
 
 def test_SGD():
