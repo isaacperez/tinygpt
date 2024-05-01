@@ -14,7 +14,7 @@ class RegexPatterns:
         """
 
 
-def get_stats(ids, counts=None):
+def get_stats(ids: list[int], counts: dict[tuple[int, int], int] = None) -> dict[tuple[int, int], int]:
     """
     Given a list of integers, return a dictionary of counts of consecutive pairs
     Example: [1, 2, 3, 1, 2] -> {(1, 2): 2, (2, 3): 1, (3, 1): 1}
@@ -26,7 +26,7 @@ def get_stats(ids, counts=None):
     return counts
 
 
-def merge(ids, pair, idx):
+def merge(ids: list[int], pair: tuple[int, int], idx: int) -> list[int]:
     """
     In the list of integers (ids), replace all consecutive occurrences of pair with the new integer token idx
     Example: ids=[1, 2, 3, 1, 2], pair=(1, 2), idx=4 -> [4, 3, 4]
