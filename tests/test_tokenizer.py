@@ -1,4 +1,5 @@
 import re
+import os 
 
 import pytest 
 
@@ -43,7 +44,7 @@ def test_train():
     tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
 
     # Before training, a tokenizer doesn't have vocabulary nor merges    
-    assert tokenizer.vocab == {}
+    assert len(tokenizer.vocab) == 256
     assert tokenizer.merges == {}
 
     # Train with some examples
@@ -117,3 +118,37 @@ def test_decode():
         tokenizer.decode(ids=[12345])
 
     assert tokenizer.decode(ids=[65, 66, 256]) == "AB12"
+
+
+def test_encode_decode():
+    tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
+    
+    tokenizer.train(text_corpus="123412561278", vocab_size=257, verbose=False)
+
+    assert tokenizer.decode(ids=[]) == ""
+    assert tokenizer.decode(ids=tokenizer.encode("123412561278", allowed_special="none")) == "123412561278"
+
+
+def test_save_and_load(tmp_path):
+    # Create a temp folder
+    tmp_dir = tmp_path / "test_tokenizer"
+    tmp_dir.mkdir()
+    
+    tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
+    tokenizer.train(text_corpus="123412561278", vocab_size=257, verbose=False)
+
+    model_path = str(tmp_dir / "gpt4_tokenizer")
+    tokenizer.save(model_path)
+
+    assert os.path.isfile(model_path + ".model")
+    assert os.path.isfile(model_path + ".vocab")
+
+    new_tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
+    new_tokenizer.load(model_path + ".model")
+
+    assert tokenizer.pattern == new_tokenizer.pattern
+    assert tokenizer.compiled_pattern == new_tokenizer.compiled_pattern
+    assert tokenizer.vocab == new_tokenizer.vocab
+    assert tokenizer.merges == new_tokenizer.merges
+    assert tokenizer.special_tokens == new_tokenizer.special_tokens
+    assert tokenizer.inverse_special_tokens == new_tokenizer.inverse_special_tokens
