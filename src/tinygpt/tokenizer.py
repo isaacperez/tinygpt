@@ -3,6 +3,8 @@ import ast
 import unicodedata
 from typing import Optional, Union
 
+from tinygpt.tensor import Tensor
+
 
 class RegexPatterns:
     GPT4 = r"""
@@ -325,3 +327,105 @@ class BPETokenizer:
 
         for special, idx in self.special_tokens.items():
             self.vocab[idx] = special.encode("utf-8")
+
+    def __call__(
+        self, 
+        text:Union[str, list[str]], 
+        padding_type: str = "none", 
+        padding_token: str = "",
+        max_length: int = -1, 
+        truncation: bool = False,
+        return_attention_mask: bool = False,
+    ) -> Union[Tensor, tuple[Tensor, Tensor]]:
+        """
+        Processes the input text (either a single string or a list of strings) and returns encoded tokens as tensors. 
+        Optionally, it can also return attention masks indicating which tokens are meaningful. The method handles 
+        padding, truncation, and attention masks based on the parameters provided.
+
+        Parameters:
+        - text: Input text or list of text inputs to be tokenized.
+        - padding_type: Specifies the type of padding to be applied. Can be 'none', 'max_length', or 'longest'. 'none' 
+          means no padding is applied, 'max_length' pads all sequences to a specific 'max_length', and 'longest' pads 
+          all sequences to the length of the longest sequence.
+        - padding_token: The token used for padding. This token must be recognized as a special token. 
+        - max_length: The maximum length of the sequence after padding and/or truncation. Ignored unless truncate or 
+          padding is chosen.
+        - truncation: Whether to truncate sequences to 'max_length'.
+        - return_attention_mask: If set to True, the method also returns attention masks along with encoded tokens. The 
+          attention mask has 1s for real tokens and 0s for padding.
+
+        Returns:
+        - A tensor of encoded tokens. If 'return_attention_mask' is True, returns a tuple of tensors (encoded tokens, 
+          attention masks).
+        """
+
+        # Validate the configuration 
+        if not (max_length == -1 or max_length > 0):
+            raise ValueError(f"max_length is not greater than 0 or -1")
+        
+        if padding_type != "max_length" and padding_type != "longest" and padding_type != 'none':
+            raise ValueError(f"padding_type values are 'max_length', 'longest' or 'none'; but found '{padding_type}'")
+        
+        if padding_type != "none" and padding_token not in self.special_tokens:
+            raise ValueError(f"padding_token ({repr(padding_token)}) is not a special_token")
+        
+        if padding_type == "max_length" and max_length == -1:
+            raise ValueError(f"You need to specify max_length when padding is 'max_length'")
+        
+        if truncation and max_length == -1:
+            raise ValueError(f"You need to specify max_length when truncation is set to True")
+        
+        # Standarize the text to a List of text
+        if isinstance(text, str):
+            text = [text]
+
+        # Convert each sentence to tokens 
+        sentences_encoded = []
+        attention_masks = []
+        for sentence in text:
+            # Encode the sentence
+            sentences_encoded.append(self.encode(sentence, allowed_special="all"))
+
+            # Save the attention mask
+            attention_masks.append([1] * len(sentences_encoded[-1]))
+
+        # Apply padding and truncation
+        length_longest_sentence = max(len(sentence) for sentence in sentences_encoded)
+        final_sentences_encoded = []
+        final_attention_masks = []
+        for sentence, attention_mask in zip(sentences_encoded, attention_masks):
+            # Apply padding
+            if padding_type == "longest":
+                num_pad_tokens = length_longest_sentence - len(sentence)
+                padding_token_id = self.encode(padding_token, allowed_special="all")
+            elif padding_type == "max_length":
+                num_pad_tokens = max_length - len(sentence)
+                padding_token_id = self.encode(padding_token, allowed_special="all")
+            else:
+                num_pad_tokens = 0
+                padding_token_id = [-1]  # It won't be used
+
+            sentence.extend(padding_token_id * num_pad_tokens)
+            attention_mask.extend([0] * num_pad_tokens) 
+
+            # Apply truncation
+            if truncation:
+                sentence = sentence[:max_length]
+                attention_mask = attention_mask[:max_length]
+            
+            # Save the sentence and attention mask with the padding and truncation applied
+            final_sentences_encoded.append(sentence)
+            final_attention_masks.append(attention_mask)
+
+            # Check all sequence have the same length
+            if len(final_sentences_encoded[0]) != len(final_sentences_encoded[-1]):
+                raise RuntimeError("encoded sentences don't have the same length. Use padding or truncation to fix it")
+
+        # Convert the sentences and attention mask into tensors
+        final_sentences_encoded = Tensor(final_sentences_encoded)
+        final_attention_masks = Tensor(final_attention_masks)
+
+        if return_attention_mask:
+            return final_sentences_encoded, final_attention_masks
+        else:
+            return final_sentences_encoded
