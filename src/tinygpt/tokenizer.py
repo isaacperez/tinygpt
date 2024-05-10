@@ -126,12 +126,16 @@ class BPETokenizer:
         self.merges = merges  # used in encode()
         self.vocab = vocab    # used in decode()
 
-    def _encode_bytes(self, text_bytes: bytes) -> list[int]:
+    def _encode_bytes(self, text_bytes: bytes, visualise: bool = False) -> list[int]:
         """Convert a stream of bytes into token ids"""
-        # Convert all bytes to integers in range 0..255
+        # Convert all bytes to a list of integers in range 0..255
         ids = list(text_bytes)
 
         while len(ids) >= 2:
+            # See the intermediate merges play out!
+            if visualise:
+                self._visualise_tokens(ids)
+
             # Find the pair with the lowest merge index
             stats = get_stats(ids)
             pair = min(stats, key=lambda p: self.merges.get(p, float("inf")))
@@ -148,7 +152,7 @@ class BPETokenizer:
 
         return ids
 
-    def _encode_without_special_tokens(self, text: str) -> list[int]:
+    def _encode_without_special_tokens(self, text: str, visualise: bool = False) -> list[int]:
         """Encoding that ignores any special tokens"""
         # Split text into chunks of text by categories defined in regex pattern
         text_chunks = re.findall(self.compiled_pattern, text)
@@ -157,12 +161,12 @@ class BPETokenizer:
         ids = []
         for chunk in text_chunks:
             chunk_bytes = chunk.encode("utf-8")  # raw bytes
-            chunk_ids = self._encode_bytes(chunk_bytes)
+            chunk_ids = self._encode_bytes(chunk_bytes, visualise)
             ids.extend(chunk_ids)
 
         return ids
 
-    def encode(self, text: str, allowed_special: Optional[Union[str, set]]) -> list[int]:
+    def encode(self, text: str, allowed_special: Optional[Union[str, set]], visualise: bool = False) -> list[int]:
         """
         Encode a string into a list of integers. Unlike _encode, this function handles special tokens.
         `allowed_special` can be "all"|"none"|"none_raise" or a custom set of special tokens. if `none_raise`, then an 
@@ -185,7 +189,7 @@ class BPETokenizer:
 
         if not special:
             # Shortcut: if no special tokens, just use the ordinary encoding
-            return self._encode_without_special_tokens(text)
+            return self._encode_without_special_tokens(text, visualise)
         
         else:
             # We have to be careful with potential special tokens in text. We handle special tokens by splitting the 
@@ -204,7 +208,7 @@ class BPETokenizer:
                     ids.append(special[part])
                 else:
                     # This is an ordinary sequence, encode it normally
-                    ids.extend(self._encode_without_special_tokens(part))
+                    ids.extend(self._encode_without_special_tokens(part, visualise))
 
             return ids
 
@@ -336,6 +340,7 @@ class BPETokenizer:
         max_length: int = -1, 
         truncation: bool = False,
         return_attention_mask: bool = False,
+        visualise: bool = False
     ) -> Union[Tensor, tuple[Tensor, Tensor]]:
         """
         Processes the input text (either a single string or a list of strings) and returns encoded tokens as tensors. 
@@ -353,6 +358,7 @@ class BPETokenizer:
         - truncation: Whether to truncate sequences to 'max_length'.
         - return_attention_mask: If set to True, the method also returns attention masks along with encoded tokens. The 
           attention mask has 1s for real tokens and 0s for padding.
+        - visualise: If set to True, it shows how the text is converted into tokens.
 
         Returns:
         - A tensor of encoded tokens. If 'return_attention_mask' is True, returns a tuple of tensors (encoded tokens, 
@@ -384,7 +390,7 @@ class BPETokenizer:
         attention_masks = []
         for sentence in text:
             # Encode the sentence
-            sentences_encoded.append(self.encode(sentence, allowed_special="all"))
+            sentences_encoded.append(self.encode(sentence, allowed_special="all", visualise=visualise))
 
             # Save the attention mask
             attention_masks.append([1] * len(sentences_encoded[-1]))
@@ -429,3 +435,27 @@ class BPETokenizer:
             return final_sentences_encoded, final_attention_masks
         else:
             return final_sentences_encoded
+        
+    def _visualise_tokens(self, token_values: list[int]) -> None:
+        """Visualize how the tokenizer has split the sentence into tokens"""
+        # If token boundaries do not occur at unicode character boundaries, it's unclear how best to
+        # visualise the token. Here, we'll just use the unicode replacement character to represent some
+        # fraction of a character.
+        unicode_token_values = [self.vocab[x].decode("utf-8", errors="replace") for x in token_values]
+
+        background = [f"\u001b[48;5;{i}m" for i in [167, 179, 185, 77, 80, 68, 134]]
+
+        running_length = 0
+        last_color = None
+        for token in unicode_token_values:
+            color = background[running_length % len(background)]
+            if color == last_color:
+                color = background[(running_length + 1) % len(background)]
+                assert color != last_color
+
+            last_color = color
+            running_length += len(token)
+
+            print(color + token, end="")
+
+        print("\u001b[0m")
