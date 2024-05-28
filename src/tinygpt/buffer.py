@@ -1,9 +1,10 @@
 from __future__ import annotations
-from enum import Enum, auto
-from collections import deque
 from typing import Any, Union, Iterator
-import math
+from collections import deque
+from enum import Enum, auto
+import itertools
 import random
+import math
 
 from tinygpt.utils import DType
 
@@ -706,3 +707,66 @@ class Buffer():
             nested_list.append(self._convert_to_nested_list(shape, index + [i]))
 
         return nested_list
+    
+    def __getitem__(self, index: Union[int, slice, tuple]) -> Union[Buffer, float, int, bool]:
+        # Normalize the index to a tuple
+        if not isinstance(index, tuple):
+            index = (index,)
+        
+        if len(index) > self.ndim:
+            raise IndexError(f"Too many indices for {self.ndim}-dim Buffer")
+
+        # Extend the index with slices to match the number of dimensions
+        index = index + (slice(None),) * (self.ndim - len(index))
+
+        # Convert slices to ranges and handle integer indices
+        new_shape = []
+        new_stride = []
+        new_offset = self.offset
+        full_index = []
+        for idx, (dim, stride) in zip(index, zip(self.shape, self.stride)):
+            if isinstance(idx, int):
+                # Adjust for negative index
+                if idx < 0: 
+                    idx += dim
+                if idx < 0 or idx >= dim:
+                    raise IndexError("Index out of range")
+                
+                new_offset += idx * stride  
+                full_index.append([idx])
+
+            elif isinstance(idx, slice):
+                # Convert the slice to a range
+                start, stop, step = idx.indices(dim)
+
+                if step < 0:
+                    raise ValueError("step must be greater than zero")
+                
+                slice_range = range(start, stop, step)
+
+                new_shape.append(len(slice_range))
+                new_stride.append(stride * step)
+                new_offset += start * stride
+                full_index.append(slice_range)
+
+            else:
+                raise TypeError("Invalid index type")
+
+        # Return an empty Buffer if any dimension has length 0
+        if any(dim == 0 for dim in new_shape):
+            return Buffer([], dtype=self.dtype)
+        
+        if self.is_contiguous() or not new_shape:
+            # For contiguous data or single element, avoid data movement
+            return Buffer._create_buffer_from_data(self.data, tuple(new_shape), tuple(new_stride), new_offset)
+        
+        else:
+            # Generate new data for the sliced Buffer using _get method
+            new_data = []
+            for element_indices in itertools.product(*full_index):
+                new_data.append(self._get(tuple(element_indices))) 
+
+            # Calculate new stride for the new contiguous buffer
+            new_stride = self._calculate_stride(new_shape)
+
+            return Buffer._create_buffer_from_data(new_data, tuple(new_shape), new_stride, 0)

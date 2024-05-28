@@ -1379,3 +1379,257 @@ def test_to_python():
                 # Check is the expected value
                 assert isinstance(python_data, type(data))
                 assert python_data == data
+
+
+def test_getitem():
+    # Scalar
+    buffer = Buffer(3.0)
+
+    for not_valid_index in [-1, 0, 1, (0, 0)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index]
+
+    with pytest.raises(IndexError):
+            buffer[:]
+
+    # 1D contiguous Tensor
+    data = [3, 5, 6, 7, -1]
+    buffer = Buffer(data)
+
+    # Single element
+    for idx in range(len(data)):
+        
+        # Positive indexing
+        new_buffer = buffer[idx]
+        val = data[idx]
+
+        assert isinstance(new_buffer, Buffer)
+        assert new_buffer.shape == ()
+        assert new_buffer.to_python() == val
+
+        # Negative indexing
+        new_buffer = buffer[-(idx + 1)]
+        val = data[-(idx + 1)]
+
+        assert isinstance(new_buffer, Buffer)
+        assert new_buffer.shape == ()
+        assert new_buffer.to_python() == val
+
+    # Slice
+    assert buffer[:] == buffer
+    assert buffer[::] == buffer
+    assert buffer[0:len(data)].to_python() == data[0:len(data)]
+    assert buffer[0:-1].to_python() == data[0:-1]
+    assert buffer[1:2].to_python() == data[1:2]
+    assert buffer[-2:-1].to_python() == data[-2:-1]
+    assert buffer[0:len(data):2].to_python() == data[0:len(data):2]
+    assert buffer[-len(data):len(data):2].to_python() == data[-len(data):len(data):2]
+    assert buffer[-1:-1].to_python() == []
+    assert buffer[-1:-3].to_python() == []
+    assert buffer[2:0].to_python() == []
+
+    # Not valid (out of dim)
+    for not_valid_index in [len(data), -(len(data) + 1), (0, 0)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index]
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        buffer[::-1]
+
+    # 3D contiguous Tensor
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    buffer = Buffer(data)
+
+    # Single element
+    for idx0 in range(len(data)):
+        for idx1 in range(len(data[0])):
+            for idx2 in range(len(data[0][0])):
+                # Positive indexing
+                val = data[idx0][idx1][idx2]
+                new_buffer = buffer[idx0, idx1, idx2]
+                
+                assert isinstance(new_buffer, Buffer)
+                assert new_buffer.shape == ()
+                assert new_buffer.to_python() == val
+
+                # Negative indexing
+                val = data[-(idx0 + 1)][-(idx1 + 1)][-(idx2 + 1)]
+                new_buffer = buffer[-(idx0 + 1), -(idx1 + 1), -(idx2 + 1)]
+
+                assert isinstance(new_buffer, Buffer)
+                assert new_buffer.shape == ()
+                assert new_buffer.to_python() == val
+
+    # Slice
+    assert buffer[:] == buffer
+    assert buffer[::] == buffer
+    assert buffer[0:len(data)].to_python() == data[0:len(data)]
+    assert buffer[0:-1].to_python() == data[0:-1]
+    assert buffer[1:2].to_python() == data[1:2]
+    assert buffer[-2:-1].to_python() == data[-2:-1]
+    assert buffer[0:len(data):2].to_python() == data[0:len(data):2]
+    assert buffer[-len(data):len(data):2].to_python() == data[-len(data):len(data):2]
+    assert buffer[-1:-1].to_python() == []
+    assert buffer[-1:-3].to_python() == []
+    assert buffer[2:0].to_python() == []
+
+    assert buffer[:, :, :].to_python() == data
+    assert buffer[0, :, :].to_python() == data[0][:][:]
+    assert buffer[:, 0, :].to_python() == [[1.0, 2.0, 3.0], [7.0, 8.0, 9.0], [13.0, 14.0, 15.0], [19.0, 20.0, 21.0]]
+    assert buffer[:, :, 0].to_python() == [[1.0, 4.0], [7.0, 10.0], [13.0, 16.0], [19.0, 22.0]]
+    assert buffer[1:, -2:, 1:3].to_python() == [
+        [[8.0, 9.0], [11.0, 12.0]], [[14.0, 15.0], [17.0, 18.0]], [[20.0, 21.0], [23.0, 24.0]]
+    ]
+    assert buffer[1:3, 1, 0:2].to_python() == [[10.0, 11.0], [16.0, 17.0]]
+    assert buffer[1:3, 1:, 0:2].to_python() == [[[10.0, 11.0]], [[16.0, 17.0]]]
+
+    # Not valid (out of dim)
+    with pytest.raises(IndexError):
+        buffer[0, 0, 0, 0]
+
+    for not_valid_index in [len(data), -(len(data) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index]
+
+    for not_valid_index in [len(data[0]), -(len(data[0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, not_valid_index]
+        
+    for not_valid_index in [len(data[0][0]), -(len(data[0][0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, :, not_valid_index]
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        buffer[::-1]
+
+    # 3D non-contiguous Tensor
+    buffer = buffer.permute((0, 2, 1))
+    assert not buffer.is_contiguous()
+    
+    data = [
+        [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+        [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+        [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+        [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+    ]
+
+    # Single element
+    for idx0 in range(len(data)):
+        for idx1 in range(len(data[0])):
+            for idx2 in range(len(data[0][0])):
+                # Positive indexing
+                val = data[idx0][idx1][idx2]
+                new_buffer = buffer[idx0, idx1, idx2]
+                
+                assert isinstance(new_buffer, Buffer)
+                assert new_buffer.shape == ()
+                assert new_buffer.to_python() == val
+
+                # Negative indexing
+                val = data[-(idx0 + 1)][-(idx1 + 1)][-(idx2 + 1)]
+                new_buffer = buffer[-(idx0 + 1), -(idx1 + 1), -(idx2 + 1)]
+
+                assert isinstance(new_buffer, Buffer)
+                assert new_buffer.shape == ()
+                assert new_buffer.to_python() == val
+                assert new_buffer.is_contiguous()
+
+    # Slice
+    new_buffer = buffer[:]
+    assert new_buffer.is_contiguous()
+    assert new_buffer == buffer
+
+    new_buffer = buffer[::]
+    assert new_buffer.is_contiguous()
+    assert new_buffer == buffer
+
+    new_buffer = buffer[0:len(data)]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[0:len(data)]
+
+    new_buffer = buffer[0:-1]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[0:-1]
+
+    new_buffer = buffer[1:2]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[1:2]
+
+    new_buffer = buffer[-2:-1]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[-2:-1]
+
+    new_buffer = buffer[0:len(data):2]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[0:len(data):2]
+
+    new_buffer = buffer[-len(data):len(data):2]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[-len(data):len(data):2]
+
+    new_buffer = buffer[-1:-1]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == []
+
+    new_buffer = buffer[-1:-3]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == []
+
+    new_buffer = buffer[2:0]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == []
+
+    new_buffer = buffer[:, :, :]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data
+
+    new_buffer = buffer[0, :, :]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == data[0][:][:]
+
+    new_buffer = buffer[:, 0, :]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == [[1.0, 4.0], [7.0, 10.0], [13.0, 16.0], [19.0, 22.0]]
+
+    new_buffer = buffer[:, :, 0]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == [[1.0, 2.0, 3.0], [7.0, 8.0, 9.0], [13.0, 14.0, 15.0], [19.0, 20.0, 21.0]]
+
+    new_buffer = buffer[1:, -2:, 1:3]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == [[[11.0], [12.0]], [[17.0], [18.0]], [[23.0], [24.0]]]
+
+    new_buffer = buffer[1:3, 1, 0:2]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == [[8.0, 11.0], [14.0, 17.0]]
+
+    new_buffer = buffer[1:3, 1:, 0:2]
+    assert new_buffer.is_contiguous()
+    assert new_buffer.to_python() == [[[8.0, 11.0], [9.0, 12.0]], [[14.0, 17.0], [15.0, 18.0]]]
+
+    # Not valid (out of dim)
+    with pytest.raises(IndexError):
+        buffer[0, 0, 0, 0]
+
+    for not_valid_index in [len(data), -(len(data) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index]
+
+    for not_valid_index in [len(data[0]), -(len(data[0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, not_valid_index]
+        
+    for not_valid_index in [len(data[0][0]), -(len(data[0][0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, :, not_valid_index]
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        buffer[::-1]
