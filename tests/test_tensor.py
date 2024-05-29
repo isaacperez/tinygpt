@@ -1468,3 +1468,165 @@ def test_assign():
 
     # Check tensor_a keep the expected value after all the exceptions
     assert tensor_a.to_python() == tensor_b.to_python()
+
+
+def test_getitem():
+    # Scalar
+    tensor = Tensor(1.0, requires_grad=True)
+
+    with pytest.raises(IndexError):
+        tensor[:]
+
+    with pytest.raises(IndexError):
+        tensor[0]
+
+    # 1D Tensor
+    tensor = Tensor([1., 2., 3.], requires_grad=True)
+
+    for i in range(3):
+        new_tensor = tensor[i]
+        assert new_tensor.to_python() == float(i + 1)
+        assert new_tensor.requires_grad
+        assert new_tensor.grad_fn is not None
+
+        new_tensor = tensor[-(i+1)]
+        assert new_tensor.to_python() == float(3 - i)
+        assert new_tensor.requires_grad
+        assert new_tensor.grad_fn is not None
+
+    # 3D Tensor
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    tensor = Tensor(data, requires_grad=True)
+
+    # Single element
+    for idx0 in range(len(data)):
+        for idx1 in range(len(data[0])):
+            for idx2 in range(len(data[0][0])):
+                # Positive indexing
+                val = data[idx0][idx1][idx2]
+                new_tensor = tensor[idx0, idx1, idx2]
+                
+                assert isinstance(new_tensor, Tensor)
+                assert new_tensor.shape == ()
+                assert new_tensor.to_python() == val
+                assert new_tensor.requires_grad
+                assert new_tensor.grad_fn is not None
+
+                # Negative indexing
+                val = data[-(idx0 + 1)][-(idx1 + 1)][-(idx2 + 1)]
+                new_tensor = tensor[-(idx0 + 1), -(idx1 + 1), -(idx2 + 1)]
+
+                assert isinstance(new_tensor, Tensor)
+                assert new_tensor.shape == ()
+                assert new_tensor.to_python() == val
+                assert new_tensor.requires_grad
+                assert new_tensor.grad_fn is not None
+
+    # Slice
+    assert tensor[:] == tensor
+    assert tensor[::] == tensor
+    assert tensor[0:len(data)].to_python() == data[0:len(data)]
+    assert tensor[0:-1].to_python() == data[0:-1]
+    assert tensor[1:2].to_python() == data[1:2]
+    assert tensor[-2:-1].to_python() == data[-2:-1]
+    assert tensor[0:len(data):2].to_python() == data[0:len(data):2]
+    assert tensor[-len(data):len(data):2].to_python() == data[-len(data):len(data):2]
+    assert tensor[-1:-1].to_python() == []
+    assert tensor[-1:-3].to_python() == []
+    assert tensor[2:0].to_python() == []
+
+    assert tensor[:, :, :].to_python() == data
+    assert tensor[0, :, :].to_python() == data[0][:][:]
+    assert tensor[:, 0, :].to_python() == [[1.0, 2.0, 3.0], [7.0, 8.0, 9.0], [13.0, 14.0, 15.0], [19.0, 20.0, 21.0]]
+    assert tensor[:, :, 0].to_python() == [[1.0, 4.0], [7.0, 10.0], [13.0, 16.0], [19.0, 22.0]]
+    assert tensor[1:, -2:, 1:3].to_python() == [
+        [[8.0, 9.0], [11.0, 12.0]], [[14.0, 15.0], [17.0, 18.0]], [[20.0, 21.0], [23.0, 24.0]]
+    ]
+    assert tensor[1:3, 1, 0:2].to_python() == [[10.0, 11.0], [16.0, 17.0]]
+    assert tensor[1:3, 1:, 0:2].to_python() == [[[10.0, 11.0]], [[16.0, 17.0]]]
+
+    # Not valid (out of dim)
+    with pytest.raises(IndexError):
+        tensor[0, 0, 0, 0]
+
+    for not_valid_index in [len(data), -(len(data) + 1)]:
+        with pytest.raises(IndexError):
+            tensor[not_valid_index]
+
+    for not_valid_index in [len(data[0]), -(len(data[0]) + 1)]:
+        with pytest.raises(IndexError):
+            tensor[:, not_valid_index]
+        
+    for not_valid_index in [len(data[0][0]), -(len(data[0][0]) + 1)]:
+        with pytest.raises(IndexError):
+            tensor[:, :, not_valid_index]
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        tensor[::-1]
+
+
+def test_backward_getitem():
+    # 1D Tensor
+    tensor = Tensor([1., 2., 3.], requires_grad=True) 
+
+    for j in range(5):
+        for i in range(3):
+            tensor[i].backward()
+            assert tensor.grad.to_python() == [1.0 + j] * (i + 1) + [j] * (3 - i - 1)
+
+    tensor_a = Tensor([1., 2., 3.], requires_grad=True)
+    tensor_b = Tensor([4., 5., 6.], requires_grad=True)
+
+    tensor_c = tensor_a * tensor_b 
+
+    tensor_c[2].backward()
+
+    assert tensor_a.grad.to_python() == [0.0, 0.0, 6.0]
+    assert tensor_b.grad.to_python() == [0.0, 0.0, 3.0]
+
+    # 3D Tensor
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    tensor = Tensor(data, requires_grad=True)
+
+    tensor[0, 0, 1].backward()
+    assert tensor.grad.to_python() == [
+        [[0.0, 1.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+    ]
+    tensor[0, 0, 1].backward()
+    assert tensor.grad.to_python() == [
+        [[0.0, 2.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+    ]
+    tensor[-1, -1, 1].backward()
+    assert tensor.grad.to_python() == [
+        [[0.0, 2.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    ]
+
+    result = (tensor[0] * tensor[1]).sum(axes=(0,))
+    result[1].backward()
+
+    assert tensor.grad.to_python() == [
+        [[0.0, 10.0, 0.0], [0.0, 11.0, 0.0]],
+        [[0.0, 2.0, 0.0], [0.0, 5.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    ]

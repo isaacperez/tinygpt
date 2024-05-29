@@ -708,7 +708,7 @@ class Buffer():
 
         return nested_list
     
-    def __getitem__(self, index: Union[int, slice, tuple]) -> Union[Buffer, float, int, bool]:
+    def __getitem__(self, index: Union[int, slice, tuple]) -> Buffer:
         # Normalize the index to a tuple to handle both single and multi-dimensional indexing
         if not isinstance(index, tuple):
             index = (index,)

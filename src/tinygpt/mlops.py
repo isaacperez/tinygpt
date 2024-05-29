@@ -200,3 +200,23 @@ class Permute(Operation):
 
     def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
         return incoming_grad.permute(argsort(self.input_order)) if self.needs_input_grad[0] else None
+    
+
+class Slice(Operation):
+
+    def forward(self, buffer: Buffer, index: Union[int, slice, tuple]) -> Buffer:
+        self.input_shape = buffer.shape
+        self.input_index = index
+        return buffer[index]
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        if self.needs_input_grad[0]:
+            # Only the places where we have indexed the input tensor have gradient
+            output_grad = Buffer.zeros(self.input_shape)
+            
+            # Place the gradient in the correct location
+            output_grad[self.input_index] = incoming_grad
+
+            return output_grad
+        else:
+            return None

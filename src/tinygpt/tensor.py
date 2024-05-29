@@ -322,6 +322,9 @@ class Tensor():
 
         return self.assign(self ** exponent)
 
+    def __getitem__(self, index: Union[int, slice, tuple]) -> Tensor:
+        return apply_op(mlops.Slice, self, index=index) 
+
     def backward(self, incoming_gradient: Optional[Buffer] = None, retain_graph: bool = False) -> None:
         """
         Perform the backward pass to compute gradients.
