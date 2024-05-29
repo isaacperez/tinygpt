@@ -709,7 +709,7 @@ class Buffer():
         return nested_list
     
     def __getitem__(self, index: Union[int, slice, tuple]) -> Union[Buffer, float, int, bool]:
-        # Normalize the index to a tuple
+        # Normalize the index to a tuple to handle both single and multi-dimensional indexing
         if not isinstance(index, tuple):
             index = (index,)
         
@@ -770,3 +770,61 @@ class Buffer():
             new_stride = self._calculate_stride(new_shape)
 
             return Buffer._create_buffer_from_data(new_data, tuple(new_shape), new_stride, 0)
+        
+    def __setitem__(self, index: Union[int, slice, tuple], value: Union[Buffer, float, int, bool]) -> None:
+        # Normalize the index to a tuple to handle both single and multi-dimensional indexing
+        if not isinstance(index, tuple):
+            index = (index,)
+
+        if len(index) > self.ndim:
+            raise IndexError(f"Too many indices for {self.ndim}-dim Buffer")
+
+        # Extend the index with slices to match the number of dimensions
+        index = index + (slice(None),) * (self.ndim - len(index))
+
+        # Convert slices to ranges and handle integer indices
+        full_index = []
+        for idx, dim  in zip(index, self.shape):
+            if isinstance(idx, int):
+                # Adjust for negative index
+                if idx < 0:
+                    idx += dim
+                if idx < 0 or idx >= dim:
+                    raise IndexError("Index out of range")
+                full_index.append([idx])
+
+            elif isinstance(idx, slice):
+                # Convert the slice to a range
+                start, stop, step = idx.indices(dim)
+
+                if step < 0:
+                    raise ValueError("step must be greater than zero")
+                
+                slice_range = range(start, stop, step)
+                full_index.append(slice_range)
+
+            else:
+                raise TypeError("Invalid index type")
+
+        # Do nothing if any of the ranges are empty
+        if any(len(r) == 0 for r in full_index):
+            return 
+
+        # Update the buffer with the value
+        if isinstance(value, Buffer):
+            # Both the current Buffer and the value Buffer must have the same shape or be broadcastable
+            index_shape = tuple(len(r) for r in full_index)
+            if [idx for idx in index_shape if idx != 1] != [idx for idx in value.shape if idx != 1]:
+                raise ValueError(f"Shape mismatch: {index_shape} and {value.shape}")
+            
+            # Set buffer values using the provided buffer's data
+            for element_indices, val in zip(itertools.product(*full_index), value):
+                self._set(tuple(element_indices), val)
+
+        elif isinstance(value, (bool, int, float)):
+            # Set single value to all selected positions
+            for element_indices in itertools.product(*full_index):
+                self._set(tuple(element_indices), value)
+
+        else:
+            raise ValueError("value is not a Buffer or a single value (bool, int or float)")

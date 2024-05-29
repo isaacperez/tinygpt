@@ -1,4 +1,5 @@
 import math
+import copy 
 
 import pytest
 
@@ -1633,3 +1634,376 @@ def test_getitem():
     # Not valid (step less than zero)
     with pytest.raises(ValueError):
         buffer[::-1]
+
+
+def test_setitem():
+    # Scalar
+    buffer = Buffer(3.0)
+
+    for not_valid_index in [-1, 0, 1, (0, 0)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index] = 0.0
+
+    with pytest.raises(IndexError):
+            buffer[:] = 0.0
+
+    # 1D contiguous Tensor
+    data = [3, 5, 6, 7, -1]
+    pos_buffer = Buffer(data)
+    neg_buffer = Buffer(data)
+
+    # Single element
+    for idx in range(len(data)):
+        
+        # Positive indexing
+        pos_buffer[idx] = 0.0
+        assert pos_buffer.to_python() == [0.0] * (idx + 1) + data[idx + 1:]
+
+        # Negative indexing
+        neg_buffer[-(idx + 1)] = 0.0
+        assert neg_buffer.to_python() == data[:-(idx + 1)] + [0.0] * (idx + 1)
+
+    # Slice
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[:] = Buffer([1, 2, 3, 4, 5])
+    assert buffer.to_python() == [1, 2, 3, 4, 5]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[::] = Buffer([1, 2, 3, 4, 5])
+    assert buffer.to_python() == [1, 2, 3, 4, 5]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[0:len(data)] = Buffer([1, 2, 3, 4, 5])
+    assert buffer.to_python() == [1, 2, 3, 4, 5]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[0:-1] = Buffer([1, 2, 3, 4])
+    assert buffer.to_python() == [1, 2, 3, 4, -1]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[1:2] = 0
+    assert buffer.to_python() == [3, 0, 6, 7, -1]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[1:2] = Buffer([0])
+    assert buffer.to_python() == [3, 0, 6, 7, -1]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[0:len(data):2] = Buffer([0, 0, 0])
+    assert buffer.to_python() == [0, 5, 0, 7, 0]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[-1:-1] = 0
+    assert buffer.to_python() == [3, 5, 6, 7, -1]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[-1:-3] = 0
+    assert buffer.to_python() == [3, 5, 6, 7, -1]
+
+    buffer = Buffer([3, 5, 6, 7, -1])
+    buffer[2:0] = 0
+    assert buffer.to_python() == [3, 5, 6, 7, -1]
+
+    # Not valid (out of dim)
+    for not_valid_index in [len(data), -(len(data) + 1), (0, 0)]:
+        with pytest.raises(IndexError):
+            Buffer([3, 5, 6, 7, -1])[not_valid_index] = 0.0
+
+    # Not valid (shape mismatch)
+    with pytest.raises(ValueError):
+        buffer[:] = Buffer([1, 2, 3, 4, 5, 6])
+
+    # Not valid (value is a list or a tuple)
+    with pytest.raises(ValueError):
+        buffer[:] = [1, 2, 3, 4, 5]
+    
+    with pytest.raises(ValueError):
+        buffer[:] = tuple([1, 2, 3, 4, 5])
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        Buffer([3, 5, 6, 7, -1])[::-1] = Buffer([1, 2, 3, 4, 5])
+
+    # 3D contiguous Tensor
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    buffer = Buffer(data)
+
+    # Single element
+    for idx0 in range(len(data)):
+        for idx1 in range(len(data[0])):
+            for idx2 in range(len(data[0][0])):
+                # Positive indexing
+                buffer[idx0, idx1, idx2] = -1.0
+                data[idx0][idx1][idx2] = -1.0
+                
+                assert buffer.to_python() == data
+
+                # Negative indexing
+                buffer[-(idx0 + 1), -(idx1 + 1), -(idx2 + 1)] = -2.0
+                data[-(idx0 + 1)][-(idx1 + 1)][-(idx2 + 1)] = -2.0
+                
+                assert buffer.to_python() == data
+                
+    # Slice
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    new_data = [
+        [[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]],
+        [[-7.0, -8.0, -9.0], [-10.0, -11.0, -12.0]],
+        [[-13.0, -14.0, -15.0], [-16.0, -17.0, -18.0]],
+        [[-19.0, -20.0, -21.0], [-22.0, -23.0, -24.0]]
+    ]
+
+    buffer = Buffer(data)
+    buffer[:] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[::] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0:len(data)] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0:-1] = Buffer(new_data)[0:-1]
+    assert buffer[0:-1].to_python() == Buffer(new_data)[0:-1].to_python()
+    assert buffer[-1].to_python() == Buffer(data)[-1].to_python()
+
+    buffer = Buffer(data)
+    buffer[1:2] = Buffer(new_data)[1:2]
+    temp_data = copy.deepcopy(data)
+    temp_data[1:2] = new_data[1:2]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[0:len(data):2] = Buffer(new_data)[0:len(data):2]
+    temp_data = copy.deepcopy(data) 
+    temp_data[0:len(data):2] = new_data[0:len(data):2]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[-1:-1] = Buffer(new_data)[-1:-1]
+    temp_data = copy.deepcopy(data) 
+    temp_data[-1:-1] = new_data[-1:-1]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[-1:-3] = Buffer(new_data)[-1:-3]
+    temp_data = copy.deepcopy(data) 
+    temp_data[-1:-3] = new_data[-1:-3]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[2:0] = Buffer(new_data)[2:0]
+    temp_data = copy.deepcopy(data) 
+    temp_data[2:0] = new_data[2:0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[:, :, :] = Buffer(new_data)
+    assert buffer[:, :, :].to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0, :, :] = Buffer(new_data)[0, :, :]
+    temp_data = copy.deepcopy(data) 
+    temp_data[0] = new_data[0]
+    assert buffer.to_python() == temp_data
+    
+    buffer = Buffer(data)
+    buffer[:, 0, :] = Buffer(new_data)[:, 0, :]
+    temp_data = copy.deepcopy(data) 
+    for i in range(len(temp_data)):
+        temp_data[i][0] = new_data[i][0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[:, :, 0] = Buffer(new_data)[:, :, 0]
+    temp_data = copy.deepcopy(data) 
+    for i in range(len(temp_data)):
+        for j in range(len(temp_data[0])):
+            temp_data[i][j][0] = new_data[i][j][0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[1:, -2:, 1:3] = Buffer(new_data)[1:, -2:, 1:3] 
+    assert buffer[0, :-2, 0].to_python() == Buffer(data)[0, :-2, 0].to_python()
+    assert buffer[0, :-2, 3:].to_python() == Buffer(data)[0, :-2, 3:].to_python()
+    assert buffer[1:, -2:, 1:3].to_python() == Buffer(new_data)[1:, -2:, 1:3].to_python()
+
+    # Not valid (out of dim)
+    with pytest.raises(IndexError):
+        buffer[0, 0, 0, 0] = 0.0
+
+    for not_valid_index in [len(data), -(len(data) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index] = 0.0
+
+    for not_valid_index in [len(data[0]), -(len(data[0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, not_valid_index] = 0.0
+        
+    for not_valid_index in [len(data[0][0]), -(len(data[0][0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, :, not_valid_index] = 0.0
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        buffer[::-1] = new_data
+
+    # 3D non-contiguous Tensor
+    data = [
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
+        [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+        [[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]],
+        [[19.0, 20.0, 21.0], [22.0, 23.0, 24.0]]
+    ]
+    buffer = Buffer(data)
+    buffer = buffer.permute((0, 2, 1))
+    assert not buffer.is_contiguous()
+    
+    data = [
+        [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+        [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+        [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+        [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+    ]
+
+    # Single element
+    for idx0 in range(len(data)):
+        for idx1 in range(len(data[0])):
+            for idx2 in range(len(data[0][0])):
+                # Positive indexing
+                buffer[idx0, idx1, idx2] = -1.0
+                data[idx0][idx1][idx2] = -1.0
+                
+                assert buffer.to_python() == data
+
+                # Negative indexing
+                buffer[-(idx0 + 1), -(idx1 + 1), -(idx2 + 1)] = -2.0
+                data[-(idx0 + 1)][-(idx1 + 1)][-(idx2 + 1)] = -2.0
+                
+                assert buffer.to_python() == data
+
+    # Slice
+    data = [
+        [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+        [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+        [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+        [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+    ]
+
+    new_data = [
+        [[-1.0, -4.0], [-2.0, -5.0], [-3.0, -6.0]], 
+        [[-7.0, -10.0], [-8.0, -11.0], [-9.0, -12.0]], 
+        [[-13.0, -16.0], [-14.0, -17.0], [-15.0, -18.0]], 
+        [[-19.0, -22.0], [-20.0, -23.0], [-21.0, -24.0]]
+    ]
+
+    buffer = Buffer(data)
+    buffer[:] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[::] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0:len(data)] = Buffer(new_data)
+    assert buffer.to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0:-1] = Buffer(new_data)[0:-1]
+    assert buffer[0:-1].to_python() == Buffer(new_data)[0:-1].to_python()
+    assert buffer[-1].to_python() == Buffer(data)[-1].to_python()
+
+    buffer = Buffer(data)
+    buffer[1:2] = Buffer(new_data)[1:2]
+    temp_data = copy.deepcopy(data)
+    temp_data[1:2] = new_data[1:2]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[0:len(data):2] = Buffer(new_data)[0:len(data):2]
+    temp_data = copy.deepcopy(data) 
+    temp_data[0:len(data):2] = new_data[0:len(data):2]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[-1:-1] = Buffer(new_data)[-1:-1]
+    temp_data = copy.deepcopy(data) 
+    temp_data[-1:-1] = new_data[-1:-1]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[-1:-3] = Buffer(new_data)[-1:-3]
+    temp_data = copy.deepcopy(data) 
+    temp_data[-1:-3] = new_data[-1:-3]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[2:0] = Buffer(new_data)[2:0]
+    temp_data = copy.deepcopy(data) 
+    temp_data[2:0] = new_data[2:0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[:, :, :] = Buffer(new_data)
+    assert buffer[:, :, :].to_python() == new_data
+
+    buffer = Buffer(data)
+    buffer[0, :, :] = Buffer(new_data)[0, :, :]
+    temp_data = copy.deepcopy(data) 
+    temp_data[0] = new_data[0]
+    assert buffer.to_python() == temp_data
+    
+    buffer = Buffer(data)
+    buffer[:, 0, :] = Buffer(new_data)[:, 0, :]
+    temp_data = copy.deepcopy(data) 
+    for i in range(len(temp_data)):
+        temp_data[i][0] = new_data[i][0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[:, :, 0] = Buffer(new_data)[:, :, 0]
+    temp_data = copy.deepcopy(data) 
+    for i in range(len(temp_data)):
+        for j in range(len(temp_data[0])):
+            temp_data[i][j][0] = new_data[i][j][0]
+    assert buffer.to_python() == temp_data
+
+    buffer = Buffer(data)
+    buffer[1:, -2:, 1:3] = Buffer(new_data)[1:, -2:, 1:3] 
+    assert buffer[0, :-2, 0].to_python() == Buffer(data)[0, :-2, 0].to_python()
+    assert buffer[0, :-2, 3:].to_python() == Buffer(data)[0, :-2, 3:].to_python()
+    assert buffer[1:, -2:, 1:3].to_python() == Buffer(new_data)[1:, -2:, 1:3].to_python()
+
+    # Not valid (out of dim)
+    with pytest.raises(IndexError):
+        buffer[0, 0, 0, 0] = 0.0
+
+    for not_valid_index in [len(data), -(len(data) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[not_valid_index] = 0.0
+
+    for not_valid_index in [len(data[0]), -(len(data[0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, not_valid_index] = 0.0
+        
+    for not_valid_index in [len(data[0][0]), -(len(data[0][0]) + 1)]:
+        with pytest.raises(IndexError):
+            buffer[:, :, not_valid_index] = 0.0
+
+    # Not valid (step less than zero)
+    with pytest.raises(ValueError):
+        buffer[::-1] = new_data
