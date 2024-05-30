@@ -938,6 +938,37 @@ def test_uniform_initialization():
         assert tensor.requires_grad == requires_grad
 
 
+def test_normal_initialization():
+
+    for requires_grad in [True, False]:
+        # Empty tensor
+        tensor = Tensor.normal((), requires_grad=requires_grad)
+        assert tensor.shape == ()
+        assert tensor.dtype == DType.float32
+        assert tensor.requires_grad == requires_grad
+
+        # 1D
+        tensor = Tensor.normal((54,), requires_grad=requires_grad)
+        assert tensor.shape == (54,)
+        assert tensor.dtype == DType.float32
+        assert -1.0 < tensor.buffer.sum(axes=(0,)).reshape(()).to_python() / tensor.buffer.numel < 1.0
+        assert tensor.requires_grad == requires_grad
+
+        # 2D
+        tensor = Tensor.uniform((16, 32), requires_grad=requires_grad)
+        assert tensor.shape == (16, 32)
+        assert tensor.dtype == DType.float32
+        assert -1.0 < tensor.buffer.sum(axes=(0, 1)).reshape(()).to_python() / tensor.buffer.numel < 1.0
+        assert tensor.requires_grad == requires_grad
+
+        # 3D
+        tensor = Tensor.normal((12, 13, 7), requires_grad=requires_grad)
+        assert tensor.shape == (12, 13, 7)
+        assert tensor.dtype == DType.float32
+        assert -1.0 < tensor.buffer.sum(axes=(0, 1, 2)).reshape(()).to_python() / tensor.buffer.numel < 1.0
+        assert tensor.requires_grad == requires_grad
+
+
 def test_zeros_initialization():
 
     for requires_grad in [True, False]:

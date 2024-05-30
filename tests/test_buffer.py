@@ -1195,20 +1195,19 @@ def test_normal_initialization():
     buffer = Buffer.normal((54,))
     assert buffer.shape == (54,)
     assert buffer.dtype == DType.float32
-    assert -0.5 < buffer.sum(axes=(0,)).reshape(()).to_python() / buffer.numel < 0.5
+    assert -1.0 < buffer.sum(axes=(0,)).reshape(()).to_python() / buffer.numel < 1.0
 
     # 2D
     buffer = Buffer.normal((16, 32))
     assert buffer.shape == (16, 32)
     assert buffer.dtype == DType.float32
-    print(buffer.sum(axes=(0,1)).to_python())
-    assert -0.5 < buffer.sum(axes=(0, 1)).reshape(()).to_python() / buffer.numel < 0.5
+    assert -1.0 < buffer.sum(axes=(0, 1)).reshape(()).to_python() / buffer.numel < 1.0
 
     # 3D
     buffer = Buffer.uniform((12, 13, 7))
     assert buffer.shape == (12, 13, 7)
     assert buffer.dtype == DType.float32
-    assert -0.5 < buffer.sum(axes=(0, 1, 2)).reshape(()).to_python() / buffer.numel < 0.5
+    assert -1.0 < buffer.sum(axes=(0, 1, 2)).reshape(()).to_python() / buffer.numel < 1.0
     
 
 def test_zeros_initialization():

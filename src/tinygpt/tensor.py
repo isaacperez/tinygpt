@@ -257,6 +257,10 @@ class Tensor():
         return Tensor((high - low) * Buffer.uniform(shape) + low, **kwargs)
 
     @staticmethod
+    def normal(shape: tuple, **kwargs):
+        return Tensor(Buffer.normal(shape), **kwargs)
+
+    @staticmethod
     def zeros(shape: tuple, **kwargs):
         return Tensor(Buffer.zeros(shape), **kwargs)
 
