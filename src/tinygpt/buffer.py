@@ -29,6 +29,7 @@ class Buffer():
         GT = auto()
         GE = auto()
         UNIFORM = auto()
+        NORMAL = auto()
         ZEROS = auto()
         ONES = auto()
 
@@ -604,6 +605,9 @@ class Buffer():
         if init_op == Buffer.Op.UNIFORM:
             # Generate random values uniformly distributed between 0 and 1
             data = [random.uniform(0.0, 1.0) for _ in range(numel)]
+        elif init_op == Buffer.Op.NORMAL:
+            # Generate random values using Normal distribution
+            data = [random.gauss() for _ in range(numel)]
         elif init_op == Buffer.Op.ZEROS:
             data = [0.0 for _ in range(numel)]
         elif init_op == Buffer.Op.ONES:
@@ -619,6 +623,11 @@ class Buffer():
         # Create a Float Buffer with data initialized uniformly between 0 and 1
         return Buffer._init(Buffer.Op.UNIFORM, shape)
 
+    @staticmethod
+    def normal(shape: tuple) -> Buffer:
+        # Create a Float Buffer with data initialized randomly by a normal distribution
+        return Buffer._init(Buffer.Op.NORMAL, shape)
+    
     @staticmethod
     def zeros(shape: tuple) -> Buffer:
         # Create a Float Buffer with data initialized with 0s

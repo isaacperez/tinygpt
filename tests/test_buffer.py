@@ -1166,6 +1166,51 @@ def test_uniform_initialization():
     assert all(buffer <= 1.0)
 
 
+def test_normal_initialization():
+    # Wrong arguments
+    with pytest.raises(TypeError):
+        Buffer.normal(None)
+
+    with pytest.raises(TypeError):
+        Buffer.normal((0))
+
+    with pytest.raises(TypeError):
+        Buffer.normal([])
+
+    with pytest.raises(ValueError):
+        Buffer.normal((-1,))
+
+    with pytest.raises(ValueError):
+        Buffer.normal((1, 2, 3, 0))
+
+    with pytest.raises(ValueError):
+        Buffer.normal((1, -1, 3))
+
+    # Empty buffer
+    buffer = Buffer.normal(())
+    assert buffer.shape == ()
+    assert buffer.dtype == DType.float32
+
+    # 1D
+    buffer = Buffer.normal((54,))
+    assert buffer.shape == (54,)
+    assert buffer.dtype == DType.float32
+    assert -0.5 < buffer.sum(axes=(0,)).reshape(()).to_python() / buffer.numel < 0.5
+
+    # 2D
+    buffer = Buffer.normal((16, 32))
+    assert buffer.shape == (16, 32)
+    assert buffer.dtype == DType.float32
+    print(buffer.sum(axes=(0,1)).to_python())
+    assert -0.5 < buffer.sum(axes=(0, 1)).reshape(()).to_python() / buffer.numel < 0.5
+
+    # 3D
+    buffer = Buffer.uniform((12, 13, 7))
+    assert buffer.shape == (12, 13, 7)
+    assert buffer.dtype == DType.float32
+    assert -0.5 < buffer.sum(axes=(0, 1, 2)).reshape(()).to_python() / buffer.numel < 0.5
+    
+
 def test_zeros_initialization():
     # Wrong arguments
     with pytest.raises(TypeError):
