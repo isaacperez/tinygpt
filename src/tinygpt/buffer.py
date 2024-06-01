@@ -584,7 +584,7 @@ class Buffer():
         return self._reduce(self.Op.MAX, axes)
 
     @staticmethod
-    def _init(init_op: Buffer.Op, shape: tuple) -> Buffer:
+    def _init(init_op: Buffer.Op, shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Initialize a new Buffer using a specified operation and shape
 
         # Validate the type of init_op and shape
@@ -604,14 +604,14 @@ class Buffer():
         # Initialize buffer data based on the specified operation
         if init_op == Buffer.Op.UNIFORM:
             # Generate random values uniformly distributed between 0 and 1
-            data = [random.uniform(0.0, 1.0) for _ in range(numel)]
+            data = [dtype.cast(random.uniform(0.0, 1.0)) for _ in range(numel)]
         elif init_op == Buffer.Op.NORMAL:
             # Generate random values using Normal distribution
-            data = [random.gauss() for _ in range(numel)]
+            data = [dtype.cast(random.gauss()) for _ in range(numel)]
         elif init_op == Buffer.Op.ZEROS:
-            data = [0.0 for _ in range(numel)]
+            data = [dtype.cast(0.0) for _ in range(numel)]
         elif init_op == Buffer.Op.ONES:
-            data = [1.0 for _ in range(numel)]
+            data = [dtype.cast(1.0) for _ in range(numel)]
         else:
             raise RuntimeError(f"Initialization operation {init_op.value} not implemented")
 
@@ -619,24 +619,24 @@ class Buffer():
         return Buffer(data).reshape(shape)
 
     @staticmethod
-    def uniform(shape: tuple) -> Buffer:
+    def uniform(shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Create a Float Buffer with data initialized uniformly between 0 and 1
-        return Buffer._init(Buffer.Op.UNIFORM, shape)
+        return Buffer._init(Buffer.Op.UNIFORM, shape, dtype)
 
     @staticmethod
-    def normal(shape: tuple) -> Buffer:
+    def normal(shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Create a Float Buffer with data initialized randomly by a normal distribution
-        return Buffer._init(Buffer.Op.NORMAL, shape)
+        return Buffer._init(Buffer.Op.NORMAL, shape, dtype)
     
     @staticmethod
-    def zeros(shape: tuple) -> Buffer:
+    def zeros(shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Create a Float Buffer with data initialized with 0s
-        return Buffer._init(Buffer.Op.ZEROS, shape)
+        return Buffer._init(Buffer.Op.ZEROS, shape, dtype)
 
     @staticmethod
-    def ones(shape: tuple) -> Buffer:
+    def ones(shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Create a Float Buffer with data initialized with 0s
-        return Buffer._init(Buffer.Op.ONES, shape)
+        return Buffer._init(Buffer.Op.ONES, shape, dtype)
 
     def _generate_indices_with_custom_order(self, order: tuple) -> Iterator[tuple]:
         # Generate indices for the buffer by incrementing dimensions in a specified custom order
