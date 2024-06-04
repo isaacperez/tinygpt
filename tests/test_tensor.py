@@ -1661,3 +1661,210 @@ def test_backward_getitem():
         [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
         [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
     ]
+
+
+def test_concatenate():
+    # Scalars
+    for dtype in DType:
+        tensor1 = Tensor(0.0, dtype=dtype)
+        tensor2 = Tensor(1.0, dtype=dtype)
+
+        with pytest.raises(ValueError):
+            concatenated_tensor = Tensor.concatenate([tensor1, tensor2], axis=0)
+
+    # 1D Tensor 
+    for dtype in DType:
+        tensor1 = Tensor([0.0, 1.0, 0.0, -1.0], dtype=dtype, requires_grad=dtype == DType.float32)
+        tensor2 = Tensor([1.0, 0.0, 1.0], dtype=dtype)
+
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2], axis=0)
+
+        assert concatenated_tensor.dtype == dtype 
+        assert concatenated_tensor.requires_grad == (dtype == DType.float32)
+        assert concatenated_tensor.shape == (7,)
+        assert concatenated_tensor.to_python() == Tensor([0.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0], dtype=dtype).to_python()
+
+        concatenated_tensor = Tensor.concatenate([tensor2, tensor2], axis=0)
+
+        assert concatenated_tensor.dtype == dtype
+        assert not concatenated_tensor.requires_grad
+        assert concatenated_tensor.shape == (6,)
+        assert concatenated_tensor.to_python() == Tensor([1.0, 0.0, 1.0, 1.0, 0.0, 1.0], dtype=dtype).to_python()
+
+    # 3D Tensor
+    for dtype in DType:
+        # Concatenate on axis 0
+        data1 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        tensor1 = Tensor(data1, dtype=dtype)
+        tensor2 = Tensor(data2, dtype=dtype, requires_grad=dtype == DType.float32)
+        buffer3 = Tensor(data3, dtype=dtype)
+
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2, buffer3], axis=0)
+
+        assert concatenated_tensor.dtype == dtype 
+        assert concatenated_tensor.requires_grad == (dtype == DType.float32)
+        assert concatenated_tensor.shape == (8, 3, 2)
+        assert concatenated_tensor.to_python() == Tensor(
+            [
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+                [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+                [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]], 
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+                [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+            ]
+            , dtype=dtype).to_python()
+
+        # Concatenate on axis 1
+        data1 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        tensor1 = Tensor(data1, dtype=dtype)
+        tensor2 = Tensor(data2, dtype=dtype, requires_grad=dtype == DType.float32)
+        buffer3 = Tensor(data3, dtype=dtype)
+
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2, buffer3], axis=1)
+
+        assert concatenated_tensor.dtype == dtype 
+        assert concatenated_tensor.requires_grad == (dtype == DType.float32)
+        assert concatenated_tensor.shape == (4, 8, 2)
+        assert concatenated_tensor.to_python() == Tensor(
+            [
+                [
+                    [1.0, 4.0], [2.0, 5.0], [3.0, 6.0], [1.0, 4.0], [3.0, 6.0], [1.0, 4.0], [2.0, 5.0], [3.0, 6.0]
+                ], 
+                [
+                    [7.0, 10.0], [8.0, 11.0], [9.0, 12.0], [7.0, 10.0], [9.0, 12.0], [7.0, 10.0], [8.0, 11.0], 
+                    [9.0, 12.0]
+                ], 
+                [
+                    [13.0, 16.0], [14.0, 17.0], [15.0, 18.0], [13.0, 16.0], [15.0, 18.0], [13.0, 16.0], [14.0, 17.0], 
+                    [15.0, 18.0]
+                ], 
+                [
+                    [19.0, 22.0], [20.0, 23.0], [21.0, 24.0], [19.0, 22.0], [21.0, 24.0], [19.0, 22.0], [20.0, 23.0], 
+                    [21.0, 24.0]
+                ]
+            ]
+            , dtype=dtype).to_python()
+
+        # Concatenate on axis 2
+        data1 = [
+            [[1.0], [2.0], [3.0]], 
+            [[7.0], [8.0], [9.0]], 
+            [[13.0], [14.0], [15.0]], 
+            [[19.0], [20.0], [21.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        tensor1 = Tensor(data1, dtype=dtype)
+        tensor2 = Tensor(data2, dtype=dtype)
+        buffer3 = Tensor(data3, dtype=dtype, requires_grad=dtype == DType.float32)
+
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2, buffer3], axis=2)
+
+        assert concatenated_tensor.dtype == dtype 
+        assert concatenated_tensor.requires_grad == (dtype == DType.float32)
+        assert concatenated_tensor.shape == (4, 3, 5)
+        assert concatenated_tensor.to_python() == Tensor(
+            [
+                [[1.0, 1.0, 4.0, 1.0, 4.0], [2.0, 2.0, 5.0, 2.0, 5.0], [3.0, 3.0, 6.0, 3.0, 6.0]], 
+                [[7.0, 7.0, 10.0, 7.0, 10.0], [8.0, 8.0, 11.0, 8.0, 11.0], [9.0, 9.0, 12.0, 9.0, 12.0]], 
+                [[13.0, 13.0, 16.0, 13.0, 16.0], [14.0, 14.0, 17.0, 14.0, 17.0], [15.0, 15.0, 18.0, 15.0, 18.0]], 
+                [[19.0, 19.0, 22.0, 19.0, 22.0], [20.0, 20.0, 23.0, 20.0, 23.0], [21.0, 21.0, 24.0, 21.0, 24.0]]
+            ], dtype=dtype
+        ).to_python()
+
+    # Wrong input (different dtypes)
+    tensor1 = Tensor([0.0, 1.0, 0.0, -1.0], dtype=DType.float32)
+    tensor2 = Tensor([1.0, 0.0, 1.0], dtype=DType.int32)
+
+    with pytest.raises(ValueError):
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2], axis=0)
+
+    # Wrong input (different dims)
+    tensor1 = Tensor([0.0, 1.0, 0.0, -1.0], dtype=DType.float32)
+    tensor2 = Tensor([[1.0, 0.0, 1.0, 0.0]], dtype=DType.float32)
+
+    with pytest.raises(ValueError):
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2], axis=0)
+
+    # Wrong input (different shapes)
+    tensor1 = Tensor([[0.0, 1.0, 0.0], [1.0, 0.0, -1.0]], dtype=DType.float32)
+    tensor2 = Tensor([[1.0, 0.0], [1.0, 0.0]], dtype=DType.float32)
+
+    with pytest.raises(ValueError):
+        concatenated_tensor = Tensor.concatenate([tensor1, tensor2], axis=0) 
+
+
+def test_backward_concatenate():
+    base_tensor = Tensor(
+        [
+            [0.0, 1.0, 2.0],
+            [3.0, 4.0, 5.0],
+            [6.0, 7.0, 8.0],
+            [9.0, 10.0, 11.0],
+        ],
+        requires_grad=True
+    ) 
+
+    # Create some tensors from the base one
+    tensor1 = base_tensor[0, :2].reshape((1, 2))
+    tensor2 = base_tensor[2, :2].reshape((1, 2))
+    tensor3 = base_tensor[3, :2].reshape((1, 2))
+
+    # Concatenate them
+    concatenated_tensor = Tensor.concatenate([tensor1, tensor2, tensor3, tensor2], axis=0) 
+    
+    assert concatenated_tensor.shape == (4, 2)
+    assert concatenated_tensor.to_python() == [[0.0, 1.0], [6.0, 7.0], [9.0, 10.0], [6.0, 7.0]]
+
+    # Call backward on sum reduction
+    concatenated_tensor.sum(axes=(0, 1)).backward()
+
+    # Checkg gradient has been propagated
+    assert base_tensor.grad is not None
+    assert base_tensor.grad.to_python() == [[1.0, 1.0, 0.0], [0.0, 0.0, 0.0], [2.0, 2.0, 0.0], [1.0, 1.0, 0.0]]

@@ -253,6 +253,10 @@ class Tensor():
         return (mult).sum((mult.ndim - 1,))
 
     @staticmethod
+    def concatenate(tensors: tuple[Tensor], axis: int) -> Tensor:
+        return apply_op(mlops.Concatenate, *tensors, axis=axis)
+
+    @staticmethod
     def uniform(shape: tuple, low: float = 0.0, high: float = 1.0, **kwargs):
         return Tensor((high - low) * Buffer.uniform(shape) + low, **kwargs)
 

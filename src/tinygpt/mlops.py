@@ -220,3 +220,31 @@ class Slice(Operation):
             return output_grad
         else:
             return None
+
+
+class Concatenate(Operation):
+
+    def forward(self, *buffers: tuple[Buffer], axis: int) -> Buffer:
+        self.buffers = buffers
+        self.axis = axis
+        return Buffer.concatenate(buffers, axis=axis)
+
+    def backward(self, incoming_grad: Buffer) -> tuple[Union[Buffer, None]]:
+        splits = []
+        start_idx = 0
+        for i, buffer in enumerate(self.buffers):
+            if self.needs_input_grad[i]:
+                # Extract the slice of the incoming gradient that corresponds to the current buffer
+                end_idx = start_idx + buffer.shape[self.axis]
+                slices = [slice(None)] * buffer.ndim
+                slices[self.axis] = slice(start_idx, end_idx)
+
+                split_grad = incoming_grad[tuple(slices)]
+
+                splits.append(split_grad)
+                start_idx = end_idx
+
+            else:
+                splits.append(None)
+
+        return tuple(splits)
