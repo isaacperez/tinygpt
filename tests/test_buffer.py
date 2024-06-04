@@ -2059,3 +2059,176 @@ def test_setitem():
     # Not valid (step less than zero)
     with pytest.raises(ValueError):
         buffer[::-1] = new_data
+
+
+def test_concatenate():
+
+    # Scalars
+    for dtype in DType:
+        buffer1 = Buffer(0.0, dtype=dtype)
+        buffer2 = Buffer(1.0, dtype=dtype)
+
+        with pytest.raises(ValueError):
+            concatenated_buffer = Buffer.concatenate([buffer1, buffer2], axis=0)
+
+    # 1D Buffer 
+    for dtype in DType:
+        buffer1 = Buffer([0.0, 1.0, 0.0, -1.0], dtype=dtype)
+        buffer2 = Buffer([1.0, 0.0, 1.0], dtype=dtype)
+
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2], axis=0)
+
+        assert concatenated_buffer.dtype == dtype 
+        assert concatenated_buffer.shape == (7,)
+        assert concatenated_buffer.to_python() == Buffer([0.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0], dtype=dtype).to_python()
+
+        concatenated_buffer = Buffer.concatenate([buffer2, buffer2], axis=0)
+
+        assert concatenated_buffer.dtype == dtype 
+        assert concatenated_buffer.shape == (6,)
+        assert concatenated_buffer.to_python() == Buffer([1.0, 0.0, 1.0, 1.0, 0.0, 1.0], dtype=dtype).to_python()
+
+    # 3D Buffer
+    for dtype in DType:
+        # Concatenate on axis 0
+        data1 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        buffer1 = Buffer(data1, dtype=dtype)
+        buffer2 = Buffer(data2, dtype=dtype)
+        buffer3 = Buffer(data3, dtype=dtype)
+
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2, buffer3], axis=0)
+
+        assert concatenated_buffer.dtype == dtype 
+        assert concatenated_buffer.shape == (8, 3, 2)
+        assert concatenated_buffer.to_python() == Buffer(
+            [
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+                [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+                [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]], 
+                [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+                [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+                [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+            ]
+            , dtype=dtype).to_python()
+
+        # Concatenate on axis 1
+        data1 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        buffer1 = Buffer(data1, dtype=dtype)
+        buffer2 = Buffer(data2, dtype=dtype)
+        buffer3 = Buffer(data3, dtype=dtype)
+
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2, buffer3], axis=1)
+
+        assert concatenated_buffer.dtype == dtype 
+        assert concatenated_buffer.shape == (4, 8, 2)
+        assert concatenated_buffer.to_python() == Buffer(
+            [
+                [
+                    [1.0, 4.0], [2.0, 5.0], [3.0, 6.0], [1.0, 4.0], [3.0, 6.0], [1.0, 4.0], [2.0, 5.0], [3.0, 6.0]
+                ], 
+                [
+                    [7.0, 10.0], [8.0, 11.0], [9.0, 12.0], [7.0, 10.0], [9.0, 12.0], [7.0, 10.0], [8.0, 11.0], 
+                    [9.0, 12.0]
+                ], 
+                [
+                    [13.0, 16.0], [14.0, 17.0], [15.0, 18.0], [13.0, 16.0], [15.0, 18.0], [13.0, 16.0], [14.0, 17.0], 
+                    [15.0, 18.0]
+                ], 
+                [
+                    [19.0, 22.0], [20.0, 23.0], [21.0, 24.0], [19.0, 22.0], [21.0, 24.0], [19.0, 22.0], [20.0, 23.0], 
+                    [21.0, 24.0]
+                ]
+            ]
+            , dtype=dtype).to_python()
+
+        # Concatenate on axis 2
+        data1 = [
+            [[1.0], [2.0], [3.0]], 
+            [[7.0], [8.0], [9.0]], 
+            [[13.0], [14.0], [15.0]], 
+            [[19.0], [20.0], [21.0]]
+        ]
+        data2 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+        data3 = [
+            [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], 
+            [[7.0, 10.0], [8.0, 11.0], [9.0, 12.0]], 
+            [[13.0, 16.0], [14.0, 17.0], [15.0, 18.0]], 
+            [[19.0, 22.0], [20.0, 23.0], [21.0, 24.0]]
+        ]
+
+        buffer1 = Buffer(data1, dtype=dtype)
+        buffer2 = Buffer(data2, dtype=dtype)
+        buffer3 = Buffer(data3, dtype=dtype)
+
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2, buffer3], axis=2)
+
+        assert concatenated_buffer.dtype == dtype 
+        assert concatenated_buffer.shape == (4, 3, 5)
+        assert concatenated_buffer.to_python() == Buffer(
+            [
+                [[1.0, 1.0, 4.0, 1.0, 4.0], [2.0, 2.0, 5.0, 2.0, 5.0], [3.0, 3.0, 6.0, 3.0, 6.0]], 
+                [[7.0, 7.0, 10.0, 7.0, 10.0], [8.0, 8.0, 11.0, 8.0, 11.0], [9.0, 9.0, 12.0, 9.0, 12.0]], 
+                [[13.0, 13.0, 16.0, 13.0, 16.0], [14.0, 14.0, 17.0, 14.0, 17.0], [15.0, 15.0, 18.0, 15.0, 18.0]], 
+                [[19.0, 19.0, 22.0, 19.0, 22.0], [20.0, 20.0, 23.0, 20.0, 23.0], [21.0, 21.0, 24.0, 21.0, 24.0]]
+            ], dtype=dtype
+        ).to_python()
+
+    # Wrong input (different dtypes)
+    buffer1 = Buffer([0.0, 1.0, 0.0, -1.0], dtype=DType.float32)
+    buffer2 = Buffer([1.0, 0.0, 1.0], dtype=DType.int32)
+
+    with pytest.raises(ValueError):
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2], axis=0)
+
+    # Wrong input (different dims)
+    buffer1 = Buffer([0.0, 1.0, 0.0, -1.0], dtype=DType.float32)
+    buffer2 = Buffer([[1.0, 0.0, 1.0, 0.0]], dtype=DType.float32)
+
+    with pytest.raises(ValueError):
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2], axis=0)
+
+    # Wrong input (different shapes)
+    buffer1 = Buffer([[0.0, 1.0, 0.0], [1.0, 0.0, -1.0]], dtype=DType.float32)
+    buffer2 = Buffer([[1.0, 0.0], [1.0, 0.0]], dtype=DType.float32)
+
+    with pytest.raises(ValueError):
+        concatenated_buffer = Buffer.concatenate([buffer1, buffer2], axis=0)

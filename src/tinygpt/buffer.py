@@ -584,6 +584,57 @@ class Buffer():
         return self._reduce(self.Op.MAX, axes)
 
     @staticmethod
+    def concatenate(buffers: list[Buffer], axis: int = 0) -> Buffer:
+        if not buffers:
+            raise ValueError("Need at least one buffer to concatenate")
+        
+        # Check that all elements in buffers are instances of Buffer
+        if any(not isinstance(buffer, Buffer) for buffer in buffers):
+            raise TypeError("All elements must be of type Buffer")
+        
+        # Check if all buffers have the same number of dimensions
+        ndim = buffers[0].ndim
+        if any(buffer.ndim != ndim for buffer in buffers):
+            raise ValueError("All buffers must have the same number of dimensions")
+
+        # Normalize axis to handle negative values
+        if axis < 0:
+            axis += ndim
+        if axis < 0 or axis >= ndim:
+            raise ValueError(f"Axis out of bounds for concatenation: {axis}")
+        
+        # Check that all buffers have the same shape except along the concatenation axis
+        shape = list(buffers[0].shape)
+        for buffer in buffers[1:]:
+            for dim in range(ndim):
+                if dim != axis and shape[dim] != buffer.shape[dim]:
+                    raise ValueError("All buffers must have the same shape, except along the concatenation axis")
+
+        # Check that all buffers have the same dtype
+        dtype = buffers[0].dtype
+        for buffer in buffers[1:]:
+            if buffer.dtype != dtype:
+                raise ValueError("All buffers must have the same dtype")
+
+        # Calculate the new shape after concatenation
+        new_shape = list(shape)
+        new_shape[axis] = sum(buffer.shape[axis] for buffer in buffers)
+
+        # Initialize a zero buffer with the new shape
+        result_buffer = Buffer.zeros(tuple(new_shape), dtype)
+
+        # Place each buffer's values into the appropriate position in the result buffer
+        start_idx = 0
+        for buffer in buffers:
+            end_idx = start_idx + buffer.shape[axis]
+            slices = [slice(None)] * ndim
+            slices[axis] = slice(start_idx, end_idx)
+            result_buffer[tuple(slices)] = buffer
+            start_idx = end_idx
+
+        return result_buffer
+
+    @staticmethod
     def _init(init_op: Buffer.Op, shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Initialize a new Buffer using a specified operation and shape
 
