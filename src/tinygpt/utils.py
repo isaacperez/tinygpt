@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any
 from collections import defaultdict
 
+
 class DType(Enum):
     # Each type has an equivalent Python type and a priority associated
     float32 = float
