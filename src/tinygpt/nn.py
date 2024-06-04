@@ -60,7 +60,6 @@ class MLP(Module):
         return output
     
 
-
 class Embedding(Module):
 
     def __init__(self, num_embeddings: int, embedding_dim: int) -> None:
