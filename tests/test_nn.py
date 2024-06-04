@@ -2,7 +2,7 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
-from tinygpt.nn import FullyConnectedLayer, MLP
+from tinygpt.nn import FullyConnectedLayer, MLP, Embedding
 
 
 def test_FullyConnectedLayer():
@@ -641,3 +641,99 @@ def test_freeze_and_unfreeze():
     assert temp.non_trainable_tensor.grad is None
     assert all([tensor.grad is None for tensor in temp.non_trainable_list])
     assert all([tensor.grad is None for tensor in temp.non_trainable_dict.values()])
+
+
+def test_Embedding():
+    embedding_lookup = Embedding(num_embeddings=3, embedding_dim=4)
+
+    # One batch
+    indices = Tensor([[0, 1, 2]])
+    embeddings = embedding_lookup(indices)
+
+    assert embeddings.shape == (1, 3, 4)
+    assert embeddings.requires_grad
+    assert embeddings[0, :, :].to_python() == embedding_lookup.embeddings.to_python()
+
+    indices = Tensor([[0, 0, 0]])
+    embeddings = embedding_lookup(indices)
+
+    assert embeddings.shape == (1, 3, 4)
+    assert embeddings.requires_grad
+    assert embeddings[0, 0, :].to_python() == embedding_lookup.embeddings[0, :].to_python()
+    assert embeddings[0, 1, :].to_python() == embedding_lookup.embeddings[0, :].to_python()
+    assert embeddings[0, 2, :].to_python() == embedding_lookup.embeddings[0, :].to_python()
+
+    # Two batches
+    indices = Tensor([[2, 1, 0], [0, 1, 2]])
+    embeddings = embedding_lookup(indices)
+
+    assert embeddings.shape == (2, 3, 4)
+    assert embeddings.requires_grad
+    assert embeddings[0, 0, :].to_python() == embedding_lookup.embeddings[2, :].to_python()
+    assert embeddings[0, 1, :].to_python() == embedding_lookup.embeddings[1, :].to_python()
+    assert embeddings[0, 2, :].to_python() == embedding_lookup.embeddings[0, :].to_python()
+    assert embeddings[1, 0, :].to_python() == embedding_lookup.embeddings[0, :].to_python()
+    assert embeddings[1, 1, :].to_python() == embedding_lookup.embeddings[1, :].to_python()
+    assert embeddings[1, 2, :].to_python() == embedding_lookup.embeddings[2, :].to_python()
+
+    # Wrong inputs
+    for wrong_input in [None, [], (0, 1), [[0, 1]]]:
+        with pytest.raises(TypeError):  
+            embeddings = embedding_lookup(wrong_input)
+
+    with pytest.raises(IndexError):    
+        embeddings = embedding_lookup(Tensor([[-4, 0, 0]]))
+
+    with pytest.raises(IndexError):    
+        embeddings = embedding_lookup(Tensor([[0, 3, 0]]))
+
+    for wrong_dim in [Tensor(0), Tensor([0, 1]), Tensor([[[0, 1], [1, 1]], [[0, 1], [1, 1]]])]:
+        with pytest.raises(ValueError):    
+            embeddings = embedding_lookup(wrong_dim)
+
+    with pytest.raises(ValueError):    
+        embeddings = embedding_lookup(Tensor([[0.0, 0.0, 0.0]]))
+
+    with pytest.raises(ValueError):    
+        embeddings = embedding_lookup(Tensor([[True, True, False]]))
+
+
+def test_Embedding_backward():
+    embedding_lookup = Embedding(num_embeddings=3, embedding_dim=4)
+
+    indices = Tensor([[0, 1, 1]])
+    embeddings = embedding_lookup(indices) 
+
+    embeddings.sum(axes=(0, 1, 2)).backward()
+
+    assert embedding_lookup.embeddings.grad is not None 
+    assert embedding_lookup.embeddings.grad.to_python() == [
+        [1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0], [0.0, 0.0, 0.0, 0.0]
+    ]
+
+
+def test_Embedding_save_and_load(tmp_path):
+    # Prepare a temporal directory
+    tmp_dir = tmp_path / "test_Embedding_save_and_load"
+    tmp_dir.mkdir()
+
+    # Create an Embedding layer and save it
+    embedding_lookup = Embedding(num_embeddings=4, embedding_dim=256)
+    embedding_lookup.save_weights(str(tmp_dir / "embeddings.json"))
+
+    # Create a new Embedding layer
+    new_embedding_lookup = Embedding(num_embeddings=4, embedding_dim=256)
+
+    assert embedding_lookup.embeddings.to_python() != new_embedding_lookup.embeddings.to_python()
+
+    # Load the embeddings
+    new_embedding_lookup.load_weights(str(tmp_dir / "embeddings.json"))
+
+    # Check that now are the same
+    assert embedding_lookup.embeddings.to_python() == new_embedding_lookup.embeddings.to_python()
+
+    indices = Tensor([[0, 1, 0]])
+    old_embeddings = embedding_lookup(indices) 
+    new_embeddings = new_embedding_lookup(indices) 
+
+    assert old_embeddings.to_python() == new_embeddings.to_python()
