@@ -153,6 +153,29 @@ class Tensor():
             result = apply_op(mlops.Sum, self, axes=axes)
             return result.reshape(tuple(val for idx, val in enumerate(result.shape) if val != 1 or idx not in axes))
 
+    def mean(self, axes: tuple, keepdim: bool = False) -> Tensor:
+        if not isinstance(axes, tuple):
+            raise TypeError(f"axes argument type is tuple, but found {type(axes)}")
+        
+        if self.dtype != DType.float32:
+            raise RuntimeError("mean operation only implemented for float32 tensors")
+        
+        # Calculate the sum of the values along the specified axes while keeping the reduced dimensions
+        sum_result = self.sum(axes, keepdim=True)
+        
+        # Determine the number of elements involved in the sum along the specified axes
+        num_elements = 1.0
+        for axis in axes:
+            num_elements *= self.shape[axis]
+
+        # Compute the mean by dividing the sum by the number of elements
+        result =  sum_result / num_elements
+
+        if keepdim:
+            return result    
+        else:
+            return result.reshape(tuple(val for idx, val in enumerate(result.shape) if val != 1 or idx not in axes))
+
     def max(self, axes: tuple, keepdim: bool = False) -> Tensor:
         if not isinstance(axes, tuple):
             raise TypeError(f"axes argument type is tuple, but found {type(axes)}")

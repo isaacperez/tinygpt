@@ -571,6 +571,22 @@ def test_sum():
     assert all(tensor.grad.buffer == Buffer([[1.0, 1.0], [1.0, 1.0]]))
 
 
+def test_mean():
+    tensor = Tensor([[1., 2.], [3., 4.]], requires_grad=True)
+
+    new_tensor = tensor.mean((0, 1), keepdim=True)
+    assert new_tensor.shape == (1, 1)
+    assert all(new_tensor.buffer == Buffer([[2.5]]))
+
+    new_tensor = tensor.mean((0, 1), keepdim=False)
+    assert new_tensor.shape == ()
+    assert all(new_tensor.buffer == Buffer(2.5))
+
+    new_tensor.backward()
+
+    assert all(tensor.grad.buffer == Buffer([[0.25, 0.25], [0.25, 0.25]]))
+
+
 def test_max():
     tensor = Tensor([[1., 2.], [3., 4.]], requires_grad=True)
 
