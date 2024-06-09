@@ -1,5 +1,5 @@
 import math
-from typing import Any
+from typing import Any, Union
 
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
@@ -90,3 +90,72 @@ class Embedding(Module):
         ]
 
         return Tensor.concatenate(individual_embeddings, axis=0).reshape((*indices.shape, self.embedding_dim))
+    
+
+class LayerNorm(Module):
+
+    def __init__(
+            self, 
+            normalized_shape: Union[tuple[int, ...], int], 
+            eps: float = 1e-05, 
+            elementwise_affine: bool = True, 
+            bias: bool = True
+        ) -> None:
+        super().__init__()
+
+        if isinstance(normalized_shape, int):
+            normalized_shape = (normalized_shape,)
+
+        if len(normalized_shape) < 1:
+            raise ValueError(
+                f"Expected normalized_shape to be at least 1-dimensional, i.e., "
+                f"containing at least one element, but got normalized_shape = {normalized_shape}"
+            )
+        
+        if any(value < 1 for value in normalized_shape):
+            raise RuntimeError(f"Expected positive values for normalized_shape, but found {normalized_shape}")
+
+        self.normalized_shape = normalized_shape
+        self.eps = eps
+        self.bias = bias
+        self.elementwise_affine = elementwise_affine
+
+        if elementwise_affine:
+            self.weights = Tensor.ones(shape=self.normalized_shape, requires_grad=True)
+            self.bias = Tensor.zeros(shape=self.normalized_shape, requires_grad=True)
+
+    def _extra_repr(self) -> str:
+        return f"{self.normalized_shape}, eps={self.eps}, elementwise_affine={self.elementwise_affine}"
+
+    def __call__(self, tensor: Tensor) -> Tensor:        
+        # Validate the input tensor
+        if tensor.dtype != DType.float32:
+            raise ValueError(f"Expecting input tensor with dtype float32, but found {tensor.dtype}")
+        
+        if tensor.ndim < 2:
+            raise ValueError(f"Expecting input with two dimensions, but found {tensor.ndim} dimensions")
+        
+        if self.elementwise_affine and tensor.shape[-len(self.normalized_shape):] != self.normalized_shape:
+            raise RuntimeError(
+                f"Given normalized_shape {self.normalized_shape}, expected input with shape "
+                f"{tuple(['*'] + list(self.normalized_shape))}, but got input with shape {tensor.shape}"
+            )
+
+        # Calculate the mean and the variance of the input tensor to apply the normalization
+        axes = tuple(tensor.ndim - (i + 1) for i in range(len(self.normalized_shape)))
+       
+        mean = tensor.mean(axes=axes, keepdim=True)
+        mean_square = (tensor ** 2.0).mean(axes=axes, keepdim=True)
+
+        var = mean_square - mean ** 2.0
+
+        # Normalize the input tensor
+        tensor = (tensor - mean) / ((var + self.eps) ** 0.5)
+
+        # Apply affine transformation
+        if self.elementwise_affine:
+            tensor = tensor * self.weights + self.bias
+        
+        return tensor
+
+    

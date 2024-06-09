@@ -2,7 +2,7 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
-from tinygpt.nn import FullyConnectedLayer, MLP, Embedding
+from tinygpt.nn import FullyConnectedLayer, MLP, Embedding, LayerNorm
 
 
 def test_FullyConnectedLayer():
@@ -737,3 +737,133 @@ def test_Embedding_save_and_load(tmp_path):
     new_embeddings = new_embedding_lookup(indices) 
 
     assert old_embeddings.to_python() == new_embeddings.to_python()
+
+
+def test_LayerNorm():
+    
+    # One dim
+    tensor = Tensor([[1., 2., 3.], [4., 5., 6.]], requires_grad=True)
+    expected_output = Tensor(
+        [[-1.2247356176376343, 0.0, 1.2247354984283447], [-1.2247357368469238, 0.0, 1.2247352600097656]]
+    )
+    max_diff_pos = Tensor([[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]])
+    max_diff_neg = Tensor([[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]])
+
+    layer_norm = LayerNorm(normalized_shape=3)
+
+    assert layer_norm.weights.shape == (3,)
+    assert layer_norm.bias.shape == (3,)
+
+    tensor_norm = layer_norm(tensor)
+
+    assert tensor_norm.shape == (2, 3)
+    assert tensor_norm.requires_grad 
+    assert all((tensor_norm.buffer - expected_output.buffer) < max_diff_pos.buffer)
+    assert all((tensor_norm.buffer - expected_output.buffer) > max_diff_neg.buffer)
+
+    layer_norm = LayerNorm(normalized_shape=(3,))
+    tensor_norm = layer_norm(tensor)
+
+    assert tensor_norm.shape == (2, 3)
+    assert tensor_norm.requires_grad 
+    assert all((tensor_norm.buffer - expected_output.buffer) < max_diff_pos.buffer)
+    assert all((tensor_norm.buffer - expected_output.buffer) > max_diff_neg.buffer)
+
+    # Two dims
+    tensor = Tensor([[1., 2., 3.], [4., 5., 6.]], requires_grad=True).reshape((1, 2, 3))
+    expected_output = Tensor(
+        [
+            [
+                [-1.4638476371765137, -0.8783086538314819, -0.2927696704864502], 
+                [0.2927694320678711, 0.8783085346221924, 1.4638473987579346]
+            ]
+        ]
+    )
+    max_diff_pos = Tensor([[[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]]])
+    max_diff_neg = Tensor([[[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]]])
+
+    layer_norm = LayerNorm(normalized_shape=(2,3))
+    tensor_norm = layer_norm(tensor)
+    
+    assert tensor_norm.shape == (1, 2, 3)
+    assert tensor_norm.requires_grad 
+    assert all((tensor_norm.buffer - expected_output.buffer) < max_diff_pos.buffer)
+    assert all((tensor_norm.buffer - expected_output.buffer) > max_diff_neg.buffer)
+
+    tensor_norm = layer_norm(Tensor.ones((4, 4, 2, 3)))
+    
+    assert tensor_norm.shape == (4, 4, 2, 3)
+    assert tensor_norm.requires_grad 
+    assert tensor_norm.to_python() == [[[[0.0] * 3] * 2] * 4] * 4
+
+    # Wrong input
+    with pytest.raises(TypeError):
+        LayerNorm(normalized_shape=[3,])
+
+    for wrong_normalized_shape in ((0,), (1, 0), (1, -1)):    
+        with pytest.raises(RuntimeError):
+            LayerNorm(normalized_shape=wrong_normalized_shape)
+
+    for wrong_normalized_shape in (()):
+        with pytest.raises(ValueError):
+            LayerNorm(normalized_shape=wrong_normalized_shape)
+
+    # Wrong dtype for input tensor
+    layer_norm = LayerNorm(normalized_shape=(3,))
+
+    with pytest.raises(ValueError):
+        layer_norm(Tensor([[0, 0, 0], [0, 0, 0]]))
+
+    # Wrong shape
+    with pytest.raises(ValueError):
+        layer_norm(Tensor([0., 0., 0.]))
+    
+    with pytest.raises(RuntimeError):
+        layer_norm(Tensor.zeros((2, 2)))
+
+    layer_norm = LayerNorm(normalized_shape=(2,3))
+    with pytest.raises(RuntimeError):
+        layer_norm(Tensor.zeros((2, 2, 3, 2, 2)))
+
+    with pytest.raises(RuntimeError):
+        layer_norm(Tensor.zeros((4, 4, 3, 3)))
+
+
+def test_LayerNorm_backward():
+    layer_norm = LayerNorm(normalized_shape=(2,3), elementwise_affine=True)
+    tensor = Tensor([[[1., 2., 3.], [4., 5., 6.]]], requires_grad=True)
+    tensor_norm = layer_norm(tensor) 
+
+    ((tensor_norm * 20.0) ** 2.0).sum((0, 1, 2)).backward()
+    
+    max_diff_pos = Tensor([[[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]]])
+    max_diff_neg = Tensor([[[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]]])
+    expected_tensor_grad = Tensor([
+        [
+            [-0.002351004286992975, -0.001410602572263997, -0.00047020085742133233], 
+            [0.00047020085719395865, 0.0014106025719229365, 0.002351004286765601]
+        ]
+    ])
+    assert all((tensor.grad.buffer - expected_tensor_grad.buffer) < max_diff_pos.buffer)
+    assert all((tensor.grad.buffer - expected_tensor_grad.buffer) > max_diff_neg.buffer)
+    
+    max_diff_pos = Tensor([[1e-05, 1e-05, 1e-05], [1e-05, 1e-05, 1e-05]])
+    max_diff_neg = Tensor([[-1e-05, -1e-05, -1e-05], [-1e-05, -1e-05, -1e-05]])
+    expected_weights_grad = Tensor(
+        [
+            [1714.2798367548455, 617.1407412317444, 68.57119347019382], 
+            [68.57119347019382, 617.1407412317444, 1714.2798367548455]
+        ]
+    )
+
+    assert all((layer_norm.weights.grad.buffer - expected_weights_grad.buffer) < max_diff_pos.buffer)
+    assert all((layer_norm.weights.grad.buffer - expected_weights_grad.buffer) > max_diff_neg.buffer)
+
+    expected_bias_grad = Tensor(
+        [
+            [-1171.0780799775378, -702.6468479865227, -234.21561599550756], 
+            [234.21561599550756, 702.6468479865227, 1171.0780799775378]
+        ]
+    )
+    assert all((layer_norm.bias.grad.buffer - expected_bias_grad.buffer) < max_diff_pos.buffer)
+    assert all((layer_norm.bias.grad.buffer - expected_bias_grad.buffer) > max_diff_neg.buffer)
