@@ -2236,6 +2236,14 @@ def test_concatenate():
 
 def test_tril():
     # Wrong input
+    with pytest.raises(ValueError):
+        buffer = Buffer(1.0).tril()
+
+    with pytest.raises(ValueError):
+        buffer = Buffer([]).tril()
+    
+    with pytest.raises(ValueError):
+        buffer = Buffer([1, 2]).tril()
 
     # 2D Tensor
     data_2d = [
@@ -2390,3 +2398,9 @@ def test_tril():
     assert buffer_4d.tril().to_python() == expected_4d
     assert buffer_4d.tril(diagonal=-1).to_python() == expected_4d_neg1
     assert buffer_4d.tril(diagonal=1).to_python() == expected_4d_pos1
+
+    for diagonal in range(3, 9):
+        assert buffer_4d.tril(diagonal=diagonal).to_python() == data_4d
+        assert buffer_4d.tril(diagonal=-diagonal).to_python() == Buffer.zeros(buffer_4d.shape).to_python()
+
+    
