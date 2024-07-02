@@ -275,6 +275,9 @@ class Tensor():
         # effectively sums the products of corresponding elements, completing the matrix multiplication process
         return (mult).sum((mult.ndim - 1,))
 
+    def tril(self, diagonal: int = 0) -> Tensor:
+        return apply_op(mlops.Tril, self, diagonal=diagonal)
+
     @staticmethod
     def concatenate(tensors: tuple[Tensor], axis: int) -> Tensor:
         return apply_op(mlops.Concatenate, *tensors, axis=axis)

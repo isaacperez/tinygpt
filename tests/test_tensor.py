@@ -1884,3 +1884,226 @@ def test_backward_concatenate():
     # Checkg gradient has been propagated
     assert base_tensor.grad is not None
     assert base_tensor.grad.to_python() == [[1.0, 1.0, 0.0], [0.0, 0.0, 0.0], [2.0, 2.0, 0.0], [1.0, 1.0, 0.0]]
+
+
+def test_tril():
+    # 2D Tensor
+    data_2d = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+    ]
+    expected_2d = [
+        [1, 0, 0],
+        [4, 5, 0],
+        [7, 8, 9]
+    ]
+
+    tensor_2d = Tensor(data_2d)
+    assert tensor_2d.tril().to_python() == expected_2d
+
+    # 3D Tensor
+    data_3d = [
+        [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]
+        ],
+        [
+            [10, 11, 12],
+            [13, 14, 15],
+            [16, 17, 18]
+        ]
+    ]
+    expected_3d = [
+        [
+            [1, 0, 0],
+            [4, 5, 0],
+            [7, 8, 9]
+        ],
+        [
+            [10, 0, 0],
+            [13, 14, 0],
+            [16, 17, 18]
+        ]
+    ]
+
+    tensor_3d = Tensor(data_3d)
+    assert tensor_3d.tril().to_python() == expected_3d
+
+    # 4D Tensor
+    data_4d = [
+        [
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9]
+            ],
+            [
+                [10, 11, 12],
+                [13, 14, 15],
+                [16, 17, 18]
+            ]
+        ],
+        [
+            [
+                [19, 20, 21],
+                [22, 23, 24],
+                [25, 26, 27]
+            ],
+            [
+                [28, 29, 30],
+                [31, 32, 33],
+                [34, 35, 36]
+            ]
+        ]
+    ]
+    expected_4d = [
+        [
+            [
+                [1, 0, 0],
+                [4, 5, 0],
+                [7, 8, 9]
+            ],
+            [
+                [10, 0, 0],
+                [13, 14, 0],
+                [16, 17, 18]
+            ]
+        ],
+        [
+            [
+                [19, 0, 0],
+                [22, 23, 0],
+                [25, 26, 27]
+            ],
+            [
+                [28, 0, 0],
+                [31, 32, 0],
+                [34, 35, 36]
+            ]
+        ]
+    ]
+    expected_4d_neg1 = [
+        [
+            [
+                [0, 0, 0],
+                [4, 0, 0],
+                [7, 8, 0]
+            ],
+            [
+                [0, 0, 0],
+                [13, 0, 0],
+                [16, 17, 0]
+            ]
+        ],
+        [
+            [
+                [0, 0, 0],
+                [22, 0, 0],
+                [25, 26, 0]
+            ],
+            [
+                [0, 0, 0],
+                [31, 0, 0],
+                [34, 35, 0]
+            ]
+        ]
+    ]
+    expected_4d_pos1 = [
+        [
+            [
+                [1, 2, 0],
+                [4, 5, 6],
+                [7, 8, 9]
+            ],
+            [
+                [10, 11, 0],
+                [13, 14, 15],
+                [16, 17, 18]
+            ]
+        ],
+        [
+            [
+                [19, 20, 0],
+                [22, 23, 24],
+                [25, 26, 27]
+            ],
+            [
+                [28, 29, 0],
+                [31, 32, 33],
+                [34, 35, 36]
+            ]
+        ]
+    ]
+    tensor_4d = Tensor(data_4d)
+    assert tensor_4d.tril().to_python() == expected_4d
+    assert tensor_4d.tril(diagonal=-1).to_python() == expected_4d_neg1
+    assert tensor_4d.tril(diagonal=1).to_python() == expected_4d_pos1
+
+    for diagonal in range(3, 9):
+        assert tensor_4d.tril(diagonal=diagonal).to_python() == data_4d
+        assert tensor_4d.tril(diagonal=-diagonal).to_python() == Tensor.zeros(tensor_4d.shape).to_python()
+
+
+def test_backward_tril():
+    # 4D Tensor
+    data_4d = [
+        [
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9]
+            ],
+            [
+                [10, 11, 12],
+                [13, 14, 15],
+                [16, 17, 18]
+            ]
+        ],
+        [
+            [
+                [19, 20, 21],
+                [22, 23, 24],
+                [25, 26, 27]
+            ],
+            [
+                [28, 29, 30],
+                [31, 32, 33],
+                [34, 35, 36]
+            ]
+        ]
+    ]
+    expected_4d = [
+        [
+            [
+                [1, 0, 0],
+                [4, 5, 0],
+                [7, 8, 9]
+            ],
+            [
+                [10, 0, 0],
+                [13, 14, 0],
+                [16, 17, 18]
+            ]
+        ],
+        [
+            [
+                [19, 0, 0],
+                [22, 23, 0],
+                [25, 26, 27]
+            ],
+            [
+                [28, 0, 0],
+                [31, 32, 0],
+                [34, 35, 36]
+            ]
+        ]
+    ]
+    tensor_4d = Tensor(data_4d, dtype=DType.float32, requires_grad=True)
+    assert tensor_4d.tril().to_python() == expected_4d
+
+    # Do the backward pass
+    tensor_4d.tril().sum((0, 1, 2, 3)).backward()
+    
+    assert tensor_4d.grad.to_python() == Tensor.ones(tensor_4d.shape).tril().to_python()

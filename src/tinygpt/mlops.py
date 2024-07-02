@@ -248,3 +248,19 @@ class Concatenate(Operation):
                 splits.append(None)
 
         return tuple(splits)
+    
+
+class Tril(Operation):
+
+    def forward(self, buffer: Buffer, diagonal: int = 0) -> Buffer:
+        self.diagonal = diagonal
+        return buffer.tril(diagonal)
+
+    def backward(self, incoming_grad: Buffer) -> Union[Buffer, None]:
+        # The backward method for tril will only pass the gradient of the lower triangular part
+        # Similar to the forward pass, zero out the upper triangular part of the incoming gradient
+        if self.needs_input_grad[0]:
+            tril_grad = incoming_grad.tril(self.diagonal)
+            return tril_grad
+        else:
+            return None
