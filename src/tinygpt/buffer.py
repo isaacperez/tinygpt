@@ -634,6 +634,41 @@ class Buffer():
 
         return result_buffer
 
+    def tril(self, diagonal: int = 0) -> Buffer:
+        # Ensure the buffer is at least 2-dimensional
+        if self.ndim < 2:
+            raise ValueError("tril requires the buffer to be at least 2-dimensional")
+
+        # If the data is not contiguous, make it contiguous
+        if not self.is_contiguous():
+            contiguous_data = self._get_contiguous_data()
+        else:
+            contiguous_data = self.data
+
+        # Create a new buffer with the same shape and dtype but copying the data because we are going to modify it
+        new_data = contiguous_data.copy()
+        new_buffer = Buffer._create_buffer_from_data(
+            data=new_data, shape=self.shape, stride=self._calculate_stride(self.shape), offset=0
+        )
+
+        if self.ndim == 2:
+            self._apply_tril(new_buffer, diagonal)
+        else:
+            # Iterate over all 2D slices for higher dimensional buffers
+            for indices in itertools.product(*(range(dim) for dim in self.shape[:-2])):
+                # Convert indices to a full index with slice(None) for the last two dimensions
+                full_indices = tuple(indices) + (slice(None), slice(None))
+                self._apply_tril(new_buffer[full_indices], diagonal)
+
+        return new_buffer
+
+    def _apply_tril(self, buffer: Buffer, diagonal: int) -> None:
+        # Apply tril to a 2D buffer
+        for i in range(buffer.shape[-2]):
+            for j in range(buffer.shape[-1]):
+                if j - i > diagonal:
+                    buffer._set((i, j), 0)
+
     @staticmethod
     def _init(init_op: Buffer.Op, shape: tuple, dtype: DType = DType.float32) -> Buffer:
         # Initialize a new Buffer using a specified operation and shape
