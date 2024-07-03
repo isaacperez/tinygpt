@@ -474,8 +474,8 @@ class Buffer():
             raise TypeError(f"Expecting type tuple for new_shape but found type {type(new_shape)}")
 
         # Check if the number of dimensions is compatible
-        if len(new_shape) < self.ndim:
-            raise ValueError("Expanded shape must have at least as many dimensions as the original")
+        if len(new_shape) != self.ndim:
+            raise ValueError("Expanded shape must have as many dimensions as the original")
 
         # Check if sizes are compatible for expansion
         for idx, (new_size, original_size) in enumerate(zip(new_shape, self.shape)):
