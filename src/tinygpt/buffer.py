@@ -639,16 +639,12 @@ class Buffer():
         if self.ndim < 2:
             raise ValueError("tril requires the buffer to be at least 2-dimensional")
 
-        # If the data is not contiguous, make it contiguous
-        if not self.is_contiguous():
-            contiguous_data = self._get_contiguous_data()
-        else:
-            contiguous_data = self.data
+        # Copy the data of the tensor because we are going to modify it
+        new_data = [element for element in self]
 
-        # Create a new buffer with the same shape and dtype but copying the data because we are going to modify it
-        new_data = contiguous_data.copy()
+        # Create a new buffer with the same shape and dtype
         new_buffer = Buffer._create_buffer_from_data(
-            data=new_data, shape=self.shape, stride=self._calculate_stride(self.shape), offset=0
+            data=new_data, shape=self.shape, stride=Buffer._calculate_stride(self.shape), offset=0
         )
 
         if self.ndim == 2:
