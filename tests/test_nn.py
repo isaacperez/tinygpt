@@ -901,7 +901,7 @@ def test_CasualSelfAttention():
         attn(Tensor.ones((1, 8, 3)))
 
 
-def test_CasualSelfAattention_backward():
+def test_CasualSelfAttention_backward():
     attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6)
     
     # Set query, key, value and out layers to one to control the output
