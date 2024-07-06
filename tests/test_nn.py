@@ -2,7 +2,7 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
-from tinygpt.nn import FullyConnectedLayer, MLP, Embedding, LayerNorm
+from tinygpt.nn import FullyConnectedLayer, MLP, Embedding, LayerNorm, CasualSelfAttention
 
 
 def test_FullyConnectedLayer():
@@ -867,3 +867,57 @@ def test_LayerNorm_backward():
     )
     assert all((layer_norm.bias.grad.buffer - expected_bias_grad.buffer) < max_diff_pos.buffer)
     assert all((layer_norm.bias.grad.buffer - expected_bias_grad.buffer) > max_diff_neg.buffer)
+
+
+def test_CasualSelfAttention():
+    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6)
+    
+    # Set query, key, value and out layers to one to control the output
+    attn.query.weights = Tensor.ones(attn.query.weights.shape)
+    attn.key.weights = Tensor.ones(attn.key.weights.shape)
+    attn.value.weights = Tensor.ones(attn.value.weights.shape)
+    attn.out.weights = Tensor.ones(attn.out.weights.shape)
+
+    # Query, key, and value will be [[6., 6., 6.], [15., 15., 15.]], the attention result is the same as query, key and
+    # value but when it does the out projection, the output is the sum of each column: 
+    # [[[18.0, 18.0, 18.0], [45.0, 45.0, 45.0]]]
+    tensor = Tensor([[[1., 2., 3.], [4., 5., 6.]]], requires_grad=True)
+    result = attn(tensor)
+    assert result.to_python() == [[[18.0, 18.0, 18.0], [45.0, 45.0, 45.0]]]
+
+    # Wrong shape
+    with pytest.raises(RuntimeError):
+        attn(Tensor.ones((1, 2)))
+
+    with pytest.raises(RuntimeError):
+        attn(Tensor.ones((1, 2, 3, 4)))
+
+    # Wrong embedding dim
+    with pytest.raises(RuntimeError):
+        attn(Tensor.ones((1, 2, 6)))
+
+    # Wrong sequence length
+    with pytest.raises(RuntimeError):
+        attn(Tensor.ones((1, 8, 3)))
+
+
+def test_CasualSelfAattention_backward():
+    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6)
+    
+    # Set query, key, value and out layers to one to control the output
+    attn.query.weights = Tensor.ones(attn.query.weights.shape)
+    attn.key.weights = Tensor.ones(attn.key.weights.shape)
+    attn.value.weights = Tensor.ones(attn.value.weights.shape)
+    attn.out.weights = Tensor.ones(attn.out.weights.shape)
+
+    # Query, key, and value will be [[6., 6., 6.], [15., 15., 15.]], the attention result is the same as query, key and
+    # value but when it does the out projection, the output is the sum of each column: 
+    # [[[18.0, 18.0, 18.0], [45.0, 45.0, 45.0]]]
+    tensor = Tensor([[[1., 2., 3.], [4., 5., 6.]]], requires_grad=True)
+    result = attn(tensor)
+
+    assert result.to_python() == [[[18.0, 18.0, 18.0], [45.0, 45.0, 45.0]]]
+
+    result.sum(axes=(0, 1, 2)).backward()
+
+    assert tensor.grad.to_python() == [[[9.0, 9.0, 9.0], [9.0, 9.0, 9.0]]]

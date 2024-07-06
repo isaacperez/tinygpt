@@ -158,4 +158,66 @@ class LayerNorm(Module):
         
         return tensor
 
+
+class CasualSelfAttention(Module):
+
+    def __init__(self, embedding_dim: int, max_seq_length: int) -> None:
+        super().__init__()
+
+        self.embedding_dim = embedding_dim
+        self.max_seq_length = max_seq_length
+        self.scale_factor = 1 / math.sqrt(self.embedding_dim)
+
+        self.query = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
+        self.key = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
+        self.value = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
+
+        self.out = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
+
+        # Prepare the casual mask and the expected value for the zero positions
+        self.casual_mask = Tensor.ones((1, self.max_seq_length, self.max_seq_length)).tril()
+        self.casual_value = Tensor(
+            float("-inf"), dtype=DType.float32
+        ).reshape((1, 1, 1)).expand((1, self.max_seq_length, self.max_seq_length)).tril(diagonal=-1).transpose(2, 1)
+
+    def _extra_repr(self) -> str:
+        return f"embedding_dim={self.embedding_dim}"
     
+    def __call__(self, tensor: Tensor) -> Tensor:  
+        
+        # Only 3-dimensional tensors are valid
+        if len(tensor.shape) != 3:
+            raise RuntimeError(f"Expecting a 3-dimensional tensor but found tensor with shape {tensor.shape}")
+
+        batch_size, seq_length, embed_dim = tensor.shape
+
+        # Ensure the last dimension matches embedding_dim
+        if embed_dim != self.embedding_dim:
+            raise RuntimeError(f"Embedding dimension of the input ({embed_dim}) does not match {self.embedding_dim}")
+
+        if seq_length > self.max_seq_length:
+            raise RuntimeError(
+                f"Sequence dimension of the input ({seq_length}) greater than max allowed ({self.max_seq_length})")
+        
+        # Project to query, key and value
+        query_proj = self.query(tensor)
+        key_proj = self.key(tensor)
+        value_proj = self.value(tensor)
+
+        # Scaled dot-product attention
+        attention_scores = (query_proj.dot(key_proj.transpose(1, 2))) * self.scale_factor
+        
+        # Apply the mask to the attention scores and set to -inf the zero positions
+        attention_scores = attention_scores * self.casual_mask[:, :seq_length, :seq_length]
+        attention_scores = attention_scores + self.casual_value[:, :seq_length, :seq_length]
+
+        # Softmax to get the attention weights
+        attention_weights = attention_scores.softmax(axis=2)
+
+        # Multiply the attention weights with the values
+        attention_output = attention_weights.dot(value_proj)
+
+        # Project the output back to the original embedding dimension
+        output = self.out(attention_output)
+
+        return output
