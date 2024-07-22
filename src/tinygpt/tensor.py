@@ -306,7 +306,7 @@ class Tensor():
         # Validate whether we can use the new tensor to update the current one
         if other.requires_grad:
             # A tensor only requires grad if it is created with requires_grad=True or is the result of an operation 
-            # where there is a tensor that requires grad invovled, so it is not necessary to check if the buffer is a 
+            # where there is a tensor that requires grad involved, so it is not necessary to check if the buffer is a 
             # view or not
             raise RuntimeError("a Tensor that requires grad is being used in an in-place operation.")
         
