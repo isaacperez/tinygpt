@@ -198,8 +198,12 @@ class Buffer():
             raise TypeError(f"Expected data to be a list, found {type(data)}")
         if not isinstance(shape, tuple):
             raise TypeError(f"Expected shape to be a tuple, found {type(shape)}")
+        if not all(isinstance(value, int) for value in shape):
+            raise TypeError(f"Expected shape values to be a integers, found {shape}")
         if not isinstance(stride, tuple):
             raise TypeError(f"Expected stride to be a tuple, found {type(stride)}")
+        if not all(isinstance(value, int) for value in shape):
+            raise TypeError(f"Expected stride values to be a integers, found {stride}")
         if not isinstance(offset, int):
             raise TypeError(f"Expected offset to be an int, found {type(offset)}")
 
