@@ -870,7 +870,7 @@ def test_LayerNorm_backward():
 
 
 def test_CasualSelfAttention():
-    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6)
+    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6, num_heads=1)
     
     # Set query, key, value and out layers to one to control the output
     attn.query.weights = Tensor.ones(attn.query.weights.shape)
@@ -902,7 +902,7 @@ def test_CasualSelfAttention():
 
 
 def test_CasualSelfAttention_backward():
-    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6)
+    attn = CasualSelfAttention(embedding_dim=3, max_seq_length=6, num_heads=1)
     
     # Set query, key, value and out layers to one to control the output
     attn.query.weights = Tensor.ones(attn.query.weights.shape)
@@ -921,3 +921,45 @@ def test_CasualSelfAttention_backward():
     result.sum(axes=(0, 1, 2)).backward()
 
     assert tensor.grad.to_python() == [[[9.0, 9.0, 9.0], [9.0, 9.0, 9.0]]]
+
+
+def test_CasualSelfAttention_multiple_heads():
+    for num_heads in [2, 4, 8]:
+        attn = CasualSelfAttention(embedding_dim=8, max_seq_length=6, num_heads=num_heads)
+        
+        # Set query, key, value and out layers to one to control the output
+        attn.query.weights = Tensor.ones(attn.query.weights.shape)
+        attn.key.weights = Tensor.ones(attn.key.weights.shape)
+        attn.value.weights = Tensor.ones(attn.value.weights.shape)
+        attn.out.weights = Tensor.ones(attn.out.weights.shape)
+
+        tensor = Tensor([[[1., 2., 3., 1., 2., 3., 1., 2.], [1., 3., 3., 3., 2., 3., 3., 2.]]], requires_grad=True)
+        result = attn(tensor)
+
+        assert result.to_python() == [[[120.0] * 8, [160.0] * 8]]
+
+    # Wrong sequence length
+    with pytest.raises(ValueError):
+        CasualSelfAttention(embedding_dim=8, max_seq_length=6, num_heads=9)
+
+    with pytest.raises(ValueError):
+        CasualSelfAttention(embedding_dim=4, max_seq_length=6, num_heads=3)
+
+
+def test_CasualSelfAttention_multiple_heads_backward():
+    attn = CasualSelfAttention(embedding_dim=4, max_seq_length=6, num_heads=2)
+    
+    # Set query, key, value and out layers to one to control the output
+    attn.query.weights = Tensor.ones(attn.query.weights.shape)
+    attn.key.weights = Tensor.ones(attn.key.weights.shape)
+    attn.value.weights = Tensor.ones(attn.value.weights.shape)
+    attn.out.weights = Tensor.ones(attn.out.weights.shape)
+
+    tensor = Tensor([[[1., 2., 3., 1.0], [4., 5., 6., 1.0]]], requires_grad=True)
+    result = attn(tensor)
+
+    assert result.to_python() == [[[28.0, 28.0, 28.0, 28.0], [64.0, 64.0, 64.0, 64.0]]]
+
+    result.sum(axes=(0, 1, 2)).backward()
+
+    assert tensor.grad.to_python() == [[[16.0, 16.0, 16.0, 16.0], [16.0, 16.0, 16.0, 16.0]]]

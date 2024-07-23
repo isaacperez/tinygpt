@@ -161,11 +161,21 @@ class LayerNorm(Module):
 
 class CasualSelfAttention(Module):
 
-    def __init__(self, embedding_dim: int, max_seq_length: int) -> None:
+    def __init__(self, embedding_dim: int, max_seq_length: int, num_heads: int) -> None:
         super().__init__()
 
+        # Validate the parameters
+        if embedding_dim % num_heads != 0:
+            raise ValueError("embedding dimension must be divisible by num_heads")
+        
+        if num_heads > embedding_dim:
+            raise ValueError("num_heads is greater than the embedding dimension")
+        
         self.embedding_dim = embedding_dim
         self.max_seq_length = max_seq_length
+        self.num_heads = num_heads
+
+        self.head_dim = embedding_dim // num_heads
         self.scale_factor = 1 / math.sqrt(self.embedding_dim)
 
         self.query = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
@@ -175,13 +185,15 @@ class CasualSelfAttention(Module):
         self.out = FullyConnectedLayer(self.embedding_dim, self.embedding_dim, bias=False)
 
         # Prepare the casual mask and the expected value for the zero positions
-        self.casual_mask = Tensor.ones((1, self.max_seq_length, self.max_seq_length)).tril()
-        self.casual_value = Tensor(
-            float("-inf"), dtype=DType.float32
-        ).reshape((1, 1, 1)).expand((1, self.max_seq_length, self.max_seq_length)).tril(diagonal=-1).transpose(2, 1)
+        self.casual_mask = Tensor.ones((1, 1, self.max_seq_length, self.max_seq_length)).tril()
+        self.casual_value = Tensor(float("-inf"), dtype=DType.float32).reshape(
+            (1, 1, 1, 1)
+        ).expand((1, 1, self.max_seq_length, self.max_seq_length)).tril(diagonal=-1).transpose(3, 2)
 
     def _extra_repr(self) -> str:
-        return f"embedding_dim={self.embedding_dim}"
+        return (
+            f"embedding_dim={self.embedding_dim}, max_seq_length={self.max_seq_length}, num_heads={self.num_heads}"
+        )
     
     def __call__(self, tensor: Tensor) -> Tensor:  
         
@@ -204,18 +216,26 @@ class CasualSelfAttention(Module):
         key_proj = self.key(tensor)
         value_proj = self.value(tensor)
 
+        # Split the embedding dimension into chuncks for each head: [BS, S, E] -> [BS, S, NH, HD] -> [B, NH, S, HE]
+        query_proj = query_proj.reshape((batch_size, seq_length, self.num_heads, self.head_dim)).transpose(1, 2) 
+        key_proj = key_proj.reshape((batch_size, seq_length, self.num_heads, self.head_dim)).transpose(1, 2) 
+        value_proj = value_proj.reshape((batch_size, seq_length, self.num_heads, self.head_dim)).transpose(1, 2)
+
         # Scaled dot-product attention
-        attention_scores = (query_proj.dot(key_proj.transpose(1, 2))) * self.scale_factor
+        attention_scores = query_proj.dot(key_proj.transpose(2, 3)) * self.scale_factor
         
         # Apply the mask to the attention scores and set to -inf the zero positions
-        attention_scores = attention_scores * self.casual_mask[:, :seq_length, :seq_length]
-        attention_scores = attention_scores + self.casual_value[:, :seq_length, :seq_length]
+        attention_scores = attention_scores * self.casual_mask[:, :, :seq_length, :seq_length]
+        attention_scores = attention_scores + self.casual_value[:, :, :seq_length, :seq_length]
 
         # Softmax to get the attention weights
-        attention_weights = attention_scores.softmax(axis=2)
+        attention_weights = attention_scores.softmax(axis=3)
 
         # Multiply the attention weights with the values
         attention_output = attention_weights.dot(value_proj)
+
+        # Concatenate all the head embeddings
+        attention_output = attention_output.transpose(1, 2).reshape((batch_size, seq_length, embed_dim))
 
         # Project the output back to the original embedding dimension
         output = self.out(attention_output)
