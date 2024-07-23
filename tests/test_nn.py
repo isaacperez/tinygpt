@@ -2,7 +2,7 @@ import pytest
 
 from tinygpt.tensor import Tensor
 from tinygpt.module import Module
-from tinygpt.nn import FullyConnectedLayer, MLP, Embedding, LayerNorm, CasualSelfAttention
+from tinygpt.nn import FullyConnectedLayer, MLP, Embedding, LayerNorm, CasualSelfAttention, TransformerBlock, GPT
 
 
 def test_FullyConnectedLayer():
@@ -963,3 +963,36 @@ def test_CasualSelfAttention_multiple_heads_backward():
     result.sum(axes=(0, 1, 2)).backward()
 
     assert tensor.grad.to_python() == [[[16.0, 16.0, 16.0, 16.0], [16.0, 16.0, 16.0, 16.0]]]
+
+
+def test_TransformerBlock():
+    transformer_block = TransformerBlock(embedding_dim=4, max_seq_length=6, num_heads=2)
+
+    tensor = Tensor.ones((3, 2, 4), requires_grad=True)
+    result = transformer_block(tensor)
+
+    assert result.shape == (3, 2, 4)
+
+    result.sum((0, 1, 2)).backward()
+
+    assert tensor.grad is not None 
+    assert tensor.grad.shape == (3, 2, 4)  
+
+
+def test_GPT():
+    gpt = GPT(max_seq_length=6, vocab_size=3, num_layers=2, num_heads=2, embedding_dim=4)
+
+    token_ids = Tensor([[1, 2, 0],[0, 0, 0]])
+    result = gpt(token_ids)
+
+    assert result.shape == (2, 3, 3)
+
+    # Test generate
+    result = gpt.generate(token_ids=Tensor([[1, 2, 0]]), max_new_tokens=4)
+
+    assert result.shape == (1, 7)
+    assert result.to_python()[0][:3] == [1, 2, 0]
+    assert all(0 <= token_id < 3 for token_id in result.to_python()[0][3:])
+
+    
+    

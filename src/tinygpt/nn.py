@@ -241,3 +241,110 @@ class CasualSelfAttention(Module):
         output = self.out(attention_output)
 
         return output
+    
+
+class TransformerBlock(Module):
+
+    def __init__(self, embedding_dim: int, max_seq_length: int, num_heads: int):
+        super().__init__()
+
+        self.embedding_dim = embedding_dim
+        self.max_seq_length = max_seq_length
+        self.num_heads = num_heads
+
+        self.ln_1 = LayerNorm(embedding_dim)
+        self.attn = CasualSelfAttention(embedding_dim, max_seq_length, num_heads)
+        self.ln_2 = LayerNorm(embedding_dim)
+        self.mlp = MLP(input_dims=embedding_dim, hidden_dims=[4 * embedding_dim, embedding_dim], activation_fn="relu")
+
+    def _extra_repr(self) -> str:
+        return  (
+            f"max_seq_length={self.max_seq_length}, num_heads={self.num_heads}, embedding_dim={self.embedding_dim}"
+        )
+    
+    def __call__(self, tensor: Tensor) -> Tensor:
+        tensor = tensor + self.attn(self.ln_1(tensor))
+        tensor = tensor + self.mlp(self.ln_2(tensor))
+
+        return tensor
+
+
+class GPT(Module):
+
+    def __init__(self, max_seq_length: int, vocab_size: int, num_layers: int, num_heads: int, embedding_dim: int):
+        super().__init__()
+
+        self.max_seq_length = max_seq_length
+        self.vocab_size = vocab_size
+        self.num_layers = num_layers
+        self.num_heads = num_heads
+        self.embedding_dim = embedding_dim
+
+        self.embedding_layer = Embedding(self.vocab_size, self.embedding_dim)
+        self.position_embedding_layer = Embedding(self.max_seq_length, self.embedding_dim)
+        self.transformer_blocks = [
+            TransformerBlock(embedding_dim, max_seq_length, num_heads) for _ in range(self.num_layers)
+        ]
+        self.layer_norm = LayerNorm(embedding_dim)
+        self.head = FullyConnectedLayer(self.embedding_dim, self.vocab_size, bias=False)
+
+    def _extra_repr(self) -> str:
+        return  (
+            f"max_seq_length={self.max_seq_length}, vocab_size={self.vocab_size},  num_layers={self.num_layers}, "
+            f"num_heads={self.num_heads}, embedding_dim={self.embedding_dim}"
+        )
+
+    def __call__(self, token_ids: Tensor) -> Tensor:
+        batch_size, num_tokens = token_ids.shape
+
+        tok_emb = self.embedding_layer(token_ids)
+        token_arange = Tensor([list(range(num_tokens))] * batch_size)
+        pos_emb = self.position_embedding_layer(token_arange)
+
+        x = tok_emb + pos_emb
+        for block in self.transformer_blocks:
+            x = block(x)
+        x = self.layer_norm(x)
+        logits = self.head(x)
+
+        return logits
+    
+    def generate(self, token_ids: Tensor, max_new_tokens: int) -> Tensor:
+        """Generates new tokens from the model given a context"""
+        # Validate input shape
+        if token_ids.ndim != 2:
+            raise RuntimeError(f"Expecting token_ids to be a 2D tensor, but found {token_ids.shape}")
+
+        # Ensure only one batch is processed
+        if token_ids.shape[0] != 1:
+            raise RuntimeError("generate only works with one batch")
+
+        # Save current training state and switch to evaluation mode if necessary
+        it_was_training = self.training
+        if it_was_training:
+            self.eval()
+
+        # Do inference
+        for _ in range(max_new_tokens):
+            # Ensure input sequence length does not exceed max_seq_length
+            token_ids_cond = token_ids[:, -self.max_seq_length:]
+
+            # Get logits from the model
+            logits = self(token_ids_cond)
+
+            # Extract probabilities for the next token
+            logits = logits[:, -1, :]
+            probs = Tensor.softmax(logits, axis=1)
+            probs = probs[0].to_python()
+
+            # Get the index of the max probability as next token id
+            token_id_next = probs.index(max(probs))
+
+            # Append the predicted token to token_ids
+            token_ids = Tensor.concatenate((token_ids, Tensor([[token_id_next]])), axis=1)
+
+        # Restore training state if it was previously enabled
+        if it_was_training:
+            self.train()
+
+        return token_ids
