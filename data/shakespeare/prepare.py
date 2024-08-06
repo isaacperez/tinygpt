@@ -1,4 +1,4 @@
-import requests
+import urllib.request
 from pathlib import Path
 import json
 
@@ -29,8 +29,7 @@ if __name__ == '__main__':
 
     # Download the Tiny Shakespeare dataset
     print(f"Downloading dataset from '{data_url}'...")
-    with input_file_path.open(mode='w') as file:
-        file.write(requests.get(data_url).text)
+    urllib.request.urlretrieve(data_url, input_file_path)
 
     # Read the dataseat file
     with input_file_path.open(mode='r') as file:
