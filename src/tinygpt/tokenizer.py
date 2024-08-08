@@ -105,6 +105,11 @@ class BPETokenizer:
             for chunk_ids in ids:
                 # Passing in stats will update it in place, adding up counts
                 get_stats(chunk_ids, stats)
+            
+            # Check if stats is empty
+            if not stats:
+                print("No more pairs to merge.")
+                break
 
             # Find the pair with the highest count
             pair = max(stats, key=stats.get)
