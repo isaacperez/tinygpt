@@ -208,6 +208,8 @@ def parse_value(input_str):
         return int(input_str)
     elif re.match(r"^-?\d+(\.\d+)?([eE][-+]?\d+)?$", input_str):
         return float(input_str)
+    elif input_str == "inf" or input_str == "-inf":
+        return float(input_str)
     
     # Check for list
     if input_str.startswith("[") and input_str.endswith("]"):
