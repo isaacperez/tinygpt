@@ -1,260 +1,133 @@
+import math
 import random
-from pathlib import Path
 from typing import Any
-import json
-from enum import auto, Enum
+from pathlib import Path
 from abc import ABC, abstractmethod
+
+from tinygpt.tokenizer import BPETokenizer
 
 
 class Dataset(ABC):
 
     @abstractmethod
-    def __getitem__(self, idx) -> str:
+    def __getitem__(self, idx: int) -> Any:
         pass
 
     @abstractmethod
     def __len__(self) -> int:
         pass
-
-    @abstractmethod
-    def encode(self, data: Any) -> int:
-        pass
-
-    @abstractmethod
-    def decode(self, data: Any) -> str:
-        pass
-
-    @abstractmethod
-    def get_classes(self) -> list:
-        pass
-
-    @abstractmethod
-    def has_been_validated(self) -> bool:
-        pass
-
-    @abstractmethod
-    def validate(self) -> None:
-        pass
-
-
-class DatasetType(Enum):
-    TXT_DATASET = auto()
 
 
 class TextDataset(Dataset):
 
-    def __init__(self, data_file_path: Path, metadata_file_path: Path, validate_data: bool = True) -> None:
+    def __init__(self, data_file_path: Path, tokenizer: BPETokenizer, max_seq_length: int) -> None:
         # Save arguments
         self.data_file_path = Path(data_file_path)
-        self.metadata_file_path = Path(metadata_file_path)
-        self.validate_data = validate_data
+        self.tokenizer = tokenizer
+        self.max_seq_length = max_seq_length
 
-        # Check files have valid extension and exist on disk
-        assert self.data_file_path.suffix == '.txt', f"{self.data_file_path} is not a .txt file"
-        assert self.data_file_path.exists(), f"File {self.data_file_path} doesn't exists."
+        # Check the arguments
+        if self.data_file_path.suffix != ".txt":
+            raise ValueError(f"{self.data_file_path} is not a .txt file")
+        
+        if not self.data_file_path.exists():
+            raise RuntimeError(f"File {self.data_file_path} doesn't exists.")
 
-        assert self.metadata_file_path.suffix == '.json', f"{self.metadata_file_path} is not a .json file"
-        assert self.metadata_file_path.exists(), f"File {self.metadata_file_path} doesn't exists."
+        if not isinstance(tokenizer, BPETokenizer):
+            raise RuntimeError(f"Expecting a BPETokenizer, but found {type(tokenizer)}")
+        
+        if max_seq_length < 1:
+            raise ValueError("max_seq_length < 1")
 
-        # Read the files
-        self.data = self.data_file_path.read_text()
-        with self.metadata_file_path.open(mode='r') as file:
-            self.metadata = json.load(file)
+        # Read the data from the file
+        self.org_text = self.data_file_path.read_text()
 
-        # Extract relevant information
-        self.unique_chars = self.metadata['unique_chars']
-        self.char2id = {c: i for i, c in enumerate(self.unique_chars)}
-        self.id2char = {i: c for i, c in enumerate(self.unique_chars)}
+        # Tokenize the text
+        self.token_ids = tokenizer.encode(self.org_text, allowed_special="all")
 
-        # Validate the dataset
-        self.dataset_validated = False
-        if validate_data:
-            self.validate()
+        # Verify max_seq_length is valid
+        if self.max_seq_length >= len(self.token_ids):
+            raise ValueError(f"max_seq_length >= num. tokens ({len(self.token_ids)})")
 
-    def __getitem__(self, key: int) -> str:
-        return self.data[key]
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def encode(self, element: str) -> int:
-        return self.char2id[element]
-
-    def decode(self, element: int) -> str:
-        return self.id2char[element]
-
-    def get_classes(self) -> list:
-        return self.unique_chars
-
-    def has_been_validated(self) -> bool:
-        return self.dataset_validated
-
-    def validate(self) -> None:
-        if not self.has_been_validated():
-            assert len(self.data) > 0, 'No data'
-            assert len(self.unique_chars) > 0, 'No classes'
-            assert len(self.char2id) > 0, 'Empty char2id dict'
-            assert len(self.id2char) > 0, 'Empty id2char dict'
-
-            id2char_keys = list(self.id2char.keys())
-            id2char_values = list(self.id2char.values())
-            char2id_keys = list(self.char2id.keys())
-            char2id_values = list(self.char2id.values())
-
-            assert id2char_keys == char2id_values, 'id2char keys != char2id values'
-            assert id2char_values == char2id_keys, 'id2char values != char2id keys'
-            assert set(char2id_keys) == set(self.unique_chars), 'set(char2id_keys) != set(self.unique_chars)'
-            assert all(c in self.unique_chars for c in self.data), 'data has some unknown characters'
-            assert all(c == self.id2char[self.char2id[c]] for c in self.data), 'encode->decode does not work'
-
-            self.dataset_validated = True
-
-
-def create_dataset(dataset_type: DatasetType, **kwargs) -> Dataset:
-    assert dataset_type is not None, "dataset_type is None"
-    assert isinstance(dataset_type, DatasetType), f"dataset_type is not a DatasetType. Found {type(dataset_type)}"
-
-    if dataset_type == DatasetType.TXT_DATASET:
-        dataset = TextDataset(**kwargs)
-    else:
-        raise NotImplementedError(f'Dataset {dataset_type.name} has not been implemented yet')
-
-    return dataset
-
-
-class Task(ABC):
-
-    @abstractmethod
-    def __iter__(self) -> type:
-        pass
-
-    @abstractmethod
-    def __next__(self) -> tuple:
-        pass
-
-    @abstractmethod
-    def __getitem__(self, key: int) -> tuple:
-        pass
-
-    @abstractmethod
-    def __len__(self) -> tuple:
-        pass
-
-
-class TaskType(Enum):
-    NEXT_ELEMENT_PREDICTION = auto()
-
-
-class NextElementPredictionTask(Task):
-
-    def __init__(self, dataset: Dataset, max_seq_length: int) -> None:
-        self.dataset, self.max_seq_length = dataset, max_seq_length
-        assert self.dataset is not None, 'dataset is None'
-        assert self.max_seq_length is not None, 'max_seq_length is None'
-        assert 0 < self.max_seq_length < len(dataset), "0 < max_seq_length < len(dataset)"
-
-        # Iterator index
-        self._index = 0
-
-    def __iter__(self) -> type:
-        self._index = 0
-        return self
-
-    def __next__(self) -> tuple:
-        if self._index < len(self):
-            input_sequence, expected_output_sequence = self[self._index]
-            self._index += 1
-
-            return input_sequence, expected_output_sequence
-
-        else:
-            raise StopIteration
-
-    def __getitem__(self, key: int) -> tuple:
-        # input_sequence is a list of max_seq_length characters encoded as numbers taken from the _index position
-        input_sequence = [self.dataset.encode(c) for c in self.dataset[key:key + self.max_seq_length]]
-
-        # expected_output_sequence is the same as input_sequence but shifted one character to the right
-        expected_output_sequence = [self.dataset.encode(c) for c in self.dataset[key + 1:key + self.max_seq_length + 1]]
-
-        return input_sequence, expected_output_sequence
+    def __getitem__(self, idx: int) -> str:
+        # The input starts at idx and ends at idx + max_seq_length, target is the same but with an offset of 1
+        return self.token_ids[idx:idx + self.max_seq_length], self.token_ids[idx + 1: idx + self.max_seq_length + 1]
 
     def __len__(self) -> int:
-        return len(self.dataset) - self.max_seq_length
-
-
-def create_task(task_type: TaskType, **kwargs) -> Task:
-    assert task_type is not None, "task_type is None"
-    assert isinstance(task_type, TaskType), f"task_type is not a TaskType. Found {type(task_type)}"
-
-    if task_type == TaskType.NEXT_ELEMENT_PREDICTION:
-        task = NextElementPredictionTask(**kwargs)
-    else:
-        raise NotImplementedError(f'Task {task_type.name} has not been implemented yet')
-
-    return task
+        return len(self.token_ids) - self.max_seq_length
 
 
 class DatasetHandler:
 
     def __init__(
         self,
-        task: Task,
+        dataset: Dataset,
         batch_size: int,
         drop_last: bool = False,
         shuffle: bool = False
     ) -> None:
-        self.task, self.batch_size, self.drop_last, self.shuffle = task, batch_size, drop_last, shuffle
+        
+        # Save the arguments
+        self.dataset, self.batch_size, self.drop_last, self.shuffle = dataset, batch_size, drop_last, shuffle
 
         # Iterator index
         self._index = 0
 
         # Validate the parameters
-        assert task is not None, 'task is None'
-        assert 0 < self.batch_size <= len(task), '0 < batch_size <= len(task)'
+        if not isinstance(dataset, Dataset):
+            raise RuntimeError(f"Expecting a dataset object, but found {type(dataset)}")
+        
+        if not (0 < batch_size <= len(dataset)):
+            raise ValueError("0 < batch_size <= len(dataset)")
 
-        # The number of elements to build the batches is defined by the size of the task
-        self.num_elements = len(self.task)
+        # The number of elements to build the batches is defined by the size of the dataset
+        self.num_elements = len(self.dataset)
 
-        # Calculate the number of batches (ceil division <=> upside-down floor division)
-        self.num_batches = -(self.num_elements // -self.batch_size)
+        # Calculate the number of batches
+        self.num_batches = math.ceil(self.num_elements / self.batch_size)
 
         # Check if all batches must have the same number of elements (batch_size elements)
         if drop_last and self.num_elements % self.batch_size:
             self.num_batches -= 1
 
-        # Create the indexex for the task
-        self.task_indexes = [i for i in range(self.num_elements)]
+        # Create the indexes for the dataset
+        self.dataset_indexes = [i for i in range(self.num_elements)]
 
     def __iter__(self):
         self._index = 0
         if self.shuffle:
-            random.shuffle(self.task_indexes)
+            random.shuffle(self.dataset_indexes)
 
         return self
 
     def __next__(self) -> tuple:
         if self._index < len(self):
-            input_batch, expected_output_batch = self[self._index]
+            current_element = self[self._index]
             self._index += 1
 
-            return input_batch, expected_output_batch
+            return current_element
 
         else:
             raise StopIteration
 
     def __getitem__(self, key: int) -> tuple:
-        input_batch = []
-        expected_output_batch = []
-
+        data = []
         start = key * self.batch_size
         stop = min(self.num_elements, start + self.batch_size)
-        for idx in self.task_indexes[start:stop]:
-            input_sequence, expected_output_sequence = self.task[idx]
-            input_batch.append(input_sequence)
-            expected_output_batch.append(expected_output_sequence)
+        for idx in self.dataset_indexes[start:stop]:
+            output = self.dataset[idx]
+            if isinstance(output, tuple):
+                data.append(output)
+            else:
+                data.append((output,))
+        
+        # Unpacking the list of tuples and grouping elements by their position
+        # The *data unpacks the list of tuples into individual tuples
+        # zip(*data) groups the first elements together, the second elements together, and so on
+        # map(list, ...) converts each grouped tuple into a list
+        packed_data = tuple(map(list, zip(*data)))
 
-        return input_batch, expected_output_batch
+        return packed_data
 
     def __len__(self) -> int:
         return self.num_batches
