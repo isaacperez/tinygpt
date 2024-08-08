@@ -10,7 +10,7 @@ def test_TextDataset(tmp_path):
     folder_path.mkdir()
     text_data = "Hello world! How are you?"
 
-    # Create a tokenizer with a special token for padding
+    # Create a tokenizer
     tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
     tokenizer.train(text_corpus=text_data, vocab_size=512, verbose=False)
 
