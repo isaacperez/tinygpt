@@ -167,3 +167,58 @@ class SGD(Optimizer):
         state["v"] = v
 
         return parameter.detach() - self.learning_rate * update
+
+
+class Adam(Optimizer):
+    r"""The Adam optimizer [1].
+
+    Our Adam implementation follows the original paper and omits the bias
+    correction in the first and second moment estimates. In detail,
+
+    [1]: Kingma, D.P. and Ba, J., 2015. Adam: A method for stochastic
+    optimization. ICLR 2015.
+
+    .. math::
+
+        m_{t+1} &= \beta_1 m_t + (1 - \beta_1) g_t \\
+        v_{t+1} &= \beta_2 v_t + (1 - \beta_2) g_t^2 \\
+        w_{t+1} &= w_t - \lambda \frac{m_{t+1}}{\sqrt{v_{t+1} + \epsilon}}
+
+    Args:
+        learning_rate (float or callable): The learning rate :math:`\lambda`.
+        betas (Tuple[float, float], optional): The coefficients
+          :math:`(\beta_1, \beta_2)` used for computing running averages of the
+          gradient and its square. Default: ``(0.9, 0.999)``
+        eps (float, optional): The term :math:`\epsilon` added to the
+          denominator to improve numerical stability. Default: ``1e-8``
+    """
+
+    def __init__(
+        self,
+        module: Module,
+        learning_rate: float,
+        betas: List[float] = [0.9, 0.999],
+        eps: float = 1e-8,
+    ) -> None:
+        super().__init__(module=module)
+
+        self.learning_rate = learning_rate
+        self.betas = betas
+        self.eps = eps
+
+    def apply_single(self, parameter: Tensor, state: OptimizerState) -> Tensor:
+        """Performs the Adam parameter update and stores :math:`v` and :math:`m` in the optimizer state."""
+        if parameter.grad is None:
+            return parameter.detach()    
+
+        b1, b2 = self.betas
+        m = state. get("m", Tensor.zeros(parameter.grad.shape))
+        v = state.get("v", Tensor.zeros(parameter.grad.shape))
+
+        m = b1 * m + (1 - b1) * parameter.grad
+        v = b2 * v + (1 - b2) * (parameter.grad ** 2)
+
+        state["m"] = m
+        state["v"] = v
+
+        return parameter.detach() - self.learning_rate * m / ((v ** 0.5) + self.eps)
