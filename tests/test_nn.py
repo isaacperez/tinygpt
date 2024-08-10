@@ -987,8 +987,15 @@ def test_GPT():
 
     assert result.shape == (2, 3, 3)
 
-    # Test generate
-    result = gpt.generate(token_ids=Tensor([[1, 2, 0]]), max_new_tokens=4)
+    # Test generate greedy
+    result = gpt.generate_greedy(token_ids=Tensor([[1, 2, 0]]), max_new_tokens=4)
+
+    assert result.shape == (1, 7)
+    assert result.to_python()[0][:3] == [1, 2, 0]
+    assert all(0 <= token_id < 3 for token_id in result.to_python()[0][3:])
+
+    # Test generate sample with temperature
+    result = gpt.generate_sample_with_temperature(token_ids=Tensor([[1, 2, 0]]), max_new_tokens=4, temperature=0.5)
 
     assert result.shape == (1, 7)
     assert result.to_python()[0][:3] == [1, 2, 0]

@@ -1,4 +1,5 @@
 import math
+import random
 from typing import Any, Union
 
 from tinygpt.tensor import Tensor
@@ -309,7 +310,7 @@ class GPT(Module):
 
         return logits
     
-    def generate(self, token_ids: Tensor, max_new_tokens: int) -> Tensor:
+    def generate_greedy(self, token_ids: Tensor, max_new_tokens: int) -> Tensor:
         """Generates new tokens from the model given a context"""
         # Validate input shape
         if token_ids.ndim != 2:
@@ -339,6 +340,54 @@ class GPT(Module):
 
             # Get the index of the max probability as next token id
             token_id_next = probs.index(max(probs))
+
+            # Append the predicted token to token_ids
+            token_ids = Tensor.concatenate((token_ids, Tensor([[token_id_next]])), axis=1)
+
+        # Restore training state if it was previously enabled
+        if it_was_training:
+            self.train()
+
+        return token_ids
+    
+    def generate_sample_with_temperature(
+            self, 
+            token_ids: Tensor, 
+            max_new_tokens: int, 
+            temperature: float = 1.0
+        ) -> Tensor:
+        """Generates new tokens from the model given a context"""
+        # Validate input shape
+        if token_ids.ndim != 2:
+            raise RuntimeError(f"Expecting token_ids to be a 2D tensor, but found {token_ids.shape}")
+
+        # Ensure only one batch is processed
+        if token_ids.shape[0] != 1:
+            raise RuntimeError("generate only works with one batch")
+
+        if not (0 <= temperature <= 1.0):
+            raise ValueError("0 <= temperature <= 1.0")
+        
+        # Save current training state and switch to evaluation mode if necessary
+        it_was_training = self.training
+        if it_was_training:
+            self.eval()
+
+        # Do inference
+        for _ in range(max_new_tokens):
+            # Ensure input sequence length does not exceed max_seq_length
+            token_ids_cond = token_ids[:, -self.max_seq_length:]
+
+            # Get logits from the model
+            logits = self(token_ids_cond)
+
+            # Extract probabilities for the next token
+            logits = logits[:, -1, :] / temperature
+            probs = Tensor.softmax(logits, axis=1)
+            probs = probs[0].to_python()
+
+            # Choose the next token based on probabilities
+            token_id_next = random.choices(range(len(probs)), probs)[0]
 
             # Append the predicted token to token_ids
             token_ids = Tensor.concatenate((token_ids, Tensor([[token_id_next]])), axis=1)
