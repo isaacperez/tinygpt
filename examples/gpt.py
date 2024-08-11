@@ -6,16 +6,21 @@ from tinygpt.nn import GPT
 from tinygpt.tokenizer import BPETokenizer, RegexPatterns
 from tinygpt.dataset import TextDataset, DatasetHandler
 from tinygpt.losses import CrossEntropyLoss
-from tinygpt.optimizers import SGD
+from tinygpt.optimizers import Adam
+from tinygpt.utils import tree_flatten
 
 
 # Config
 vocab_size = 1024
-max_seq_length = 16
+max_seq_length = 6
 batch_size = 16
 num_epochs = 2
 
-load_checkpoint = False
+inference_mode = False
+inference_sentence = "First Citizen:\n"
+sampling_temperature = 0.25
+
+load_checkpoint = True
 model_weights_filename = "gpt_model.json"
 
 data_path = "../data/shakespeare/input.txt"
@@ -24,7 +29,13 @@ val_path = "../data/shakespeare/val.txt"
 tokenizer_path = "./tokenizer.model"  # None if you want to train the tokenizer
 
 
-def to_one_hot(target_ids: Tensor):
+"""
+Training lasted about 3 days. It was stopped and resumed several times.
+Read training_log.txt if you want to see the training log of the model.
+"""
+
+
+def to_one_hot(target_ids: Tensor) -> Tensor:
     # taget_ids is a one-dimensional vector
     num_elements = batch_size * max_seq_length
     target_ids = target_ids.reshape((num_elements,))
@@ -40,7 +51,7 @@ def to_one_hot(target_ids: Tensor):
     return target_ids_one_hot
 
 
-def validation(val_dataset_handler, gpt):
+def validation(val_dataset_handler: DatasetHandler, gpt: GPT) -> None:
     losses = []
     for it, (input_ids, target_ids) in enumerate(val_dataset_handler):
         # Convert the data into Tensors
@@ -73,6 +84,39 @@ def validation(val_dataset_handler, gpt):
     print(f"Mean loss: {mean_loss:.2f}")
 
 
+def inference(gpt: GPT) -> None:
+    input_ids = tokenizer.encode(inference_sentence, allowed_special="all")
+
+    print("Greedy")
+    output_ids = gpt.generate_greedy(token_ids=Tensor(input_ids).reshape((1, len(input_ids))), max_new_tokens=25)
+    print(f"Model output: {repr(tokenizer.decode(output_ids.to_python()[0]))}")
+
+    print("Sample with temperature")
+    for i in range(5):
+        output_ids = gpt.generate_sample_with_temperature(
+            token_ids=Tensor(input_ids).reshape((1, len(input_ids))), 
+            max_new_tokens=25, 
+            temperature=sampling_temperature
+        )
+        print(f"Model output: {repr(tokenizer.decode(output_ids.to_python()[0]))}")
+
+
+def calculate_num_parameters(gpt: GPT) -> None:
+    print("Parameters of the model:")
+    num_parameters = 0
+    for param_name, param in tree_flatten(gpt.trainable_parameters()):
+        # Only trainable parameters
+        if param.requires_grad:
+            num_elements = 1
+            for dim in param.shape:
+                num_elements *= dim
+            num_parameters += num_elements
+            
+            print("\t", param_name, num_elements)
+        
+    print("\nTotal parameters:", num_parameters)
+
+
 if __name__ == "__main__":
 
     # You may need to increase the recursion limit depending of the size of the model
@@ -82,11 +126,14 @@ if __name__ == "__main__":
 
     # Create the model
     print("Creating the model")
-    gpt = GPT(max_seq_length=max_seq_length, vocab_size=vocab_size, num_layers=6, num_heads=2, embedding_dim=16)
+    gpt = GPT(max_seq_length=max_seq_length, vocab_size=vocab_size, num_layers=6, num_heads=4, embedding_dim=16)
 
-    if load_checkpoint:
+    if load_checkpoint or inference_mode:
         gpt.load_weights(model_weights_filename)
 
+    # Get the parameters of the model
+    calculate_num_parameters(gpt)
+  
     # Create a tokenizer
     tokenizer = BPETokenizer(regex_pattern=RegexPatterns.GPT4)
 
@@ -94,7 +141,7 @@ if __name__ == "__main__":
     with open(data_path, encoding="utf-8") as file:
             text_corpus = file.read()
 
-    if tokenizer_path is None:
+    if tokenizer_path is None and not inference_mode:
         print("Training the tokenizer...")
         tokenizer.train(text_corpus=text_corpus, vocab_size=vocab_size, verbose=True)
         tokenizer.save("tokenizer")
@@ -103,7 +150,12 @@ if __name__ == "__main__":
         tokenizer.load(tokenizer_path)
 
     print("Tokenizer demo:")
-    tokenizer._visualise_tokens(tokenizer.encode(text_corpus[:800], allowed_special="all"))
+    tokenizer._visualise_tokens(tokenizer.encode(text_corpus[:300], allowed_special="all"))
+
+    # Do inference only
+    if inference_mode:
+        inference(gpt)
+        exit()
 
     # Create the datasets and the handlers
     print("Creating datasets...")
@@ -120,7 +172,7 @@ if __name__ == "__main__":
     loss_fn = CrossEntropyLoss()
 
     # Create the optimizer
-    sgd = SGD(module=gpt, learning_rate=0.00001, momentum=0.8, weight_decay=0.0)
+    sgd = Adam(module=gpt, learning_rate=0.0003)
 
     # Training loop
     print("Begining training...")
@@ -163,10 +215,15 @@ if __name__ == "__main__":
             )
             
             # Generate some outputs from time to time
-            if it % 16 == 0:
+            if it % 32 == 0:
                 input_ids = tokenizer.encode("First Citizen:\n", allowed_special="all")
-                output_ids = gpt.generate(token_ids=Tensor(input_ids).reshape((1, len(input_ids))), max_new_tokens=25)
-                print(f"Model output: {repr(tokenizer.decode(output_ids.to_python()[0]))}")
+                for i in range(3):
+                    output_ids = gpt.generate_sample_with_temperature(
+                        token_ids=Tensor(input_ids).reshape((1, len(input_ids))), 
+                        max_new_tokens=25, 
+                        temperature=sampling_temperature
+                    )
+                    print(f"Model output: {repr(tokenizer.decode(output_ids.to_python()[0]))}")
 
                 # Save the model
                 print("Saving the weights...")

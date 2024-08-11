@@ -1,0 +1,1270 @@
+Parameters of the model:
+    embedding_layer.embeddings 16384
+    position_embedding_layer.embeddings 96
+    transformer_blocks.0.ln_1.bias 16
+    transformer_blocks.0.ln_1.weights 16
+    transformer_blocks.0.attn.query.weights 256
+    transformer_blocks.0.attn.key.weights 256
+    transformer_blocks.0.attn.value.weights 256
+    transformer_blocks.0.attn.out.weights 256
+    transformer_blocks.0.ln_2.bias 16
+    transformer_blocks.0.ln_2.weights 16
+    transformer_blocks.0.mlp.layers.0.weights 1024
+    transformer_blocks.0.mlp.layers.0.bias 64
+    transformer_blocks.0.mlp.layers.1.weights 1024
+    transformer_blocks.0.mlp.layers.1.bias 16
+    transformer_blocks.1.ln_1.bias 16
+    transformer_blocks.1.ln_1.weights 16
+    transformer_blocks.1.attn.query.weights 256
+    transformer_blocks.1.attn.key.weights 256
+    transformer_blocks.1.attn.value.weights 256
+    transformer_blocks.1.attn.out.weights 256
+    transformer_blocks.1.ln_2.bias 16
+    transformer_blocks.1.ln_2.weights 16
+    transformer_blocks.1.mlp.layers.0.weights 1024
+    transformer_blocks.1.mlp.layers.0.bias 64
+    transformer_blocks.1.mlp.layers.1.weights 1024
+    transformer_blocks.1.mlp.layers.1.bias 16
+    transformer_blocks.2.ln_1.bias 16
+    transformer_blocks.2.ln_1.weights 16
+    transformer_blocks.2.attn.query.weights 256
+    transformer_blocks.2.attn.key.weights 256
+    transformer_blocks.2.attn.value.weights 256
+    transformer_blocks.2.attn.out.weights 256
+    transformer_blocks.2.ln_2.bias 16
+    transformer_blocks.2.ln_2.weights 16
+    transformer_blocks.2.mlp.layers.0.weights 1024
+    transformer_blocks.2.mlp.layers.0.bias 64
+    transformer_blocks.2.mlp.layers.1.weights 1024
+    transformer_blocks.2.mlp.layers.1.bias 16
+    transformer_blocks.3.ln_1.bias 16
+    transformer_blocks.3.ln_1.weights 16
+    transformer_blocks.3.attn.query.weights 256
+    transformer_blocks.3.attn.key.weights 256
+    transformer_blocks.3.attn.value.weights 256
+    transformer_blocks.3.attn.out.weights 256
+    transformer_blocks.3.ln_2.bias 16
+    transformer_blocks.3.ln_2.weights 16
+    transformer_blocks.3.mlp.layers.0.weights 1024
+    transformer_blocks.3.mlp.layers.0.bias 64
+    transformer_blocks.3.mlp.layers.1.weights 1024
+    transformer_blocks.3.mlp.layers.1.bias 16
+    transformer_blocks.4.ln_1.bias 16
+    transformer_blocks.4.ln_1.weights 16
+    transformer_blocks.4.attn.query.weights 256
+    transformer_blocks.4.attn.key.weights 256
+    transformer_blocks.4.attn.value.weights 256
+    transformer_blocks.4.attn.out.weights 256
+    transformer_blocks.4.ln_2.bias 16
+    transformer_blocks.4.ln_2.weights 16
+    transformer_blocks.4.mlp.layers.0.weights 1024
+    transformer_blocks.4.mlp.layers.0.bias 64
+    transformer_blocks.4.mlp.layers.1.weights 1024
+    transformer_blocks.4.mlp.layers.1.bias 16
+    transformer_blocks.5.ln_1.bias 16
+    transformer_blocks.5.ln_1.weights 16
+    transformer_blocks.5.attn.query.weights 256
+    transformer_blocks.5.attn.key.weights 256
+    transformer_blocks.5.attn.value.weights 256
+    transformer_blocks.5.attn.out.weights 256
+    transformer_blocks.5.ln_2.bias 16
+    transformer_blocks.5.ln_2.weights 16
+    transformer_blocks.5.mlp.layers.0.weights 1024
+    transformer_blocks.5.mlp.layers.0.bias 64
+    transformer_blocks.5.mlp.layers.1.weights 1024
+    transformer_blocks.5.mlp.layers.1.bias 16
+    layer_norm.bias 16
+    layer_norm.weights 16
+    head.weights 16384
+
+Total parameters: 52192
+
+Training log:
+[Epoch   1/2][It.     1/24203] Loss 7.0698 | forward: 4.40 sec. | backward 14.53 sec.
+Model output: "First Citizen:\nWhatworrowhe one.\n'stX�ruhe one.\n�D'stXish this at one thus�D'st"
+Saving the weights...
+[Epoch   1/2][It.     2/24203] Loss 7.0396 | forward: 4.39 sec. | backward 14.58 sec.
+[Epoch   1/2][It.     3/24203] Loss 7.0941 | forward: 4.41 sec. | backward 14.59 sec.
+[Epoch   1/2][It.     4/24203] Loss 6.9918 | forward: 4.40 sec. | backward 14.48 sec.
+[Epoch   1/2][It.     5/24203] Loss 6.9715 | forward: 4.34 sec. | backward 14.51 sec.
+[Epoch   1/2][It.     6/24203] Loss 6.9883 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.     7/24203] Loss 7.0216 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.     8/24203] Loss 6.9397 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.     9/24203] Loss 6.8912 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    10/24203] Loss 6.8428 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.    11/24203] Loss 6.7353 | forward: 4.34 sec. | backward 14.35 sec.
+[Epoch   1/2][It.    12/24203] Loss 6.6958 | forward: 4.35 sec. | backward 14.60 sec.
+[Epoch   1/2][It.    13/24203] Loss 6.6239 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.    14/24203] Loss 6.5651 | forward: 4.37 sec. | backward 14.85 sec.
+[Epoch   1/2][It.    15/24203] Loss 6.5758 | forward: 4.39 sec. | backward 14.70 sec.
+[Epoch   1/2][It.    16/24203] Loss 6.6947 | forward: 4.38 sec. | backward 14.50 sec.
+[Epoch   1/2][It.    17/24203] Loss 6.4398 | forward: 4.39 sec. | backward 14.50 sec.
+Model output: 'First Citizen:\n to\n to\n to\n to\n to\n to\n to\n to\n to\n to\n to\n to\n to'
+Saving the weights...
+[Epoch   1/2][It.    18/24203] Loss 6.4239 | forward: 4.39 sec. | backward 14.35 sec.
+[Epoch   1/2][It.    19/24203] Loss 6.2915 | forward: 4.39 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    20/24203] Loss 6.2861 | forward: 4.35 sec. | backward 14.58 sec.
+[Epoch   1/2][It.    21/24203] Loss 6.2662 | forward: 4.47 sec. | backward 14.72 sec.
+[Epoch   1/2][It.    22/24203] Loss 6.3969 | forward: 4.45 sec. | backward 14.56 sec.
+[Epoch   1/2][It.    23/24203] Loss 6.3759 | forward: 4.33 sec. | backward 14.56 sec.
+[Epoch   1/2][It.    24/24203] Loss 6.2854 | forward: 4.34 sec. | backward 14.58 sec.
+[Epoch   1/2][It.    25/24203] Loss 6.3205 | forward: 4.44 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    26/24203] Loss 6.1609 | forward: 4.32 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    27/24203] Loss 6.4079 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    28/24203] Loss 6.2470 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.    29/24203] Loss 6.3091 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    30/24203] Loss 6.2029 | forward: 4.32 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    31/24203] Loss 6.0844 | forward: 4.34 sec. | backward 14.36 sec.
+[Epoch   1/2][It.    32/24203] Loss 6.2122 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    33/24203] Loss 6.2723 | forward: 4.33 sec. | backward 14.36 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.    34/24203] Loss 6.2256 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.    35/24203] Loss 6.1569 | forward: 4.36 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    36/24203] Loss 6.1576 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.    37/24203] Loss 6.1592 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    38/24203] Loss 6.3275 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    39/24203] Loss 6.3224 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.    40/24203] Loss 6.3401 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    41/24203] Loss 6.0935 | forward: 4.37 sec. | backward 14.46 sec.
+[Epoch   1/2][It.    42/24203] Loss 6.1526 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    43/24203] Loss 6.1816 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    44/24203] Loss 6.1192 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.    45/24203] Loss 6.1130 | forward: 4.36 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    46/24203] Loss 6.2115 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    47/24203] Loss 6.2075 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    48/24203] Loss 6.2938 | forward: 4.37 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    49/24203] Loss 6.0556 | forward: 4.32 sec. | backward 14.39 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.    50/24203] Loss 6.2748 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.    51/24203] Loss 6.2961 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    52/24203] Loss 6.0270 | forward: 4.36 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    53/24203] Loss 6.3236 | forward: 4.32 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    54/24203] Loss 6.2992 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    55/24203] Loss 6.1809 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    56/24203] Loss 6.0312 | forward: 4.34 sec. | backward 14.36 sec.
+[Epoch   1/2][It.    57/24203] Loss 6.0910 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    58/24203] Loss 6.2591 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    59/24203] Loss 6.1931 | forward: 4.37 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    60/24203] Loss 6.2888 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.    61/24203] Loss 6.0709 | forward: 4.34 sec. | backward 14.50 sec.
+[Epoch   1/2][It.    62/24203] Loss 6.0449 | forward: 4.37 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    63/24203] Loss 6.1675 | forward: 4.31 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    64/24203] Loss 6.2135 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    65/24203] Loss 6.1897 | forward: 4.34 sec. | backward 14.39 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.    66/24203] Loss 6.2791 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    67/24203] Loss 6.1336 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.    68/24203] Loss 5.9944 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    69/24203] Loss 5.9183 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    70/24203] Loss 6.1648 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.    71/24203] Loss 6.1243 | forward: 4.36 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    72/24203] Loss 5.9452 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    73/24203] Loss 5.9765 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    74/24203] Loss 6.2564 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.    75/24203] Loss 5.9374 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.    76/24203] Loss 6.1882 | forward: 4.35 sec. | backward 14.91 sec.
+[Epoch   1/2][It.    77/24203] Loss 6.0834 | forward: 4.39 sec. | backward 14.60 sec.
+[Epoch   1/2][It.    78/24203] Loss 6.0605 | forward: 4.42 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    79/24203] Loss 6.1838 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.    80/24203] Loss 5.9383 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.    81/24203] Loss 6.0180 | forward: 4.34 sec. | backward 14.32 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.    82/24203] Loss 6.0735 | forward: 4.33 sec. | backward 14.47 sec.
+[Epoch   1/2][It.    83/24203] Loss 6.0840 | forward: 4.45 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    84/24203] Loss 6.0280 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.    85/24203] Loss 6.1663 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.    86/24203] Loss 6.0753 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    87/24203] Loss 6.2806 | forward: 4.33 sec. | backward 14.31 sec.
+[Epoch   1/2][It.    88/24203] Loss 6.1208 | forward: 4.34 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    89/24203] Loss 5.8812 | forward: 4.36 sec. | backward 14.36 sec.
+[Epoch   1/2][It.    90/24203] Loss 5.8937 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.    91/24203] Loss 5.9335 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.    92/24203] Loss 6.1645 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.    93/24203] Loss 6.2723 | forward: 4.36 sec. | backward 14.38 sec.
+[Epoch   1/2][It.    94/24203] Loss 6.1450 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.    95/24203] Loss 6.1468 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.    96/24203] Loss 6.1047 | forward: 4.36 sec. | backward 14.37 sec.
+[Epoch   1/2][It.    97/24203] Loss 6.1689 | forward: 4.36 sec. | backward 14.34 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.    98/24203] Loss 5.9467 | forward: 4.35 sec. | backward 14.33 sec.
+[Epoch   1/2][It.    99/24203] Loss 6.0508 | forward: 4.36 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   100/24203] Loss 5.9420 | forward: 4.35 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   101/24203] Loss 6.2438 | forward: 4.34 sec. | backward 14.32 sec.
+[Epoch   1/2][It.   102/24203] Loss 6.1036 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   103/24203] Loss 6.0099 | forward: 4.35 sec. | backward 14.34 sec.
+[Epoch   1/2][It.   104/24203] Loss 6.0058 | forward: 4.35 sec. | backward 14.33 sec.
+[Epoch   1/2][It.   105/24203] Loss 5.9226 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   106/24203] Loss 6.2057 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   107/24203] Loss 6.1797 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   108/24203] Loss 5.9230 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.   109/24203] Loss 6.0497 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   110/24203] Loss 5.9091 | forward: 4.35 sec. | backward 14.33 sec.
+[Epoch   1/2][It.   111/24203] Loss 5.9763 | forward: 4.34 sec. | backward 14.31 sec.
+[Epoch   1/2][It.   112/24203] Loss 6.0015 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   113/24203] Loss 6.0642 | forward: 4.35 sec. | backward 14.41 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.   114/24203] Loss 6.1578 | forward: 4.33 sec. | backward 14.33 sec.
+[Epoch   1/2][It.   115/24203] Loss 5.9186 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.   116/24203] Loss 5.8546 | forward: 4.34 sec. | backward 14.33 sec.
+[Epoch   1/2][It.   117/24203] Loss 6.0385 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   118/24203] Loss 6.0339 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   119/24203] Loss 5.9758 | forward: 4.35 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   120/24203] Loss 6.1593 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   121/24203] Loss 5.9975 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   122/24203] Loss 5.9644 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.   123/24203] Loss 6.1082 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   124/24203] Loss 6.0743 | forward: 4.32 sec. | backward 14.32 sec.
+[Epoch   1/2][It.   125/24203] Loss 6.4116 | forward: 4.34 sec. | backward 14.32 sec.
+[Epoch   1/2][It.   126/24203] Loss 6.1029 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   127/24203] Loss 6.1263 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   128/24203] Loss 5.9445 | forward: 4.34 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   129/24203] Loss 5.9571 | forward: 4.34 sec. | backward 14.36 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.   130/24203] Loss 5.9262 | forward: 4.33 sec. | backward 14.32 sec.
+[Epoch   1/2][It.   131/24203] Loss 6.1588 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   132/24203] Loss 6.2150 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   133/24203] Loss 6.0283 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   134/24203] Loss 6.1831 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   135/24203] Loss 5.9074 | forward: 4.34 sec. | backward 14.33 sec.
+[Epoch   1/2][It.   136/24203] Loss 5.9414 | forward: 4.36 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   137/24203] Loss 6.1624 | forward: 4.36 sec. | backward 14.32 sec.
+[Epoch   1/2][It.   138/24203] Loss 6.1199 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   139/24203] Loss 6.1448 | forward: 4.62 sec. | backward 14.67 sec.
+[Epoch   1/2][It.   140/24203] Loss 6.1369 | forward: 4.42 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   141/24203] Loss 5.9462 | forward: 4.36 sec. | backward 14.75 sec.
+[Epoch   1/2][It.   142/24203] Loss 6.0752 | forward: 4.40 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   143/24203] Loss 6.0023 | forward: 4.36 sec. | backward 14.79 sec.
+[Epoch   1/2][It.   144/24203] Loss 5.9488 | forward: 4.39 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   145/24203] Loss 6.0987 | forward: 4.35 sec. | backward 14.43 sec.
+Model output: 'First Citizen:\n,,,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.   146/24203] Loss 5.9390 | forward: 4.34 sec. | backward 14.50 sec.
+[Epoch   1/2][It.   147/24203] Loss 6.1308 | forward: 4.36 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   148/24203] Loss 6.0335 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.   149/24203] Loss 6.1103 | forward: 4.38 sec. | backward 14.42 sec.
+...
+[Epoch   1/2][It.   731/24203] Loss 6.0306 | forward: 4.46 sec. | backward 14.89 sec.
+[Epoch   1/2][It.   732/24203] Loss 5.8473 | forward: 4.44 sec. | backward 14.57 sec.
+[Epoch   1/2][It.   733/24203] Loss 5.9871 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.   734/24203] Loss 5.8729 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.   735/24203] Loss 5.6703 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.   736/24203] Loss 5.7170 | forward: 4.39 sec. | backward 14.60 sec.
+[Epoch   1/2][It.   737/24203] Loss 5.5246 | forward: 4.36 sec. | backward 14.53 sec.
+Model output: 'First Citizen:\nThe,,,, I, I,,,, I, I,,,, I, I,,'
+Saving the weights...
+[Epoch   1/2][It.   738/24203] Loss 5.7885 | forward: 4.34 sec. | backward 14.89 sec.
+[Epoch   1/2][It.   739/24203] Loss 5.7474 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.   740/24203] Loss 5.5737 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.   741/24203] Loss 5.4464 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.   742/24203] Loss 5.7935 | forward: 4.38 sec. | backward 14.54 sec.
+[Epoch   1/2][It.   743/24203] Loss 5.8732 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.   744/24203] Loss 5.7065 | forward: 4.36 sec. | backward 14.59 sec.
+[Epoch   1/2][It.   745/24203] Loss 5.7569 | forward: 4.39 sec. | backward 14.55 sec.
+[Epoch   1/2][It.   746/24203] Loss 5.4673 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.   747/24203] Loss 5.7669 | forward: 4.38 sec. | backward 14.60 sec.
+[Epoch   1/2][It.   748/24203] Loss 5.9136 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   749/24203] Loss 5.8725 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.   750/24203] Loss 5.4895 | forward: 4.34 sec. | backward 14.61 sec.
+[Epoch   1/2][It.   751/24203] Loss 5.7665 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.   752/24203] Loss 5.6605 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.   753/24203] Loss 5.7938 | forward: 4.35 sec. | backward 14.49 sec.
+Model output: 'First Citizen:\nThe,,,,,,,,,,,,,,,,,,,,,,,'
+Saving the weights...
+[Epoch   1/2][It.   754/24203] Loss 5.7137 | forward: 4.34 sec. | backward 14.53 sec.
+[Epoch   1/2][It.   755/24203] Loss 5.8812 | forward: 4.38 sec. | backward 14.55 sec.
+[Epoch   1/2][It.   756/24203] Loss 5.6611 | forward: 4.37 sec. | backward 14.99 sec.
+[Epoch   1/2][It.   757/24203] Loss 5.7879 | forward: 4.51 sec. | backward 14.89 sec.
+[Epoch   1/2][It.   758/24203] Loss 5.9978 | forward: 4.48 sec. | backward 14.91 sec.
+[Epoch   1/2][It.   759/24203] Loss 5.5236 | forward: 4.58 sec. | backward 15.16 sec.
+....
+[Epoch   1/2][It.  2626/24203] Loss 4.9617 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2627/24203] Loss 4.8306 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2628/24203] Loss 5.2769 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  2629/24203] Loss 4.8716 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2630/24203] Loss 5.2789 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2631/24203] Loss 4.7772 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  2632/24203] Loss 5.2026 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2633/24203] Loss 4.5785 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2634/24203] Loss 4.8963 | forward: 4.36 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2635/24203] Loss 5.1142 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2636/24203] Loss 5.0104 | forward: 4.37 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2637/24203] Loss 4.9790 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2638/24203] Loss 4.6712 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2639/24203] Loss 5.3293 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2640/24203] Loss 4.5548 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2641/24203] Loss 4.8588 | forward: 4.34 sec. | backward 14.45 sec.
+Model output: "First Citizen:\nThe, I'll bed, I have, and the cos, and the cared, and the"
+Saving the weights...
+[Epoch   1/2][It.  2642/24203] Loss 4.9144 | forward: 4.34 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2643/24203] Loss 4.8278 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2644/24203] Loss 5.0426 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2645/24203] Loss 4.9553 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2646/24203] Loss 4.9821 | forward: 4.35 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2647/24203] Loss 4.7961 | forward: 4.37 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2648/24203] Loss 5.0049 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2649/24203] Loss 5.0512 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2650/24203] Loss 5.2684 | forward: 4.37 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2651/24203] Loss 4.9789 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2652/24203] Loss 4.7244 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2653/24203] Loss 5.3053 | forward: 4.37 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2654/24203] Loss 5.0975 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2655/24203] Loss 5.2222 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2656/24203] Loss 4.7805 | forward: 4.35 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2657/24203] Loss 4.9845 | forward: 4.38 sec. | backward 14.52 sec.
+Model output: 'First Citizen:\nThe, I have the sent, and the cared, and the susd, and the care'
+Saving the weights...
+[Epoch   1/2][It.  2658/24203] Loss 4.8485 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2659/24203] Loss 4.9723 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2660/24203] Loss 5.1355 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2661/24203] Loss 5.1832 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2662/24203] Loss 4.8531 | forward: 4.35 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2663/24203] Loss 5.1048 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2664/24203] Loss 5.3528 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2665/24203] Loss 5.3069 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2666/24203] Loss 4.8046 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2667/24203] Loss 4.8477 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2668/24203] Loss 4.7747 | forward: 4.38 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2669/24203] Loss 5.2000 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2670/24203] Loss 4.7926 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2671/24203] Loss 5.2487 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2672/24203] Loss 5.0034 | forward: 4.38 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2673/24203] Loss 4.7979 | forward: 4.35 sec. | backward 14.48 sec.
+Model output: 'First Citizen:\nThe the stocos, and the sent, and the cared, and the sent'
+Saving the weights...
+[Epoch   1/2][It.  2674/24203] Loss 5.1186 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2675/24203] Loss 4.8813 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2676/24203] Loss 5.5525 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2677/24203] Loss 4.6568 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2678/24203] Loss 4.8604 | forward: 4.38 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2679/24203] Loss 5.1150 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2680/24203] Loss 4.9113 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2681/24203] Loss 4.9868 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2682/24203] Loss 5.1916 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2683/24203] Loss 4.4704 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2684/24203] Loss 4.8235 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2685/24203] Loss 4.9893 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2686/24203] Loss 5.0863 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2687/24203] Loss 5.2792 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2688/24203] Loss 5.0353 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2689/24203] Loss 4.7130 | forward: 4.36 sec. | backward 14.48 sec.
+Model output: 'First Citizen:\nThe the stocos, and the stos, and the cill, and the c'
+Saving the weights...
+[Epoch   1/2][It.  2690/24203] Loss 4.9684 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2691/24203] Loss 4.7297 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2692/24203] Loss 4.9217 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2693/24203] Loss 4.9002 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2694/24203] Loss 4.8117 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2695/24203] Loss 5.1478 | forward: 4.37 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2696/24203] Loss 4.9804 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2697/24203] Loss 5.2076 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2698/24203] Loss 4.7261 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2699/24203] Loss 5.1815 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2700/24203] Loss 5.0128 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2701/24203] Loss 4.7898 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2702/24203] Loss 4.7948 | forward: 4.39 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2703/24203] Loss 5.0432 | forward: 4.36 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  2704/24203] Loss 4.7157 | forward: 4.34 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2705/24203] Loss 4.6466 | forward: 4.37 sec. | backward 14.51 sec.
+Model output: 'First Citizen:\nThe the cocococos, I have the cared, and the cared'
+Saving the weights...
+[Epoch   1/2][It.  2706/24203] Loss 5.0235 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2707/24203] Loss 4.7212 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2708/24203] Loss 4.8623 | forward: 4.36 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2709/24203] Loss 4.9379 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2710/24203] Loss 4.8512 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2711/24203] Loss 4.7891 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2712/24203] Loss 5.0593 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2713/24203] Loss 5.0399 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2714/24203] Loss 4.9799 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2715/24203] Loss 4.8082 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2716/24203] Loss 4.7107 | forward: 4.36 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2717/24203] Loss 4.9123 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2718/24203] Loss 4.9168 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2719/24203] Loss 4.9472 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2720/24203] Loss 4.9625 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2721/24203] Loss 5.1798 | forward: 4.35 sec. | backward 14.47 sec.
+Model output: 'First Citizen:\nThe the cococococococococococo'
+Saving the weights...
+[Epoch   1/2][It.  2722/24203] Loss 4.7939 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2723/24203] Loss 5.0760 | forward: 4.37 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2724/24203] Loss 4.7081 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2725/24203] Loss 4.9637 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2726/24203] Loss 5.1459 | forward: 4.38 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2727/24203] Loss 4.7503 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2728/24203] Loss 4.7694 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2729/24203] Loss 5.1794 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2730/24203] Loss 4.9858 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2731/24203] Loss 5.0679 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2732/24203] Loss 4.9960 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2733/24203] Loss 4.9953 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2734/24203] Loss 4.6259 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2735/24203] Loss 4.7883 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2736/24203] Loss 4.6457 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2737/24203] Loss 5.1516 | forward: 4.36 sec. | backward 14.45 sec.
+Model output: 'First Citizen:\nThe the king, I have the cocos, I have the cocos, I have'
+Saving the weights...
+[Epoch   1/2][It.  2738/24203] Loss 5.0162 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2739/24203] Loss 5.0553 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2740/24203] Loss 4.8314 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2741/24203] Loss 4.9715 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2742/24203] Loss 4.8177 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2743/24203] Loss 4.7135 | forward: 4.37 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2744/24203] Loss 5.2064 | forward: 4.36 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2745/24203] Loss 5.0166 | forward: 4.35 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2746/24203] Loss 4.6544 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2747/24203] Loss 5.2168 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2748/24203] Loss 5.1820 | forward: 4.36 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2749/24203] Loss 4.8170 | forward: 4.36 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2750/24203] Loss 4.6917 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2751/24203] Loss 4.8793 | forward: 4.36 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2752/24203] Loss 4.9263 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2753/24203] Loss 4.8889 | forward: 4.35 sec. | backward 14.54 sec.
+Model output: 'First Citizen:\nThe, I have the cos, and the cos, I have, I have, I have,'
+Saving the weights...
+[Epoch   1/2][It.  2754/24203] Loss 4.8820 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2755/24203] Loss 4.8512 | forward: 4.36 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2756/24203] Loss 4.6367 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2757/24203] Loss 4.8059 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2758/24203] Loss 4.8330 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2759/24203] Loss 4.7966 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2760/24203] Loss 4.8653 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2761/24203] Loss 5.0363 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2762/24203] Loss 4.4811 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2763/24203] Loss 4.8453 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2764/24203] Loss 4.7393 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2765/24203] Loss 4.8473 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2766/24203] Loss 4.6242 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2767/24203] Loss 5.3148 | forward: 4.38 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2768/24203] Loss 5.0256 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2769/24203] Loss 4.9532 | forward: 4.34 sec. | backward 14.45 sec.
+Model output: "First Citizen:\nThe, I have, I'll I have, I have, I have, I have, I have, I have"
+Saving the weights...
+[Epoch   1/2][It.  2770/24203] Loss 4.6332 | forward: 4.37 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2771/24203] Loss 5.1499 | forward: 4.36 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  2772/24203] Loss 5.0018 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2773/24203] Loss 5.1841 | forward: 4.36 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  2774/24203] Loss 4.5269 | forward: 4.37 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2775/24203] Loss 4.8730 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2776/24203] Loss 4.8854 | forward: 4.35 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2777/24203] Loss 4.5806 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2778/24203] Loss 5.1949 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2779/24203] Loss 5.0451 | forward: 4.35 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2780/24203] Loss 5.1401 | forward: 4.37 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2781/24203] Loss 4.9992 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2782/24203] Loss 4.5551 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2783/24203] Loss 5.1330 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2784/24203] Loss 4.7900 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2785/24203] Loss 4.6955 | forward: 4.35 sec. | backward 14.48 sec.
+Model output: "First Citizen:\nThe, I'll be the cos, I have the cocos, I have the co"
+Saving the weights...
+[Epoch   1/2][It.  2786/24203] Loss 4.8004 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2787/24203] Loss 4.9354 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2788/24203] Loss 4.8118 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2789/24203] Loss 4.7819 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2790/24203] Loss 5.1288 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2791/24203] Loss 4.9645 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2792/24203] Loss 4.8816 | forward: 4.34 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2793/24203] Loss 4.8732 | forward: 4.36 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2794/24203] Loss 5.2928 | forward: 4.35 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2795/24203] Loss 5.0647 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2796/24203] Loss 4.8417 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2797/24203] Loss 4.9043 | forward: 4.37 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2798/24203] Loss 5.2546 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2799/24203] Loss 4.5020 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2800/24203] Loss 4.8869 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2801/24203] Loss 4.4853 | forward: 4.37 sec. | backward 14.53 sec.
+Model output: 'First Citizen:\nThe the cocos, I have the cos, and the cos, and the c'
+Saving the weights...
+[Epoch   1/2][It.  2802/24203] Loss 5.1379 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2803/24203] Loss 4.7967 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2804/24203] Loss 4.7801 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2805/24203] Loss 4.7782 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2806/24203] Loss 4.8244 | forward: 4.37 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2807/24203] Loss 5.1125 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2808/24203] Loss 5.2363 | forward: 4.37 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2809/24203] Loss 4.9479 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2810/24203] Loss 4.7564 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2811/24203] Loss 4.9395 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2812/24203] Loss 5.6137 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2813/24203] Loss 5.2354 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2814/24203] Loss 5.1333 | forward: 4.35 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2815/24203] Loss 5.2260 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2816/24203] Loss 4.8552 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2817/24203] Loss 4.5067 | forward: 4.34 sec. | backward 14.47 sec.
+Model output: 'First Citizen:\nThe the king, I have the cocos, and the cos, and the cos'
+Saving the weights...
+[Epoch   1/2][It.  2818/24203] Loss 5.3184 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2819/24203] Loss 4.8251 | forward: 4.38 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2820/24203] Loss 4.6602 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2821/24203] Loss 5.0455 | forward: 4.36 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  2822/24203] Loss 4.7496 | forward: 4.38 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2823/24203] Loss 4.9838 | forward: 4.34 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2824/24203] Loss 4.7850 | forward: 4.36 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2825/24203] Loss 5.0417 | forward: 4.38 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2826/24203] Loss 4.8729 | forward: 4.33 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2827/24203] Loss 4.9162 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2828/24203] Loss 5.0939 | forward: 4.34 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2829/24203] Loss 4.9349 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2830/24203] Loss 4.3516 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2831/24203] Loss 5.1351 | forward: 4.37 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2832/24203] Loss 4.8709 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2833/24203] Loss 4.7623 | forward: 4.35 sec. | backward 14.46 sec.
+Model output: 'First Citizen:\nThe, I have the chard, and the cos, and the cos, and the c'
+Saving the weights...
+[Epoch   1/2][It.  2834/24203] Loss 4.8061 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2835/24203] Loss 4.9653 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2836/24203] Loss 4.9251 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2837/24203] Loss 5.0248 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2838/24203] Loss 4.9871 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2839/24203] Loss 4.5953 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2840/24203] Loss 4.6830 | forward: 4.34 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2841/24203] Loss 4.7653 | forward: 4.34 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2842/24203] Loss 4.9830 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2843/24203] Loss 4.8913 | forward: 4.37 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2844/24203] Loss 5.0078 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2845/24203] Loss 5.4244 | forward: 4.35 sec. | backward 14.60 sec.
+[Epoch   1/2][It.  2846/24203] Loss 4.2949 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2847/24203] Loss 4.9292 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2848/24203] Loss 4.8398 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2849/24203] Loss 4.6027 | forward: 4.37 sec. | backward 14.54 sec.
+Model output: 'First Citizen:\nThe, I have the cos, and the careltos, and the carelt'
+Saving the weights...
+[Epoch   1/2][It.  2850/24203] Loss 4.9491 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2851/24203] Loss 5.0165 | forward: 4.34 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2852/24203] Loss 5.0474 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2853/24203] Loss 4.8152 | forward: 4.36 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2854/24203] Loss 5.3951 | forward: 4.37 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2855/24203] Loss 5.0865 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2856/24203] Loss 4.7058 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2857/24203] Loss 4.8888 | forward: 4.38 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2858/24203] Loss 5.0715 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2859/24203] Loss 5.1188 | forward: 4.37 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2860/24203] Loss 4.7451 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2861/24203] Loss 5.0159 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2862/24203] Loss 4.8399 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  2863/24203] Loss 5.0051 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2864/24203] Loss 4.5778 | forward: 4.36 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  2865/24203] Loss 4.8470 | forward: 4.37 sec. | backward 14.45 sec.
+Model output: 'First Citizen:\nThe, I have the careltoey, and the careltoey, and'
+Saving the weights...
+[Epoch   1/2][It.  2866/24203] Loss 4.7361 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2867/24203] Loss 4.8720 | forward: 4.37 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  2868/24203] Loss 4.7543 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2869/24203] Loss 4.9042 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2870/24203] Loss 4.6775 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2871/24203] Loss 4.8195 | forward: 4.34 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2872/24203] Loss 4.7541 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2873/24203] Loss 5.0717 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2874/24203] Loss 5.1632 | forward: 4.34 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2875/24203] Loss 4.6091 | forward: 4.36 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2876/24203] Loss 5.1271 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2877/24203] Loss 4.8422 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2878/24203] Loss 5.1040 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2879/24203] Loss 4.8464 | forward: 4.38 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2880/24203] Loss 4.7394 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2881/24203] Loss 4.9426 | forward: 4.35 sec. | backward 14.46 sec.
+Model output: 'First Citizen:\nTo, I have, I have the cared, and the cared, and the cared,'
+Saving the weights...
+[Epoch   1/2][It.  2882/24203] Loss 4.7774 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2883/24203] Loss 4.8514 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2884/24203] Loss 4.8958 | forward: 4.37 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2885/24203] Loss 4.9804 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2886/24203] Loss 4.8390 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2887/24203] Loss 4.8967 | forward: 4.38 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2888/24203] Loss 4.9230 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2889/24203] Loss 4.6702 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2890/24203] Loss 4.9452 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2891/24203] Loss 4.9851 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2892/24203] Loss 4.6272 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2893/24203] Loss 5.0447 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2894/24203] Loss 4.9969 | forward: 4.37 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2895/24203] Loss 4.8384 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2896/24203] Loss 5.0050 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2897/24203] Loss 5.1150 | forward: 4.37 sec. | backward 14.56 sec.
+Model output: 'First Citizen:\nTo che, I have the cared, I have the cared, I have the cared'
+Saving the weights...
+[Epoch   1/2][It.  2898/24203] Loss 4.9036 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2899/24203] Loss 4.8413 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2900/24203] Loss 4.7362 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2901/24203] Loss 5.2216 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2902/24203] Loss 4.4217 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2903/24203] Loss 4.6235 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2904/24203] Loss 4.7069 | forward: 4.38 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2905/24203] Loss 5.0366 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2906/24203] Loss 5.0172 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  2907/24203] Loss 4.7962 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  2908/24203] Loss 4.9592 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2909/24203] Loss 4.7836 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2910/24203] Loss 5.0652 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2911/24203] Loss 4.9287 | forward: 4.36 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2912/24203] Loss 4.9164 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2913/24203] Loss 4.6200 | forward: 4.36 sec. | backward 14.45 sec.
+Model output: 'First Citizen:\nThe the co the cocos, I have the cared, and the cared,'
+Saving the weights...
+[Epoch   1/2][It.  2914/24203] Loss 5.1776 | forward: 4.32 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2915/24203] Loss 4.8706 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2916/24203] Loss 5.1079 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2917/24203] Loss 4.6454 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  2918/24203] Loss 4.6172 | forward: 4.37 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2919/24203] Loss 4.7256 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2920/24203] Loss 5.1521 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  2921/24203] Loss 4.9462 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2922/24203] Loss 5.1026 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2923/24203] Loss 5.1051 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2924/24203] Loss 4.7625 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2925/24203] Loss 4.6912 | forward: 4.37 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2926/24203] Loss 4.9039 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2927/24203] Loss 5.0045 | forward: 4.37 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2928/24203] Loss 4.7687 | forward: 4.37 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2929/24203] Loss 4.8058 | forward: 4.35 sec. | backward 14.48 sec.
+Model output: 'First Citizen:\nThe the cocos, and the cos, and the cos, and the co'
+Saving the weights...
+[Epoch   1/2][It.  2930/24203] Loss 4.9185 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  2931/24203] Loss 4.6634 | forward: 4.34 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  2932/24203] Loss 4.9693 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2933/24203] Loss 4.9132 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2934/24203] Loss 4.7477 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2935/24203] Loss 4.8640 | forward: 4.37 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2936/24203] Loss 4.9857 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2937/24203] Loss 4.9699 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  2938/24203] Loss 5.0313 | forward: 4.38 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  2939/24203] Loss 4.9383 | forward: 4.37 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  2940/24203] Loss 4.3912 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  2941/24203] Loss 4.8451 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2942/24203] Loss 5.1367 | forward: 4.37 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  2943/24203] Loss 4.8344 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  2944/24203] Loss 4.9085 | forward: 4.34 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  2945/24203] Loss 4.6343 | forward: 4.38 sec. | backward 14.54 sec.
+Model output: 'First Citizen:\nThe the co the coey, and the cos, and the careltos'
+Saving the weights...
+[Epoch   1/2][It.  2946/24203] Loss 4.9873 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  2947/24203] Loss 4.9180 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  2948/24203] Loss 4.8027 | forward: 4.34 sec. | backward 14.45 sec.
+...
+[Epoch   1/2][It.  3428/24203] Loss 4.8040 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3429/24203] Loss 4.8977 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3430/24203] Loss 4.7285 | forward: 4.37 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  3431/24203] Loss 4.7230 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3432/24203] Loss 4.7270 | forward: 4.35 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  3433/24203] Loss 4.7159 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  3434/24203] Loss 4.8268 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3435/24203] Loss 4.7789 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  3436/24203] Loss 4.6199 | forward: 4.37 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3437/24203] Loss 4.6927 | forward: 4.37 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3438/24203] Loss 4.8267 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  3439/24203] Loss 4.3058 | forward: 4.35 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  3440/24203] Loss 4.7178 | forward: 4.37 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  3441/24203] Loss 4.8510 | forward: 4.35 sec. | backward 14.46 sec.
+Model output: 'First Citizen:\nThe the king, I have the cast, and the cast, and the cast, and the cast'
+Saving the weights...
+[Epoch   1/2][It.  3442/24203] Loss 4.9612 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3443/24203] Loss 4.9596 | forward: 4.37 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  3444/24203] Loss 4.9611 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  3445/24203] Loss 4.5887 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  3446/24203] Loss 4.8592 | forward: 4.52 sec. | backward 18.56 sec.
+[Epoch   1/2][It.  3447/24203] Loss 4.5692 | forward: 4.39 sec. | backward 14.90 sec.
+[Epoch   1/2][It.  3448/24203] Loss 4.5881 | forward: 4.48 sec. | backward 14.98 sec.
+[Epoch   1/2][It.  3449/24203] Loss 4.7142 | forward: 4.47 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  3450/24203] Loss 4.5758 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3451/24203] Loss 4.9990 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3452/24203] Loss 4.8173 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  3453/24203] Loss 4.8382 | forward: 4.44 sec. | backward 14.99 sec.
+[Epoch   1/2][It.  3454/24203] Loss 4.6399 | forward: 4.33 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3455/24203] Loss 5.1502 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3456/24203] Loss 4.8646 | forward: 4.36 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3457/24203] Loss 4.8691 | forward: 4.32 sec. | backward 14.39 sec.
+Model output: 'First Citizen:\nTo the co the cocococococococococ'
+Saving the weights...
+[Epoch   1/2][It.  3458/24203] Loss 4.7232 | forward: 4.35 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  3459/24203] Loss 4.7836 | forward: 4.34 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3460/24203] Loss 4.8500 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3461/24203] Loss 4.6728 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3462/24203] Loss 4.6676 | forward: 4.34 sec. | backward 14.88 sec.
+[Epoch   1/2][It.  3463/24203] Loss 4.8776 | forward: 4.37 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3464/24203] Loss 4.3021 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.  3465/24203] Loss 5.0408 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3466/24203] Loss 4.8164 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3467/24203] Loss 4.8044 | forward: 4.36 sec. | backward 14.38 sec.
+[Epoch   1/2][It.  3468/24203] Loss 4.7952 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.  3469/24203] Loss 5.0856 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3470/24203] Loss 4.5738 | forward: 4.36 sec. | backward 14.36 sec.
+[Epoch   1/2][It.  3471/24203] Loss 4.7425 | forward: 4.34 sec. | backward 14.33 sec.
+[Epoch   1/2][It.  3472/24203] Loss 4.8267 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3473/24203] Loss 4.7195 | forward: 4.35 sec. | backward 14.43 sec.
+Model output: 'First Citizen:\nThe the co the cococo the cococo the cococ'
+Saving the weights...
+[Epoch   1/2][It.  3474/24203] Loss 4.7834 | forward: 4.33 sec. | backward 14.33 sec.
+[Epoch   1/2][It.  3475/24203] Loss 4.9105 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.  3476/24203] Loss 4.7733 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3477/24203] Loss 4.8571 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3478/24203] Loss 5.1739 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3479/24203] Loss 5.0565 | forward: 4.34 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  3480/24203] Loss 4.8437 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3481/24203] Loss 4.8919 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.  3482/24203] Loss 4.8704 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  3483/24203] Loss 5.2840 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3484/24203] Loss 5.0196 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3485/24203] Loss 4.6724 | forward: 4.35 sec. | backward 14.36 sec.
+[Epoch   1/2][It.  3486/24203] Loss 4.8696 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3487/24203] Loss 4.7189 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3488/24203] Loss 4.6311 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  3489/24203] Loss 4.6039 | forward: 4.34 sec. | backward 14.36 sec.
+Model output: 'First Citizen:\nThe the cast, and the cast, and the cast, and the cast, and the cast'
+Saving the weights...
+[Epoch   1/2][It.  3490/24203] Loss 4.9533 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3491/24203] Loss 4.6466 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3492/24203] Loss 4.6805 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3493/24203] Loss 4.7928 | forward: 4.36 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3494/24203] Loss 4.8706 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3495/24203] Loss 4.8922 | forward: 4.34 sec. | backward 14.68 sec.
+[Epoch   1/2][It.  3496/24203] Loss 4.8179 | forward: 4.38 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3497/24203] Loss 4.8940 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  3498/24203] Loss 5.0042 | forward: 4.33 sec. | backward 14.33 sec.
+[Epoch   1/2][It.  3499/24203] Loss 4.9694 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3500/24203] Loss 5.2829 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3501/24203] Loss 4.8698 | forward: 4.38 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3502/24203] Loss 4.6806 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  3503/24203] Loss 4.7094 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3504/24203] Loss 4.8060 | forward: 4.35 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3505/24203] Loss 4.8693 | forward: 4.34 sec. | backward 14.36 sec.
+Model output: 'First Citizen:\nThe the cast, and the casts, and the fracoces, and the cast'
+Saving the weights...
+[Epoch   1/2][It.  3506/24203] Loss 4.8185 | forward: 4.40 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3507/24203] Loss 4.8453 | forward: 4.36 sec. | backward 14.91 sec.
+[Epoch   1/2][It.  3508/24203] Loss 4.9728 | forward: 4.47 sec. | backward 14.62 sec.
+[Epoch   1/2][It.  3509/24203] Loss 4.9349 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3510/24203] Loss 5.0209 | forward: 4.35 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  3511/24203] Loss 4.5189 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3512/24203] Loss 4.5801 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  3513/24203] Loss 4.6862 | forward: 4.34 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3514/24203] Loss 4.4094 | forward: 4.34 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3515/24203] Loss 4.9160 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3516/24203] Loss 5.0785 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3517/24203] Loss 4.8223 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3518/24203] Loss 4.9671 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3519/24203] Loss 4.9059 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3520/24203] Loss 4.9435 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3521/24203] Loss 5.1387 | forward: 4.35 sec. | backward 14.48 sec.
+Model output: 'First Citizen:\nTo, I have the cast, and the cast, and the cast, and the cast, and'
+Saving the weights...
+[Epoch   1/2][It.  3522/24203] Loss 4.9370 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3523/24203] Loss 5.0463 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  3524/24203] Loss 4.8777 | forward: 4.33 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3525/24203] Loss 4.6479 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3526/24203] Loss 4.9963 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3527/24203] Loss 4.7068 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  3528/24203] Loss 4.7576 | forward: 4.33 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3529/24203] Loss 4.9744 | forward: 4.36 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3530/24203] Loss 4.5326 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  3531/24203] Loss 4.7071 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3532/24203] Loss 5.0341 | forward: 4.35 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  3533/24203] Loss 4.8864 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.  3534/24203] Loss 4.9943 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3535/24203] Loss 4.9143 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3536/24203] Loss 4.7399 | forward: 4.35 sec. | backward 14.36 sec.
+[Epoch   1/2][It.  3537/24203] Loss 5.0327 | forward: 4.31 sec. | backward 14.61 sec.
+Model output: 'First Citizen:\nTo, I have, and I have the coces, and the cococes, and'
+Saving the weights...
+[Epoch   1/2][It.  3538/24203] Loss 4.6878 | forward: 4.39 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  3539/24203] Loss 4.7304 | forward: 4.35 sec. | backward 14.73 sec.
+[Epoch   1/2][It.  3540/24203] Loss 4.6533 | forward: 4.44 sec. | backward 14.74 sec.
+[Epoch   1/2][It.  3541/24203] Loss 4.5081 | forward: 4.41 sec. | backward 14.64 sec.
+[Epoch   1/2][It.  3542/24203] Loss 4.8502 | forward: 4.38 sec. | backward 14.63 sec.
+[Epoch   1/2][It.  3543/24203] Loss 4.6433 | forward: 4.39 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  3544/24203] Loss 4.6306 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  3545/24203] Loss 4.6061 | forward: 4.38 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3546/24203] Loss 5.1713 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3547/24203] Loss 4.7848 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3548/24203] Loss 4.4720 | forward: 4.35 sec. | backward 15.25 sec.
+[Epoch   1/2][It.  3549/24203] Loss 4.5064 | forward: 4.39 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  3550/24203] Loss 4.9038 | forward: 4.35 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  3551/24203] Loss 5.1693 | forward: 4.37 sec. | backward 14.62 sec.
+[Epoch   1/2][It.  3552/24203] Loss 4.8928 | forward: 4.36 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3553/24203] Loss 4.3433 | forward: 4.36 sec. | backward 14.60 sec.
+Model output: 'First Citizen:\nThe the cill, and the cill, and the cill, and the cill, and the cill'
+Saving the weights...
+[Epoch   1/2][It.  3554/24203] Loss 4.7506 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3555/24203] Loss 4.7327 | forward: 4.36 sec. | backward 14.62 sec.
+[Epoch   1/2][It.  3556/24203] Loss 4.7186 | forward: 4.36 sec. | backward 14.55 sec.
+[Epoch   1/2][It.  3557/24203] Loss 4.7863 | forward: 4.43 sec. | backward 14.67 sec.
+[Epoch   1/2][It.  3558/24203] Loss 4.6396 | forward: 4.34 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  3559/24203] Loss 4.4249 | forward: 4.44 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3560/24203] Loss 4.8214 | forward: 4.36 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3561/24203] Loss 5.0458 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3562/24203] Loss 4.6653 | forward: 4.35 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  3563/24203] Loss 4.5589 | forward: 4.40 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3564/24203] Loss 4.5301 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3565/24203] Loss 4.9926 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3566/24203] Loss 4.7021 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3567/24203] Loss 4.9763 | forward: 4.32 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  3568/24203] Loss 4.6675 | forward: 4.34 sec. | backward 14.62 sec.
+[Epoch   1/2][It.  3569/24203] Loss 5.1223 | forward: 4.33 sec. | backward 14.45 sec.
+Model output: 'First Citizen:\nThe, I have, I have, I have, I have, I have, I have, I have, I'
+Saving the weights...
+[Epoch   1/2][It.  3570/24203] Loss 4.5849 | forward: 4.31 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3571/24203] Loss 4.8869 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3572/24203] Loss 5.0038 | forward: 4.36 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3573/24203] Loss 4.8886 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3574/24203] Loss 4.6690 | forward: 4.35 sec. | backward 14.50 sec.
+[Epoch   1/2][It.  3575/24203] Loss 4.9281 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3576/24203] Loss 4.7558 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3577/24203] Loss 4.5665 | forward: 4.36 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  3578/24203] Loss 4.9293 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3579/24203] Loss 5.0876 | forward: 4.35 sec. | backward 14.60 sec.
+[Epoch   1/2][It.  3580/24203] Loss 4.8977 | forward: 4.37 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3581/24203] Loss 4.6764 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.  3582/24203] Loss 5.1088 | forward: 4.33 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3583/24203] Loss 5.3329 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3584/24203] Loss 4.7510 | forward: 4.37 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3585/24203] Loss 4.7012 | forward: 4.32 sec. | backward 14.42 sec.
+Model output: 'First Citizen:\nTo, I have, I have, I have, I have, I have, I have, I have, I'
+Saving the weights...
+[Epoch   1/2][It.  3586/24203] Loss 4.9175 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3587/24203] Loss 4.8827 | forward: 4.35 sec. | backward 14.48 sec.
+[Epoch   1/2][It.  3588/24203] Loss 4.8986 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3589/24203] Loss 4.5009 | forward: 4.34 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3590/24203] Loss 4.5193 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3591/24203] Loss 4.4874 | forward: 4.31 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  3592/24203] Loss 4.6272 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3593/24203] Loss 4.8325 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  3594/24203] Loss 4.8783 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3595/24203] Loss 4.9495 | forward: 4.34 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  3596/24203] Loss 4.9685 | forward: 4.36 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3597/24203] Loss 4.7868 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  3598/24203] Loss 4.9337 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3599/24203] Loss 4.2308 | forward: 4.36 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3600/24203] Loss 5.0477 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  3601/24203] Loss 4.7233 | forward: 4.35 sec. | backward 14.38 sec.
+Model output: 'First Citizen:\nThe, I have the cast, I have the cast, I have the cast, I have the c'
+Saving the weights...
+[Epoch   1/2][It.  3602/24203] Loss 4.9781 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.  3603/24203] Loss 4.6168 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  3604/24203] Loss 4.6885 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.  3605/24203] Loss 5.0113 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  3606/24203] Loss 4.7671 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  3607/24203] Loss 5.0436 | forward: 4.35 sec. | backward 14.43 sec.
+...
+[Stop training, change generate methods and resume training from last checkpoint]
+...
+[Epoch   1/2][It.   738/24203] Loss 4.6583 | forward: 4.32 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   739/24203] Loss 4.5201 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   740/24203] Loss 5.0970 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   741/24203] Loss 4.9501 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   742/24203] Loss 4.4863 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   743/24203] Loss 4.9932 | forward: 4.32 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   744/24203] Loss 4.4779 | forward: 4.35 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   745/24203] Loss 4.5858 | forward: 4.36 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   746/24203] Loss 4.3219 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   747/24203] Loss 5.0480 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   748/24203] Loss 4.7294 | forward: 4.32 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   749/24203] Loss 4.5729 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   750/24203] Loss 4.8252 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   751/24203] Loss 4.6334 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   752/24203] Loss 4.8170 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   753/24203] Loss 4.5352 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   754/24203] Loss 4.6370 | forward: 4.33 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   755/24203] Loss 5.2307 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   756/24203] Loss 4.8606 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   757/24203] Loss 4.7352 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   758/24203] Loss 4.8271 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   759/24203] Loss 4.6988 | forward: 4.35 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   760/24203] Loss 4.8849 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   761/24203] Loss 4.6987 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   762/24203] Loss 4.4736 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   763/24203] Loss 4.9147 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   764/24203] Loss 4.7604 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   765/24203] Loss 4.7239 | forward: 4.32 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   766/24203] Loss 4.7436 | forward: 4.36 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   767/24203] Loss 5.0252 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   768/24203] Loss 4.6487 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   769/24203] Loss 4.7999 | forward: 4.34 sec. | backward 14.50 sec.
+Model output: 'First Citizen:\nThe could, that the furs.\n\nMENENIUS:\nThe the sent, and the king, and'
+Model output: 'First Citizen:\nTo the king, I have to the fancoher, I have a fey\nTo'
+Model output: "First Citizen:\nTo the servys, I'll bef, and the cogos, and a wit"
+Saving the weights...
+[Epoch   1/2][It.   770/24203] Loss 4.8052 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   771/24203] Loss 4.8770 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   772/24203] Loss 4.9121 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   773/24203] Loss 4.6720 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   774/24203] Loss 4.3167 | forward: 4.34 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   775/24203] Loss 4.9644 | forward: 4.32 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   776/24203] Loss 4.9360 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   777/24203] Loss 5.0470 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   778/24203] Loss 4.7524 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   779/24203] Loss 4.4457 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   780/24203] Loss 4.5661 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   781/24203] Loss 4.7065 | forward: 4.32 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   782/24203] Loss 4.6262 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   783/24203] Loss 4.8730 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   784/24203] Loss 4.8881 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   785/24203] Loss 4.4914 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   786/24203] Loss 4.8171 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   787/24203] Loss 4.9480 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   788/24203] Loss 4.1231 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   789/24203] Loss 4.4910 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   790/24203] Loss 4.6475 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   791/24203] Loss 4.6998 | forward: 4.32 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   792/24203] Loss 4.8030 | forward: 4.32 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   793/24203] Loss 5.0304 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   794/24203] Loss 4.9590 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   795/24203] Loss 4.4167 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   796/24203] Loss 5.1200 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   797/24203] Loss 4.5145 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   798/24203] Loss 4.9529 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   799/24203] Loss 4.8454 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   800/24203] Loss 4.8245 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   801/24203] Loss 4.9560 | forward: 4.32 sec. | backward 14.38 sec.
+Model output: "First Citizen:\nTof, he, but the little, and I'll be accans of the liichard"
+Model output: "First Citizen:\nI'll dren, I have, and I am, and prief, and the bofets"
+Model output: "First Citizen:\nTost the casts, and he, I'll fans, my sent.\n\nSecond Serv"
+Saving the weights...
+[Epoch   1/2][It.   802/24203] Loss 4.4711 | forward: 4.34 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   803/24203] Loss 4.6978 | forward: 4.36 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   804/24203] Loss 4.5367 | forward: 4.32 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   805/24203] Loss 4.8961 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   806/24203] Loss 4.9267 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   807/24203] Loss 4.7213 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   808/24203] Loss 4.5915 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   809/24203] Loss 4.5650 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   810/24203] Loss 4.7120 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   811/24203] Loss 4.8371 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   812/24203] Loss 4.9509 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   813/24203] Loss 4.7389 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   814/24203] Loss 4.9343 | forward: 4.32 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   815/24203] Loss 4.8924 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   816/24203] Loss 4.5631 | forward: 4.36 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   817/24203] Loss 4.5752 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   818/24203] Loss 4.6824 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   819/24203] Loss 4.6420 | forward: 4.33 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   820/24203] Loss 4.7388 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   821/24203] Loss 4.4993 | forward: 4.32 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   822/24203] Loss 4.6450 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   823/24203] Loss 4.9122 | forward: 4.36 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   824/24203] Loss 4.5792 | forward: 4.34 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   825/24203] Loss 4.6310 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   826/24203] Loss 4.6442 | forward: 4.33 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   827/24203] Loss 4.5560 | forward: 4.36 sec. | backward 14.50 sec.
+[Epoch   1/2][It.   828/24203] Loss 4.6084 | forward: 4.32 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   829/24203] Loss 4.6408 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   830/24203] Loss 4.8358 | forward: 4.35 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   831/24203] Loss 4.5391 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   832/24203] Loss 4.4369 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   833/24203] Loss 4.6186 | forward: 4.35 sec. | backward 14.43 sec.
+Model output: 'First Citizen:\nThe the carence, and he, and he, and the wast, and a bocos'
+Model output: 'First Citizen:\nThe the mind, and\nThest the mind, and my lord, I have to the de'
+Model output: "First Citizen:\nThe pay, I'll the could, I have, I'll fans, and I am\nT"
+Saving the weights...
+[Epoch   1/2][It.   834/24203] Loss 4.9471 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   835/24203] Loss 4.6935 | forward: 4.34 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   836/24203] Loss 4.9632 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   837/24203] Loss 4.7508 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   838/24203] Loss 4.8710 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   839/24203] Loss 4.5771 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   840/24203] Loss 4.7994 | forward: 4.36 sec. | backward 14.53 sec.
+[Epoch   1/2][It.   841/24203] Loss 4.8478 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   842/24203] Loss 4.7618 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   843/24203] Loss 4.3086 | forward: 4.36 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   844/24203] Loss 4.7338 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   845/24203] Loss 4.7258 | forward: 4.32 sec. | backward 14.51 sec.
+[Epoch   1/2][It.   846/24203] Loss 4.7428 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   847/24203] Loss 4.7393 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   848/24203] Loss 4.4868 | forward: 4.32 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   849/24203] Loss 4.4543 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   850/24203] Loss 4.9988 | forward: 4.36 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   851/24203] Loss 4.7876 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   852/24203] Loss 4.4585 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   853/24203] Loss 4.9456 | forward: 4.33 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   854/24203] Loss 4.6776 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   855/24203] Loss 4.7275 | forward: 4.32 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   856/24203] Loss 4.6311 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   857/24203] Loss 4.7491 | forward: 4.35 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   858/24203] Loss 4.4609 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   859/24203] Loss 4.8028 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   860/24203] Loss 4.6329 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   861/24203] Loss 4.9211 | forward: 4.34 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   862/24203] Loss 4.5122 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   863/24203] Loss 4.6065 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   864/24203] Loss 4.4064 | forward: 4.36 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   865/24203] Loss 4.6188 | forward: 4.32 sec. | backward 14.38 sec.
+Model output: "First Citizen:\nThe the little, and I'll do, I'll do, I will, I have, I'll be the"
+Model output: "First Citizen:\nThest, I'll dey, and the coford, and a duke, I have,"
+Model output: 'First Citizen:\nThat, I have, and so, and befarelpreny the cheed, and the'
+Saving the weights...
+[Epoch   1/2][It.   866/24203] Loss 4.5666 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   867/24203] Loss 5.1704 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   868/24203] Loss 5.0421 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   869/24203] Loss 4.6833 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   870/24203] Loss 4.8650 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   871/24203] Loss 4.6308 | forward: 4.32 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   872/24203] Loss 4.9313 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   873/24203] Loss 4.7284 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   874/24203] Loss 4.7747 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   875/24203] Loss 4.6420 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   876/24203] Loss 4.7394 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   877/24203] Loss 4.9260 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   878/24203] Loss 4.9766 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   879/24203] Loss 4.7149 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   880/24203] Loss 4.9198 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   881/24203] Loss 5.2053 | forward: 4.33 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   882/24203] Loss 4.8728 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   883/24203] Loss 4.9155 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   884/24203] Loss 4.8194 | forward: 4.35 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   885/24203] Loss 4.8848 | forward: 4.32 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   886/24203] Loss 4.3935 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   887/24203] Loss 4.7582 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   888/24203] Loss 4.5394 | forward: 4.32 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   889/24203] Loss 5.2392 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   890/24203] Loss 4.8719 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   891/24203] Loss 4.3904 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   892/24203] Loss 4.3187 | forward: 4.34 sec. | backward 14.34 sec.
+[Epoch   1/2][It.   893/24203] Loss 4.8866 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   894/24203] Loss 4.4833 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   895/24203] Loss 4.7048 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   896/24203] Loss 4.4036 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   897/24203] Loss 4.7941 | forward: 4.34 sec. | backward 14.45 sec.
+Model output: 'First Citizen:\nMy, I have beford, and my devoforts, and the cates, and'
+Model output: "First Citizen:\nTofort, I'll be\nTos, I do, I am, and he, I'll f"
+Model output: "First Citizen:\nThest, I have the cast, and I'll be\ntoforts, I am, I"
+Saving the weights...
+[Epoch   1/2][It.   898/24203] Loss 4.8709 | forward: 4.34 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   899/24203] Loss 4.5986 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   900/24203] Loss 4.7122 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   901/24203] Loss 4.3950 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   902/24203] Loss 4.4903 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   903/24203] Loss 4.6664 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   904/24203] Loss 4.5266 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   905/24203] Loss 4.4646 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   906/24203] Loss 4.8749 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   907/24203] Loss 4.1623 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   908/24203] Loss 4.8023 | forward: 4.37 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   909/24203] Loss 4.3019 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   910/24203] Loss 4.7310 | forward: 4.34 sec. | backward 14.50 sec.
+[Epoch   1/2][It.   911/24203] Loss 4.8230 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   912/24203] Loss 4.9316 | forward: 4.32 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   913/24203] Loss 4.5352 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   914/24203] Loss 4.9212 | forward: 4.37 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   915/24203] Loss 4.8154 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   916/24203] Loss 4.7590 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   917/24203] Loss 4.7701 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   918/24203] Loss 4.2827 | forward: 4.35 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   919/24203] Loss 4.6499 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   920/24203] Loss 4.8658 | forward: 4.35 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   921/24203] Loss 4.5628 | forward: 4.36 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   922/24203] Loss 4.8702 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   923/24203] Loss 4.5920 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   924/24203] Loss 4.6738 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   925/24203] Loss 4.9570 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   926/24203] Loss 5.1222 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   927/24203] Loss 4.8386 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   928/24203] Loss 4.6219 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   929/24203] Loss 4.5209 | forward: 4.34 sec. | backward 14.39 sec.
+Model output: "First Citizen:\nTo the wach, and the mind, I am, I'll be the guped\nT"
+Model output: 'First Citizen:\nThe the chard, and the king, and I would the trenod,\nAnd find,'
+Model output: 'First Citizen:\nThe the little the mind, and his fans, I have not, I have, the co'
+Saving the weights...
+[Epoch   1/2][It.   930/24203] Loss 4.7789 | forward: 4.32 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   931/24203] Loss 4.9302 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   932/24203] Loss 4.5968 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   933/24203] Loss 5.0668 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   934/24203] Loss 4.7698 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   935/24203] Loss 4.7242 | forward: 4.32 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   936/24203] Loss 4.8476 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   937/24203] Loss 5.0567 | forward: 4.35 sec. | backward 14.35 sec.
+[Epoch   1/2][It.   938/24203] Loss 4.3631 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   939/24203] Loss 5.0352 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   940/24203] Loss 4.5536 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   941/24203] Loss 4.8715 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   942/24203] Loss 4.3295 | forward: 4.33 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   943/24203] Loss 4.7720 | forward: 4.36 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   944/24203] Loss 4.8276 | forward: 4.36 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   945/24203] Loss 4.6801 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   946/24203] Loss 4.9109 | forward: 4.32 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   947/24203] Loss 4.9023 | forward: 4.35 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   948/24203] Loss 4.4922 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   949/24203] Loss 4.3603 | forward: 4.31 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   950/24203] Loss 4.9632 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   951/24203] Loss 4.7718 | forward: 4.36 sec. | backward 14.37 sec.
+[Epoch   1/2][It.   952/24203] Loss 4.5500 | forward: 4.32 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   953/24203] Loss 4.6702 | forward: 4.34 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   954/24203] Loss 4.7183 | forward: 4.33 sec. | backward 14.48 sec.
+[Epoch   1/2][It.   955/24203] Loss 4.6262 | forward: 4.36 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   956/24203] Loss 4.7656 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   957/24203] Loss 4.6463 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   958/24203] Loss 4.5812 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   959/24203] Loss 4.6962 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   960/24203] Loss 4.7071 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   961/24203] Loss 4.8531 | forward: 4.33 sec. | backward 14.42 sec.
+Model output: 'First Citizen:\nThe vo, I am the cofords\nTo reciusd, and a l'
+Model output: 'First Citizen:\nThe a pay, and the sens, and the chany, and the charmach'
+Model output: 'First Citizen:\nThe the find, and the carelrons, you, I am, and wens,'
+Saving the weights...
+[Epoch   1/2][It.   962/24203] Loss 4.7338 | forward: 4.33 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   963/24203] Loss 5.0129 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   964/24203] Loss 4.8510 | forward: 4.33 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   965/24203] Loss 4.6651 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.   966/24203] Loss 5.0714 | forward: 4.34 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   967/24203] Loss 4.5768 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   968/24203] Loss 4.5798 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   969/24203] Loss 4.6312 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   970/24203] Loss 4.4327 | forward: 4.33 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   971/24203] Loss 4.9430 | forward: 4.35 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   972/24203] Loss 4.3780 | forward: 4.34 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   973/24203] Loss 4.6308 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   974/24203] Loss 4.7761 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.   975/24203] Loss 4.4407 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   976/24203] Loss 4.7897 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   977/24203] Loss 5.1248 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   978/24203] Loss 4.6319 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   979/24203] Loss 4.4884 | forward: 4.34 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   980/24203] Loss 4.4355 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   981/24203] Loss 5.1647 | forward: 4.34 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   982/24203] Loss 4.5720 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.   983/24203] Loss 4.7179 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   984/24203] Loss 4.9229 | forward: 4.34 sec. | backward 14.44 sec.
+[Epoch   1/2][It.   985/24203] Loss 5.1442 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   986/24203] Loss 4.8669 | forward: 4.34 sec. | backward 14.39 sec.
+[Epoch   1/2][It.   987/24203] Loss 4.4243 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   988/24203] Loss 5.0968 | forward: 4.33 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   989/24203] Loss 4.9338 | forward: 4.36 sec. | backward 14.42 sec.
+[Epoch   1/2][It.   990/24203] Loss 4.7272 | forward: 4.33 sec. | backward 14.36 sec.
+[Epoch   1/2][It.   991/24203] Loss 4.3016 | forward: 4.34 sec. | backward 14.46 sec.
+[Epoch   1/2][It.   992/24203] Loss 4.4643 | forward: 4.33 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   993/24203] Loss 4.7533 | forward: 4.33 sec. | backward 14.37 sec.
+Model output: 'First Citizen:\nThe the mind, and the coces.\n\nSecond Servant:\nThe the mind,'
+Model output: "First Citizen:\nI am, I have\nThat 'tis why, I am me, I have my lord, I have the"
+Model output: "First Citizen:\nThest, and he, and he, and I will I am, but I will, I'll, I'll"
+Saving the weights...
+[Epoch   1/2][It.   994/24203] Loss 4.5905 | forward: 4.33 sec. | backward 14.41 sec.
+[Epoch   1/2][It.   995/24203] Loss 4.5145 | forward: 4.35 sec. | backward 14.45 sec.
+[Epoch   1/2][It.   996/24203] Loss 5.0773 | forward: 4.32 sec. | backward 14.38 sec.
+[Epoch   1/2][It.   997/24203] Loss 4.9575 | forward: 4.33 sec. | backward 14.47 sec.
+[Epoch   1/2][It.   998/24203] Loss 4.7180 | forward: 4.35 sec. | backward 14.43 sec.
+[Epoch   1/2][It.   999/24203] Loss 4.7498 | forward: 4.32 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  1000/24203] Loss 4.9253 | forward: 4.33 sec. | backward 14.45 sec.
+[Epoch   1/2][It.  1001/24203] Loss 4.9577 | forward: 4.35 sec. | backward 14.38 sec.
+[Epoch   1/2][It.  1002/24203] Loss 4.8394 | forward: 4.34 sec. | backward 14.36 sec.
+[Epoch   1/2][It.  1003/24203] Loss 4.3341 | forward: 4.33 sec. | backward 14.46 sec.
+[Epoch   1/2][It.  1004/24203] Loss 4.8642 | forward: 4.33 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  1005/24203] Loss 4.7651 | forward: 4.36 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  1006/24203] Loss 5.1257 | forward: 4.33 sec. | backward 14.35 sec.
+[Epoch   1/2][It.  1007/24203] Loss 4.2201 | forward: 4.34 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  1008/24203] Loss 4.6844 | forward: 4.36 sec. | backward 14.37 sec.
+[Epoch   1/2][It.  1009/24203] Loss 4.9013 | forward: 4.33 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  1010/24203] Loss 4.8607 | forward: 9.09 sec. | backward 14.96 sec.
+[Epoch   1/2][It.  1011/24203] Loss 4.8276 | forward: 4.44 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  1012/24203] Loss 4.9373 | forward: 4.44 sec. | backward 14.84 sec.
+[Epoch   1/2][It.  1013/24203] Loss 4.8143 | forward: 4.41 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  1014/24203] Loss 4.7542 | forward: 4.34 sec. | backward 14.60 sec.
+[Epoch   1/2][It.  1015/24203] Loss 4.4983 | forward: 4.38 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  1016/24203] Loss 4.4559 | forward: 4.34 sec. | backward 14.40 sec.
+[Epoch   1/2][It.  1017/24203] Loss 4.6816 | forward: 4.35 sec. | backward 14.49 sec.
+[Epoch   1/2][It.  1018/24203] Loss 5.1590 | forward: 4.44 sec. | backward 14.87 sec.
+[Epoch   1/2][It.  1019/24203] Loss 4.6067 | forward: 4.43 sec. | backward 14.43 sec.
+[Epoch   1/2][It.  1020/24203] Loss 4.6701 | forward: 4.43 sec. | backward 14.67 sec.
+[Epoch   1/2][It.  1021/24203] Loss 4.6829 | forward: 4.44 sec. | backward 14.47 sec.
+[Epoch   1/2][It.  1022/24203] Loss 4.3036 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  1023/24203] Loss 4.7716 | forward: 4.38 sec. | backward 15.04 sec.
+[Epoch   1/2][It.  1024/24203] Loss 4.7632 | forward: 4.40 sec. | backward 14.78 sec.
+[Epoch   1/2][It.  1025/24203] Loss 4.5281 | forward: 4.36 sec. | backward 14.49 sec.
+Model output: "First Citizen:\nTost, I'll be my lord, I have, and the hood, and the mind, I'll"
+Model output: 'First Citizen:\nTo, I am the mury, and this\nThe the mind, and boey\n'
+Model output: "First Citizen:\nThe, I am, he, I am, I'll be fras, and\nThe the little"
+Saving the weights...
+[Epoch   1/2][It.  1026/24203] Loss 4.8610 | forward: 4.37 sec. | backward 14.65 sec.
+[Epoch   1/2][It.  1027/24203] Loss 4.6511 | forward: 4.34 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  1028/24203] Loss 4.5419 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  1029/24203] Loss 5.1490 | forward: 4.37 sec. | backward 14.68 sec.
+[Epoch   1/2][It.  1030/24203] Loss 4.3579 | forward: 4.40 sec. | backward 14.73 sec.
+[Epoch   1/2][It.  1031/24203] Loss 4.7047 | forward: 4.46 sec. | backward 15.18 sec.
+...
+[Epoch   1/2][It.  1186/24203] Loss 4.8527 | forward: 4.43 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  1187/24203] Loss 4.4330 | forward: 4.43 sec. | backward 14.83 sec.
+[Epoch   1/2][It.  1188/24203] Loss 4.6221 | forward: 4.41 sec. | backward 14.66 sec.
+[Epoch   1/2][It.  1189/24203] Loss 4.8663 | forward: 4.48 sec. | backward 14.90 sec.
+[Epoch   1/2][It.  1190/24203] Loss 4.8646 | forward: 4.42 sec. | backward 14.91 sec.
+[Epoch   1/2][It.  1191/24203] Loss 4.6459 | forward: 4.36 sec. | backward 14.77 sec.
+[Epoch   1/2][It.  1192/24203] Loss 4.7269 | forward: 4.41 sec. | backward 15.38 sec.
+[Epoch   1/2][It.  1193/24203] Loss 4.5213 | forward: 4.44 sec. | backward 15.00 sec.
+[Epoch   1/2][It.  1194/24203] Loss 4.7031 | forward: 4.50 sec. | backward 15.01 sec.
+[Epoch   1/2][It.  1195/24203] Loss 4.9737 | forward: 4.49 sec. | backward 14.81 sec.
+[Epoch   1/2][It.  1196/24203] Loss 4.7354 | forward: 4.39 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  1197/24203] Loss 4.9181 | forward: 4.36 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  1198/24203] Loss 4.9694 | forward: 4.36 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  1199/24203] Loss 4.9000 | forward: 4.38 sec. | backward 14.65 sec.
+[Epoch   1/2][It.  1200/24203] Loss 5.0687 | forward: 4.39 sec. | backward 14.61 sec.
+[Epoch   1/2][It.  1201/24203] Loss 4.7079 | forward: 4.37 sec. | backward 15.11 sec.
+[Epoch   1/2][It.  1202/24203] Loss 4.4691 | forward: 4.59 sec. | backward 14.83 sec.
+[Epoch   1/2][It.  1203/24203] Loss 5.0669 | forward: 4.36 sec. | backward 14.81 sec.
+[Epoch   1/2][It.  1204/24203] Loss 4.7680 | forward: 4.42 sec. | backward 14.66 sec.
+[Epoch   1/2][It.  1205/24203] Loss 4.7790 | forward: 4.35 sec. | backward 14.60 sec.
+[Epoch   1/2][It.  1206/24203] Loss 4.6779 | forward: 4.46 sec. | backward 15.07 sec.
+[Epoch   1/2][It.  1207/24203] Loss 4.5147 | forward: 4.44 sec. | backward 14.65 sec.
+[Epoch   1/2][It.  1208/24203] Loss 4.8230 | forward: 4.47 sec. | backward 15.10 sec.
+[Epoch   1/2][It.  1209/24203] Loss 4.4492 | forward: 4.50 sec. | backward 15.17 sec.
+[Epoch   1/2][It.  1210/24203] Loss 4.4102 | forward: 4.50 sec. | backward 14.81 sec.
+[Epoch   1/2][It.  1211/24203] Loss 4.5535 | forward: 4.45 sec. | backward 15.09 sec.
+[Epoch   1/2][It.  1212/24203] Loss 4.5610 | forward: 4.38 sec. | backward 14.70 sec.
+[Epoch   1/2][It.  1213/24203] Loss 4.7767 | forward: 4.37 sec. | backward 14.75 sec.
+[Epoch   1/2][It.  1214/24203] Loss 4.8690 | forward: 4.44 sec. | backward 14.63 sec.
+[Epoch   1/2][It.  1215/24203] Loss 4.5679 | forward: 4.39 sec. | backward 14.61 sec.
+[Epoch   1/2][It.  1216/24203] Loss 4.7745 | forward: 4.46 sec. | backward 15.05 sec.
+[Epoch   1/2][It.  1217/24203] Loss 4.6566 | forward: 4.50 sec. | backward 15.15 sec.
+Model output: 'First Citizen:\nThe the fruing of all, and the sent, I am, I am, and I will, I'
+Model output: 'First Citizen:\nTo the wach, and the cocoy,\nThe the could, and the serv'
+Model output: "First Citizen:\nI'll woe, and a cococes\nThe the king, and helasing"
+Saving the weights...
+[Epoch   1/2][It.  1218/24203] Loss 4.8534 | forward: 4.56 sec. | backward 14.80 sec.
+[Epoch   1/2][It.  1219/24203] Loss 4.2864 | forward: 4.35 sec. | backward 14.99 sec.
+[Epoch   1/2][It.  1220/24203] Loss 4.7170 | forward: 4.50 sec. | backward 15.31 sec.
+[Epoch   1/2][It.  1221/24203] Loss 4.4798 | forward: 4.51 sec. | backward 14.90 sec.
+[Epoch   1/2][It.  1222/24203] Loss 4.3397 | forward: 4.41 sec. | backward 14.73 sec.
+[Epoch   1/2][It.  1223/24203] Loss 4.5774 | forward: 4.41 sec. | backward 14.80 sec.
+[Epoch   1/2][It.  1224/24203] Loss 4.5424 | forward: 4.38 sec. | backward 14.84 sec.
+[Epoch   1/2][It.  1225/24203] Loss 4.6988 | forward: 4.45 sec. | backward 15.12 sec.
+[Epoch   1/2][It.  1226/24203] Loss 4.7524 | forward: 4.53 sec. | backward 15.29 sec.
+[Epoch   1/2][It.  1227/24203] Loss 4.6326 | forward: 4.52 sec. | backward 15.15 sec.
+[Epoch   1/2][It.  1228/24203] Loss 4.6306 | forward: 4.55 sec. | backward 15.05 sec.
+[Epoch   1/2][It.  1229/24203] Loss 4.8829 | forward: 4.51 sec. | backward 15.37 sec.
+[Epoch   1/2][It.  1230/24203] Loss 4.7035 | forward: 4.53 sec. | backward 15.19 sec.
+[Epoch   1/2][It.  1231/24203] Loss 4.9603 | forward: 4.49 sec. | backward 15.17 sec.
+[Epoch   1/2][It.  1232/24203] Loss 4.9669 | forward: 4.45 sec. | backward 14.70 sec.
+[Epoch   1/2][It.  1233/24203] Loss 4.4004 | forward: 4.51 sec. | backward 15.21 sec.
+[Epoch   1/2][It.  1234/24203] Loss 4.6000 | forward: 4.47 sec. | backward 15.01 sec.
+[Epoch   1/2][It.  1235/24203] Loss 4.6935 | forward: 4.48 sec. | backward 14.92 sec.
+[Epoch   1/2][It.  1236/24203] Loss 4.5168 | forward: 4.48 sec. | backward 15.27 sec.
+[Epoch   1/2][It.  1237/24203] Loss 4.8087 | forward: 4.53 sec. | backward 15.05 sec.
+[Epoch   1/2][It.  1238/24203] Loss 4.7965 | forward: 4.47 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  1239/24203] Loss 4.7527 | forward: 4.42 sec. | backward 14.90 sec.
+[Epoch   1/2][It.  1240/24203] Loss 5.0016 | forward: 4.43 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  1241/24203] Loss 4.4599 | forward: 4.37 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  1242/24203] Loss 4.9077 | forward: 4.35 sec. | backward 14.42 sec.
+[Epoch   1/2][It.  1243/24203] Loss 4.6892 | forward: 4.35 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  1244/24203] Loss 4.6410 | forward: 4.35 sec. | backward 14.66 sec.
+[Epoch   1/2][It.  1245/24203] Loss 4.4230 | forward: 4.38 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  1246/24203] Loss 4.5914 | forward: 4.35 sec. | backward 14.64 sec.
+[Epoch   1/2][It.  1247/24203] Loss 4.8060 | forward: 4.38 sec. | backward 14.71 sec.
+[Epoch   1/2][It.  1248/24203] Loss 4.5557 | forward: 4.41 sec. | backward 14.53 sec.
+[Epoch   1/2][It.  1249/24203] Loss 4.0331 | forward: 4.36 sec. | backward 14.54 sec.
+Model output: 'First Citizen:\nThe my lord, he, and I will, and sight, and I have the drens.\n\nKING'
+Model output: 'First Citizen:\nThe the king, and the bocos,\nThe the find, and the frabow'
+Model output: 'First Citizen:\nThe the king, I will, and four, and a bropess, war, and that'
+Saving the weights...
+[Epoch   1/2][It.  1250/24203] Loss 4.9569 | forward: 4.35 sec. | backward 14.51 sec.
+[Epoch   1/2][It.  1251/24203] Loss 4.7820 | forward: 4.37 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  1252/24203] Loss 4.8605 | forward: 4.38 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  1253/24203] Loss 4.7284 | forward: 4.39 sec. | backward 14.59 sec.
+[Epoch   1/2][It.  1254/24203] Loss 4.6340 | forward: 4.37 sec. | backward 14.57 sec.
+[Epoch   1/2][It.  1255/24203] Loss 4.7822 | forward: 4.36 sec. | backward 14.56 sec.
+[Epoch   1/2][It.  1256/24203] Loss 4.7123 | forward: 4.38 sec. | backward 14.58 sec.
+[Epoch   1/2][It.  1257/24203] Loss 4.7178 | forward: 4.38 sec. | backward 14.52 sec.
+[Epoch   1/2][It.  1258/24203] Loss 4.6741 | forward: 4.36 sec. | backward 14.54 sec.
+[Epoch   1/2][It.  1259/24203] Loss 4.3534 | forward: 4.36 sec. | backward 14.64 sec.
+[Epoch   1/2][It.  1260/24203] Loss 4.6210 | forward: 4.38 sec. | backward 14.54 sec.
+...
