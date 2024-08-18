@@ -25,16 +25,16 @@ Don't forget the `.` at the end!
     - `mnist.py`: Train a neural network on MNIST dataset.
     - `gpt.py`: Train a GPT model on Shakespeare dataset.
   - `src/:` The core library directory where all the main functionalities of the project are implemented.
-    - `src/buffer.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
-    - `src/dataset.py`: Handles data loading and preprocessing.
-    - `src/losses.py`: Contains implementations of loss functions used for training.
-    - `src/mlops.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
-    - `src/module.py`: Defines the base module from which all model components inherit.
-    - `src/nn.py`: Contains the neural network components, including layers and activation functions.
-    - `src/optimizers.py`: Implements optimization algorithms used during training.
-    - `src/tensor.py`: Provides a minimal tensor implementation to support basic tensor operations.
-    - `src/tokenizer.py`: Handles tokenization of text data for model input.
-    - `src/utils.py`: Contains miscellaneous utility functions used across the library.
+    - `src/tinygpt/buffer.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
+    - `src/tinygpt/dataset.py`: Handles data loading and preprocessing.
+    - `src/tinygpt/losses.py`: Contains implementations of loss functions used for training.
+    - `src/tinygpt/mlops.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
+    - `src/tinygpt/module.py`: Defines the base module from which all model components inherit.
+    - `src/tinygpt/nn.py`: Contains the neural network components, including layers and activation functions.
+    - `src/tinygpt/optimizers.py`: Implements optimization algorithms used during training.
+    - `src/tinygpt/tensor.py`: Provides a minimal tensor implementation to support basic tensor operations.
+    - `src/tinygpt/tokenizer.py`: Handles tokenization of text data for model input.
+    - `src/tinygpt/utils.py`: Contains miscellaneous utility functions used across the library.
   - `tests/`: This directory includes test files for the library's components. Each module in the `src/` directory has corresponding test file.
 
 ## Examples
