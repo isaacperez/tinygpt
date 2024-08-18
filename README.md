@@ -18,16 +18,24 @@ $ python -m pip install -e .
 Don't forget the `.` at the end!
 
 ## Project Structure
-  - `buffer.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
-  - `dataset.py`: Handles data loading and preprocessing.
-  - `losses.py`: Contains implementations of loss functions used for training.
-  - `mlops.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
-  - `module.py`: Defines the base module from which all model components inherit.
-  - `nn.py`: Contains the neural network components, including layers and activation functions.
-  - `optimizers.py`: Implements optimization algorithms used during training.
-  - `tensor.py`: Provides a minimal tensor implementation to support basic tensor operations.
-  - `tokenizer.py`: Handles tokenization of text data for model input.
-  - `utils.py`: Contains miscellaneous utility functions used across the library.
+  - `data/`: This directory contains scripts to download and prepare datasets.
+    - `data/shakespeare/prepare.py`: Script to download the [Shakespeare](https://github.com/karpathy/nanoGPT/tree/master/data/shakespeare) dataset.
+  - `docs/`: This directory holds the documentation for the project.
+  - `examples/`: A collection of example scripts that demonstrate how to use the various components of the project.
+    - `mnist.py`: Train a neural network on MNIST dataset.
+    - `gpt.py`: Train a GPT model on Shakespeare dataset.
+  - `src/:` The core library directory where all the main functionalities of the project are implemented.
+    - `src/buffer.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
+    - `src/dataset.py`: Handles data loading and preprocessing.
+    - `src/losses.py`: Contains implementations of loss functions used for training.
+    - `src/mlops.py`: Provides a low-level implementation of array operations, similar to NumPy arrays.
+    - `src/module.py`: Defines the base module from which all model components inherit.
+    - `src/nn.py`: Contains the neural network components, including layers and activation functions.
+    - `src/optimizers.py`: Implements optimization algorithms used during training.
+    - `src/tensor.py`: Provides a minimal tensor implementation to support basic tensor operations.
+    - `src/tokenizer.py`: Handles tokenization of text data for model input.
+    - `src/utils.py`: Contains miscellaneous utility functions used across the library.
+  - `tests/`: This directory includes test files for the library's components. Each module in the `src/` directory has corresponding test file.
 
 ## Examples
 The `examples/` directory contains scripts demonstrating how to use TinyGPT for various tasks:
