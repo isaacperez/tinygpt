@@ -37,7 +37,7 @@ For text-based datasets, TinyGPT includes a [BPETokenizer](../src/tinygpt/tokeni
 converting raw text into a sequence of tokens that the model can process.
 
 The final piece required to train a model is the optimization algorithm, which is implemented using the 
-[Optimizer](../src/tinygpt/optimizer.py) class. The optimizer updates the model’s weights based on the computed gradients, 
+[Optimizer](../src/tinygpt/optimizers.py) class. The optimizer updates the model’s weights based on the computed gradients, 
 driving the learning process.
 
 These core abstractions form the foundation of TinyGPT and provide the essential tools needed to train a GPT model.
