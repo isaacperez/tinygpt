@@ -7,6 +7,7 @@
 
 </div>
 
+---
 TinyGPT is a minimalistic library for implementing, training, and performing inference on GPT models from scratch in Python, with no external dependencies. Inspired by [NanoGPT](https://github.com/karpathy/nanoGPT), [Tinygrad](https://github.com/tinygrad/tinygrad), [Pytorch](https://github.com/pytorch/pytorch), and [MLX](https://github.com/ml-explore/mlx), TinyGPT aims to be as educational as possible, avoiding complex optimizations that might obscure the underlying concepts.
 
 ## Features
