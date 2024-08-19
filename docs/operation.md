@@ -3,9 +3,9 @@
 ## Overview
 In deep learning, the process of training models requires not only performing various operations on data but also calculating the gradients of these operations to update the model's parameters. While `Buffer` objects efficiently store and manipulate multi-dimensional data, they do not inherently understand how to compute the derivatives needed for __backpropagation__. This limitation is addressed by the `Operation` class in TinyGPT.
 
-The `Operation` class allows you to define how the forward and backward passes of an operation should be computed over `Buffer` objects. Each Operation subclass in TinyGPT implements specific functionality, handling both the forward computation and the backward gradient propagation. These operations range from basic mathematical functions to more complex tasks like reshaping or permuting.
+The `Operation` class allows you to define how the forward and backward passes of an operation should be computed over `Buffer` objects. Each `Operation` subclass in TinyGPT implements specific functionality, handling both the forward computation and the backward gradient propagation. These operations range from basic mathematical functions to more complex tasks like reshaping or permuting.
 
-You can find the implementation of the Operation class and its subclasses in the TinyGPT source code [here](../src/tinygpt/mlops.py).
+You can find the implementation of the `Operation` class and its subclasses in the TinyGPT source code [here](../src/tinygpt/mlops.py).
 
 ## Core Components
 
