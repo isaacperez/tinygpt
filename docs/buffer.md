@@ -22,7 +22,7 @@ The shape of a `Buffer` defines the size of each dimension of the multi-dimensio
 
 Stride indicates how many elements in the 1D data array you need to skip to move from one element to the next along a particular dimension. Stride is crucial for determining how multi-dimensional arrays are mapped to and from the 1D array.
 
-### Offset
+### Offset
 
 The offset specifies where in the 1D data array the buffer’s actual data begins. This is particularly useful for operations like slicing, where different buffers might share the same underlying data array but start at different points.
 
