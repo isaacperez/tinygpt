@@ -1,6 +1,6 @@
 # Tensor
 ## Overview
-The `Tensor` class in TinyGPT serves as the primary data structure for representing multi-dimensional arrays that can participate in automatic differentiation. `Tensor` encapsulates a Buffer for storing data, while also handling the computational graph required for backpropagation.
+The `Tensor` class in TinyGPT serves as the primary data structure for representing multi-dimensional arrays that can participate in automatic differentiation. `Tensor` encapsulates a `Buffer` for storing data, while also handling the computational graph required for backpropagation.
 
 Tensors are designed to be flexible and powerful, supporting various mathematical operations, broadcasting, and gradient tracking. These features enable the `Tensor` class to be seamlessly integrated into the training process of deep learning models.
 
@@ -112,7 +112,7 @@ c = a + b  # Shape of c will be (3, 3)
 You can also reshape, expand, and permute tensors to change their shape without altering the underlying data.
 
 ```python
-tensor = Tensor.ones((2, 3), dtype=DType.float32)
+tensor = Tensor.ones((2, 3, 1), dtype=DType.float32)
 
 # Reshape the tensor
 reshaped_tensor = tensor.reshape((3, 2))
@@ -121,7 +121,7 @@ reshaped_tensor = tensor.reshape((3, 2))
 expanded_tensor = tensor.expand((2, 3, 4))
 
 # Permute the dimensions
-permuted_tensor = tensor.permute((1, 0))
+permuted_tensor = tensor.permute((1, 0, 2))
 ```
 
 ## Serialization
