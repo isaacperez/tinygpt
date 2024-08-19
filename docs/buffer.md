@@ -15,15 +15,19 @@ You can find the implementation of the Buffer class in the TinyGPT source code [
 The `Buffer` class stores data in a one-dimensional (1D) array, regardless of how many dimensions the original data has. This flattened storage approach allows for more efficient memory usage and manipulation, as it simplifies the underlying data management. However, to interact with this 1D data as if it were multi-dimensional, Buffer uses additional metadata: __shape__, __stride__, __offset__, and __dtype__.
 
 ### Shape
+
 The shape of a `Buffer` defines the size of each dimension of the multi-dimensional array. For example, a 3x3 matrix has a shape of `(3, 3)`, indicating that it has 3 rows and 3 columns.
 
 ### Stride
+
 Stride indicates how many elements in the 1D data array you need to skip to move from one element to the next along a particular dimension. Stride is crucial for determining how multi-dimensional arrays are mapped to and from the 1D array.
 
 ### Offset
+
 The offset specifies where in the 1D data array the buffer’s actual data begins. This is particularly useful for operations like slicing, where different buffers might share the same underlying data array but start at different points.
 
 ### Data Type (DType)
+
 Every buffer in TinyGPT is associated with a specific data type, known as `DType`. This data type determines the kind of elements that the buffer can store, such as integers, floats, or booleans. The `DType` is crucial for ensuring that operations on buffers are performed correctly.
 
 The following data types are supported:
@@ -103,26 +107,19 @@ The `Buffer` class offers a rich set of functionalities that allow you to perfor
 ### Utility Functions and Attributes
 The Buffer class includes several utility functions and attributes that provide additional functionality for managing and understanding the data within the buffer:
 
-  - __data__:
-    - An attribute that stores the actual data of the buffer as a flat array. 
+  - `data`: An attribute that stores the actual data of the buffer as a flat array. 
 
-  - __numel__:
-    - An attribute that returns the total number of elements in the buffer.
+  - `numel`: An attribute that returns the total number of elements in the buffer.
 
-  - __shape__:
-    - An attribute that returns the shape of the buffer as a tuple.
+  - `shape`: An attribute that returns the shape of the buffer as a tuple.
 
-  - __stride__:
-    - An attribute that returns the strides of the buffer. 
+  - `stride`: An attribute that returns the strides of the buffer. 
 
-  - __offset__:
-    - An attribute that returns the offset in the buffer’s data array where the actual data begins.
+  - `offset`: An attribute that returns the offset in the buffer’s data array where the actual data begins.
 
-  - __is_contiguous()__:
-    - A method that checks if the buffer’s data is stored contiguously in memory.
+  - `is_contiguous()`: A method that checks if the buffer’s data is stored contiguously in memory.
 
-  - __to_python()__:
-    - Converts the buffer's data back to standard Python types, such as nested lists or scalars.
+  - `to_python()`: Converts the buffer's data back to standard Python types, such as nested lists or scalars.
 
 ### Example Usage
 Here’s an example that demonstrates some of these operations:
