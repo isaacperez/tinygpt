@@ -4,7 +4,7 @@ The `Module` class in TinyGPT serves as a fundamental building block for constru
 
 The `Module` class is a subclass of Python's dict, allowing it to store its parameters and submodules in a flexible and hierarchical manner. It also provides several utilities to manage these elements, such as freezing/unfreezing parameters, setting the model to training or evaluation mode, and more.
 
-You can find the implementation of this class and the optimizers [here](../src/tinygpt/module.py).
+You can find the implementation of this class [here](../src/tinygpt/module.py).
 
 ## Key Features
 1. __Hierarchical Structure Management__
