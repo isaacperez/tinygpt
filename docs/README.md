@@ -46,11 +46,9 @@ A detailed description of the core components in the project can be found in the
   - [Buffer](buffer.md).
   - [Operation](operation.md).
   - [Tensor](tensor.md).
-  - [GradientFunction](gradientfunction.md).
   - [Module](module.md).
   - [Optimizer](optimizer.md).
   - [Dataset](dataset.md).
-  - [DatasetHandler](datasethandler.md).
   - [BPETokenizer](bpetokenizer.md).
 
 ## Getting started
