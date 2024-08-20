@@ -4,6 +4,8 @@ The `Optimizer` class in TinyGPT serves as a base class for all optimization alg
 
 This class is designed to be extended by specific optimizer implementations, such as SGD (Stochastic Gradient Descent) and Adam. It provides the core functionalities needed for these implementations, including parameter updates, gradient zeroing, and state management.
 
+You can find the implementation of this class and the optimizers [here](../src/tinygpt/optimizers.py).
+
 ## Key Components
 1. __`OptimizerState`__
 

@@ -222,7 +222,7 @@ Each time an operation is performed on tensors, `apply_op` handles the following
 
 The implementation of this function can be found towards the end of the `Tensor` class source code [here](../src/tinygpt/tensor.py).
 
-#### Understanding GradientFunction
+#### Understanding `GradientFunction`
 The `GradientFunction` class is a crucial component in TinyGPT’s backpropagation mechanism. It acts as the connective tissue between the operations performed on tensors and the subsequent gradient calculations. Here's an overview of its key responsibilities:
 
   - __Operation Tracking__: `GradientFunction` records the operation that produced a tensor, along with the input tensors involved. This information is essential for reconstructing the sequence of operations during backpropagation.
