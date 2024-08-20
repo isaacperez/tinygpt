@@ -168,7 +168,7 @@ b = Tensor([4.0, 5.0, 6.0], dtype=DType.float32, requires_grad=True)
 
 # Perform operations on the tensors
 c = a + b  # Tensor c is created as the result of an addition
-d = c * 2  # Tensor d is created as the result of a multiplication
+d = c * 2.0  # Tensor d is created as the result of a multiplication
 ```
 
 In this example:
@@ -185,7 +185,7 @@ In this example:
     - `GradientFunction` (`Add`): A node representing the addition operation that links `a` and `b` to `c`.
     - Tensor `c`: The output node from the addition.
 
-3. __Operation 2 (Multiplication)__: When `c * 2` is performed:
+3. __Operation 2 (Multiplication)__: When `c * 2.0` is performed:
     - The `apply_op` function is invoked again to handle the multiplication.
     - A `Mul` operation instance is created and executed, producing a new buffer.
     - A new tensor `d` is created to store the result.
@@ -207,7 +207,7 @@ The computational graph now represents the sequence of operations that produced 
     Tensor c
            |
            |
-  Mul Operation (d = c * 2)
+  Mul Operation (d = c * 2.0)
            |
            |
     Tensor d
