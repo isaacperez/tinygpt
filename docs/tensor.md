@@ -142,25 +142,103 @@ In TinyGPT, a computational graph is constructed dynamically as operations are p
   - __Nodes__ represent tensors and the operations that produce them.
   - __Edges__ represent the flow of data from one operation to the next.
 
-When you perform an operation on tensors, a new tensor is created to hold the result. If any of the input tensors require gradients (i.e., `requires_grad=True`), the resulting tensor will also require gradients, and a new node will be added to the computational graph. This node will be connected to the input tensors, and the operation that produced the result will be stored in the `grad_fn` attribute of the resulting tensor.
+The creation of this graph involves a collaborative process between `Tensor` objects, the `apply_op` function, and `GradientFunction` instances. Here’s how they work together to build the graph:
 
-For example:
+  - __Tensors__: Each tensor serves as a node in the computational graph. When a tensor is created as a result of an operation, it stores a reference to the operation that produced it in its `grad_fn` attribute. This reference is crucial for linking tensors together in the graph, establishing the relationships between input tensors, the operation performed, and the resulting output tensor.
+
+  - __`apply_op` function__: This function orchestrates the execution of operations on tensors and is key to graph construction. When an operation (such as addition or multiplication) is performed on tensors, `apply_op` is called to:
+    - Perform the operation by applying the corresponding mathematical or logical function.
+    - Generate a new tensor that holds the result of the operation.
+    - Attach a `GradientFunction` to the new tensor if it requires gradient tracking, ensuring that the operation and its inputs are recorded in the graph.
+
+  - __`GradientFunction`__: A `GradientFunction` acts as a bridge between the operation that created a tensor and the input tensors involved in that operation. It stores the operation's details and the input tensors, forming a link in the computational graph. 
+
+Together, these components construct the computational graph by linking tensors and operations in a chain of dependencies. As each operation is performed, the graph grows, with each new tensor and its associated `GradientFunction` extending the graph and recording the history of operations. This structure ensures that, when backpropagation is initiated, the graph provides a clear path for calculating gradients and updating model parameters effectively.
+
+#### Example: Creating a Computational Graph
+Let's illustrate how a simple operation involving tensors builds the computational graph:
 
 ```python
+from tinygpt.tensor import Tensor
+from tinygpt.utils import DType
 
+# Create two tensors with gradient tracking enabled
 a = Tensor([1.0, 2.0, 3.0], dtype=DType.float32, requires_grad=True)
 b = Tensor([4.0, 5.0, 6.0], dtype=DType.float32, requires_grad=True)
 
-c = a + b  # A node is added to the computational graph
-d = c * 2  # Another node is added
+# Perform operations on the tensors
+c = a + b  # Tensor c is created as the result of an addition
+d = c * 2  # Tensor d is created as the result of a multiplication
 ```
 
 In this example:
-  - The addition of `a` and `b` creates a new tensor `c`. The `grad_fn` of `c` will store the operation (`Add`) and the input tensors (`a` and `b`).
-  - The multiplication of `c` by `2` creates another tensor `d`, with its `grad_fn` storing the `Mul` operation and the tensor `c`.
+1. __Tensors `a` and `b`__: These are the initial nodes in the computational graph. Since `requires_grad=True`, they will track all operations applied to them.
 
-To gain a deeper understanding of how tensors and `GradientFunctions` are connected through tensor operations to create the computational graph, be sure to read the section on [apply_op](#apply_op-function-connecting-operations-to-the-computational-graph) and the documentation about `GradientFunction` [here](./gradientfunction.md).
+2. __Operation 1 (Addition)__: When `a + b` is performed, the `apply_op` function is called, which:
+    - Creates an instance of the `Add` operation.
+    - Executes the addition to produce a new buffer.
+    - Creates a new tensor `c` to hold the result.
+    - Assigns a `GradientFunction` to `c` that records the `Add` operation and the input tensors (`a` and `b`).
 
+    At this point, the graph has the following nodes:
+    - Tensor `a` and Tensor `b`: Input nodes.
+    - `GradientFunction` (`Add`): A node representing the addition operation that links `a` and `b` to `c`.
+    - Tensor `c`: The output node from the addition.
+
+3. __Operation 2 (Multiplication)__: When `c * 2` is performed:
+    - The `apply_op` function is invoked again to handle the multiplication.
+    - A `Mul` operation instance is created and executed, producing a new buffer.
+    - A new tensor `d` is created to store the result.
+    - A `GradientFunction` is assigned to `d`, linking it to the multiplication operation and its input tensor `c`.
+
+    Now, the graph is extended to include:
+    - Tensor `d`: The output node from the multiplication.
+    - `GradientFunction` (`Mul`): A node representing the multiplication operation that connects `c` to `d`.
+
+The computational graph now represents the sequence of operations that produced `d` from `a` and `b`, tracking all necessary dependencies for backpropagation:
+
+```
+  Tensor a   Tensor b
+     |          |
+     |          |
+    Add Operation (c = a + b)
+           |
+           |
+    Tensor c
+           |
+           |
+  Mul Operation (d = c * 2)
+           |
+           |
+    Tensor d
+```
+
+#### The Role of `apply_op` in Graph Construction
+Each time an operation is performed on tensors, `apply_op` handles the following steps:
+  - __Operation Initialization__: `apply_op` first creates an instance of the operation (e.g., `Add`, `Mul`) being applied.
+  - __Forward Pass Execution__: It then performs the forward pass of the operation using the input tensors, producing an output buffer.
+  - __Tensor Creation__: A new tensor is created to hold the result of the operation. If any of the input tensors have `requires_grad=True`, the output tensor will also require gradients.
+  - __`GradientFunction` Assignment__: If the output tensor requires gradients, `apply_op` assigns a `GradientFunction` to the tensor’s `grad_fn` attribute. This `GradientFunction` tracks the operation and its inputs, effectively linking this tensor to its predecessors in the computational graph.
+
+The implementation of this function can be found towards the end of the `Tensor` class source code [here](../src/tinygpt/tensor.py).
+
+#### Understanding GradientFunction
+The `GradientFunction` class is a crucial component in TinyGPT’s backpropagation mechanism. It acts as the connective tissue between the operations performed on tensors and the subsequent gradient calculations. Here's an overview of its key responsibilities:
+
+  - __Operation Tracking__: `GradientFunction` records the operation that produced a tensor, along with the input tensors involved. This information is essential for reconstructing the sequence of operations during backpropagation.
+
+  - __Gradient Management__: During backpropagation, `GradientFunction` is responsible for calculating the gradients of the operation's output with respect to its inputs and then propagating these gradients backward through the graph.
+
+When an operation is performed and results in a new tensor, the following steps occur:
+1. __Initialization__: The `apply_op` function assigns a `GradientFunction` instance to the `grad_fn` attribute of the new tensor if `requires_grad=True`. This instance stores a reference to the operation and its input tensors.
+2. __Backward Pass__: During backpropagation, the `backward()` method of the `GradientFunction` is invoked. This method:
+  - __Version checking__: It first verifies that the versions of the input tensors match the versions recorded when the operation was initially performed. This check ensures that no in-place modifications have occurred, which could invalidate the computational graph.
+  - __Gradient calculation__: It then computes the gradients of the operation with respect to its inputs using the chain rule. 
+  - __Gradient propagation__: Finally, the computed gradients are propagated to the input tensors, enabling the backward pass to continue through the graph. 
+
+3. __Signal Propagation__: Before the actual gradient computation, a "reference signal" is propagated through the graph. This signal ensures that each tensor only propagates its gradient once it has received all expected gradients. This process is managed by the `_propagate_reference_signal()` method and is crucial for optimizing the backpropagation process by reducing redundant computations.
+
+The implementation of this class can be found towards the end of the `Tensor` class source code [here](../src/tinygpt/tensor.py).
 
 ### Backpropagation
 Backpropagation is a fundamental process in deep learning that involves computing the gradients of the loss function with respect to each tensor in the computational graph. The `Tensor` class in TinyGPT is designed to handle this process efficiently, leveraging a combination of signal propagation, gradient accumulation, and gradient propagation to ensure that gradients are correctly computed and applied.
@@ -173,9 +251,9 @@ When backpropagation is initiated, the process involves several key steps:
 
 - **Gradient Propagation**: The accumulated gradients are then propagated backward through the graph, from the output back to the input tensors. The `_propagate_gradient()` method ensures that gradients are only propagated once all expected gradients have been received, reducing redundant computations.
 
-Each operation's `backward()` method is crucial in this process. It is responsible for computing the local gradients (i.e., the gradients of the operation's output with respect to its inputs) and propagating these gradients backward through the computational graph. For more details on how operations handle this process, refer to the [Operation class documentation](./operation.md).
+Each operation's `backward()` method is crucial in this process. It is responsible for computing the local gradients (i.e., the gradients of the operation's output with respect to its inputs) and propagating these gradients backward through the computational graph. 
 
-During backpropagation, the `GradientFunction` plays a vital role by orchestrating how gradients are propagated through the computational graph. Each `Tensor` that requires a gradient is associated with a `GradientFunction`, which keeps track of the operation that created the tensor and its inputs. This function ensures that gradients are correctly accumulated and propagated back through the graph, respecting the dependencies and sequence of operations. You can read more about the `GradientFunction` class [here](./gradientfunction.md).
+During backpropagation, the `GradientFunction` plays a vital role by orchestrating how gradients are propagated through the computational graph. Each `Tensor` that requires a gradient is associated with a `GradientFunction`, which keeps track of the operation that created the tensor and its inputs. This function ensures that gradients are correctly accumulated and propagated back through the graph, respecting the dependencies and sequence of operations. 
 
 #### How Backpropagation Works
 
@@ -189,8 +267,11 @@ During backpropagation, the `GradientFunction` plays a vital role by orchestrati
 2. __Signal Propagation__:
     Before any actual gradient computation takes place, the system propagates a "signal" through the computational graph. This signal helps each tensor keep track of how many gradients it should expect to receive from its downstream operations. The purpose of this step is to ensure that a tensor only propagates its gradient backward once it has received all the expected gradients. This reduces redundant gradient propagations and makes the backpropagation process more efficient.
 
-    - __Signal Propagation Implementation__:
+    - __Signal Propagation Implementation in `Tensor`__:
         When the `backward()` method is called, the tensor first calls `_propagate_reference_signal()`. This method increments a counter (`_pending_gradients_count`) in each tensor to track the number of gradients it needs to receive. Only after all expected gradients have been received will the tensor propagate its accumulated gradient further back through the graph.
+
+    - __Signal Propagation Implementation in `GradientFunction`__:
+        Each `GradientFunction` instance is responsible for propagating this signal to its input tensors. The `_propagate_reference_signal()` method in `GradientFunction` ensures that the signal is only propagated once, preventing redundant increments. This method calls `_increment_pending_gradients()` on each input tensor, signaling that these tensors should expect a gradient from the current operation.
 
 3. __Gradient Initialization__:
     Once the signal propagation is complete, the actual gradient computation begins. The gradient for the starting tensor (typically the loss) is initialized. For scalar tensors, this gradient is `1.0`. For non-scalar tensors, the provided gradient is validated and used for the backward pass.
@@ -198,14 +279,20 @@ During backpropagation, the `GradientFunction` plays a vital role by orchestrati
 4. __Gradient Accumulation__:
     As gradients flow backward through the graph, each tensor accumulates the incoming gradients. This is especially important when a tensor contributes to multiple operations, as it needs to sum the gradients from all those operations before sending its accumulated gradient backward.
 
-    - __Gradient Accumulation Implementation__:
-        In the `Tensor` class, the `_accumulate_gradient()` method is responsible for accumulating gradients in the `grad` attribute (for leaf tensors or when retaining gradients) and in the `_accumulated_gradient_to_propagate` attribute, which is used to store gradients temporarily until the tensor has received all the expected gradients.
+    - __Gradient Accumulation Implementation in `Tensor`__:
+        The `_accumulate_gradient()` method in the `Tensor` class is responsible for accumulating gradients in the `grad` attribute (for leaf tensors or when retaining gradients) and in the `_accumulated_gradient_to_propagate attribute`, which is used to store gradients temporarily until the tensor has received all the expected gradients.
+
+    - __Gradient Accumulation Implementation in `GradientFunction`__:
+        The `GradientFunction` itself does not directly accumulate gradients, but it plays a crucial role in ensuring that gradients are propagated correctly. When the `backward()` method of a `GradientFunction` is called, it computes the gradients for its operation and passes these gradients to the input tensors. Each input tensor will then use `_accumulate_gradient()` to store and accumulate the gradients as necessary.
 
 5. __Gradient Propagation__:
     Once a tensor has accumulated all the gradients it expects, it propagates the accumulated gradient to its input tensors. This step involves calling the `backward()` method of the `GradientFunction` associated with the tensor, which further propagates the gradient to the tensor's inputs.
 
-    - __Gradient Propagation Implementation__:
+    - __Gradient Propagation Implementation in `Tensor`__:
         The `_propagate_gradient()` method in the `Tensor` class is responsible for this step. It ensures that the gradient is only propagated once all expected gradients have been received, thereby avoiding unnecessary recomputation.
+
+    - __Gradient Propagation Implementation in `GradientFunction`__:
+        The `backward()` method in `GradientFunction` is where the actual gradient computation for each operation occurs. It first checks if the versions of the input tensors match the versions recorded when the operation was initially performed, ensuring the computational graph's integrity. Then, it computes the gradients of the operation with respect to its inputs and propagates these gradients to the input tensors. This propagation is recursive, meaning that it continues through the graph until it reaches the leaf tensors.
 
 6. __Releasing the Computational Graph__:
     After backpropagation, the computational graph is usually released to free up memory. This means that you cannot perform another backward pass unless you explicitly retain the graph by passing `retain_graph=True` to the `backward()` method.
@@ -238,84 +325,22 @@ print("Gradient of x:", x.grad)
 print("Gradient of y:", y.grad)
 ```
 
-#### Visualization of the Computational Graph
+### Visualization of the Computational Graph
 You can visualize the computational graph using the `print_dag()` method provided by the `Tensor` class. This method prints the directed acyclic graph of operations leading to the current tensor, helping you to debug and understand how the computations are structured.
 
 ```python
 x.print_dag()
 ```
-#### Zeroing Gradients
+### Zeroing Gradients
 Before performing a new forward and backward pass, it’s often necessary to reset the gradients. The `zero_grad()` method resets the gradients to `None`:
 
 ```python
 a.zero_grad()
 ```
 
-#### Handling Non-Leaf Tensors
+### Handling Non-Leaf Tensors
 By default, gradients are only stored for leaf tensors (tensors that are not the result of an operation). This helps conserve memory during backpropagation. However, if you want to retain gradients for non-leaf tensors (e.g., for further analysis), you can use the `retain_grad()` method.
 
 ```python
 non_leaf_tensor.retain_grad()
 ```
-
-### `apply_op` Function: Connecting Operations to the Computational Graph
-The `apply_op` function is a key component in TinyGPT that facilitates the connection between tensor operations and the construction of the computational graph. This function is responsible for:
-
-  - __Creating the Operation object__: It instantiates the specific operation class (e.g., `Add`, `Mul`, `Dot`) that defines the forward and backward passes for the operation.
-
-  - __Performing the operation__: It applies the operation to the input tensors by calling the operation's `forward()` method.
-
-  - __Creating the resulting tensor__: It wraps the result of the operation in a new `Tensor` object.
-
-  - __Setting up the computational graph__: If any of the input tensors require gradients, `apply_op` sets up the necessary connections in the computational graph by assigning a `GradientFunction` to the resulting tensor.
-
-The implementation of this function can be found towards the end of the `Tensor` class source code [here](../src/tinygpt/tensor.py).
-
-#### How apply_op Works
-
-When you perform an operation on tensors (e.g., `+`, `*`, `dot()`), the corresponding magic method or operation method in the `Tensor` class calls `apply_op`. Here’s a breakdown of what happens inside `apply_op`:
-
-  -__Determining Gradient Requirement__:
-    The function first checks whether any of the input tensors require gradients. If so, the resulting tensor will also require gradients, and `requires_grad` is set to `True`.
-
-  - __Instantiating the Operation Object__:
-    The function then creates an instance of the operation class (passed as `operation_cls`). This object will handle the forward and backward computations.
-
-  - __Performing the Forward Pass__:
-    `apply_op` calls the `forward()` method of the operation object, passing the buffers of the input tensors. This method returns a new buffer containing the result of the operation.
-
-  - __Creating the Output Tensor__:
-    A new Tensor is created to hold the result of the operation, using the buffer returned by the forward pass.
-
-  - __Setting Up the Computational Graph__:
-    If the output tensor requires gradients, `apply_op` creates a `GradientFunction` object, linking the operation and the input tensors. This `GradientFunction` is assigned to the `grad_fn` attribute of the resulting tensor, making it a part of the computational graph.
-
-  - __Returning the Resulting Tensor__:
-    Finally, the resulting tensor is returned, now connected to the computational graph if gradients are needed.
-
-#### Example of apply_op in Action
-Here’s an example of how `apply_op` is used within a tensor operation:
-
-```python
-def __add__(self, other: Any) -> Tensor:
-    if not isinstance(other, Tensor):
-        other = Tensor(other)
-    return apply_op(mlops.Add, *self._broadcasted(other))
-```
-
-In this example, when two tensors are added using the `+` operator:
-
-  - The `__add__` method is called.
-  - `apply_op` is invoked with the `Add` operation class and the two tensors as arguments.
-  - `apply_op` handles the creation of the computational graph and returns the resulting tensor.
-
-#### How apply_op Helps Create the Computational Graph
-Every time you perform an operation on tensors that requires gradient tracking, `apply_op` ensures that the resulting tensor is connected to the computational graph. Here’s how:
-
-  - __Operation Tracking__: Each operation (like addition, multiplication, etc.) is tracked by the creation of an `Operation` object that knows how to compute both the forward result and the backward gradients.
-
-  - __Graph Construction__: The `GradientFunction` created by `apply_op` links the resulting tensor to its inputs and the operation that produced it. This forms a node in the computational graph.
-
-  - __Backward Pass__: During backpropagation, this graph is traversed in reverse, using the connections set up by `apply_op` to compute gradients and propagate them backward through the network.
-
-In essence, `apply_op` is the glue that binds tensor operations to the computational graph, enabling the powerful automatic differentiation capabilities of TinyGPT.
