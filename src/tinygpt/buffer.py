@@ -693,7 +693,7 @@ class Buffer():
             data = [dtype.cast(random.uniform(0.0, 1.0)) for _ in range(numel)]
         elif init_op == Buffer.Op.NORMAL:
             # Generate random values using Normal distribution
-            data = [dtype.cast(random.gauss()) for _ in range(numel)]
+            data = [dtype.cast(random.gauss(mu=0, sigma=1)) for _ in range(numel)]
         elif init_op == Buffer.Op.ZEROS:
             data = [dtype.cast(0.0) for _ in range(numel)]
         elif init_op == Buffer.Op.ONES:
