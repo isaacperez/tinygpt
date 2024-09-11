@@ -16,7 +16,7 @@ TinyGPT is a minimalistic library for implementing, training, and performing inf
 - **Modular Design**: The library is divided into several modules, each focusing on a specific aspect of training and inference.
 
 ## Installation
-The current recommended way to install TinyGPT is from source.
+TinyGPT requires **Python 3.12 or higher**. The current recommended way to install TinyGPT is from source.
 
 ### From source
 ```bash
