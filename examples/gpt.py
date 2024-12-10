@@ -172,7 +172,7 @@ if __name__ == "__main__":
     loss_fn = CrossEntropyLoss()
 
     # Create the optimizer
-    sgd = Adam(module=gpt, learning_rate=0.0003)
+    adam_optimizer = Adam(module=gpt, learning_rate=0.0003)
 
     # Training loop
     print("Begining training...")
@@ -183,7 +183,7 @@ if __name__ == "__main__":
             target_ids = Tensor(target_ids)
 
             # Clean the gradients of previous iterations 
-            sgd.zero_grad()
+            adam_optimizer.zero_grad()
 
             # Do inference with the model
             start = time.time()
@@ -204,7 +204,7 @@ if __name__ == "__main__":
             # Do the backward pass
             start = time.time()
             loss.backward()
-            sgd.update() 
+            adam_optimizer.update() 
             end = time.time()
             backward_time = end - start
 
